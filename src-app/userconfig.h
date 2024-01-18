@@ -4,6 +4,7 @@
 #include "eeprom.h"
 
 extern uint32_t eeprom_save_time;
+extern EEPROM_data_t cfg;
 
 bool eeprom_verify_checksum(uint8_t* ptr8);
 bool eeprom_load_or_default(void);

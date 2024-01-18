@@ -1,7 +1,6 @@
 QUIET = 
 ARM_SDK_PREFIX = arm-none-eabi-
 CC  = $(ARM_SDK_PREFIX)gcc
-CPP = $(ARM_SDK_PREFIX)g++
 OC  = $(ARM_SDK_PREFIX)objcopy
 ECHO = echo
 MAKE = make

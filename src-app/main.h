@@ -14,3 +14,5 @@
 #include "mcu.h"
 
 #include "systick.h"
+
+#include "funcs.h"

@@ -33,3 +33,34 @@
 #include "stm32g0xx_ll_tim.h"
 #include "stm32g0xx_ll_adc.h"
 #endif
+
+#define CLK_CNT(rate) ((SystemCoreClock + ((rate) >> 1)) / (rate))
+
+#ifndef TIM_SMCR_SMS_RM
+#define TIM_SMCR_SMS_RM    (TIM_SMCR_SMS_2)
+#endif
+
+#ifndef TIM_SMCR_TS_TI1FP1
+#define TIM_SMCR_TS_TI1FP1    (TIM_SMCR_TS_0 | TIM_SMCR_TS_2)
+#endif
+
+#ifndef TIM_CCMR1_CC1S_IN_TI1
+#define TIM_CCMR1_CC1S_IN_TI1    (TIM_CCMR1_CC1S_0)
+#define TIM_CCMR1_CC2S_IN_TI1    (TIM_CCMR1_CC2S_0)
+#define TIM_CCMR1_CC3S_IN_TI1    (TIM_CCMR1_CC3S_0)
+#define TIM_CCMR1_CC4S_IN_TI1    (TIM_CCMR1_CC4S_0)
+#endif
+
+#ifndef TIM_CCMR1_IC1F_CK_INT_N_8
+#define TIM_CCMR1_IC1F_CK_INT_N_8    (TIM_CCMR1_IC1F_0 | TIM_CCMR1_IC1F_1)
+#define TIM_CCMR1_IC2F_CK_INT_N_8    (TIM_CCMR1_IC2F_0 | TIM_CCMR1_IC2F_1)
+#define TIM_CCMR1_IC3F_CK_INT_N_8    (TIM_CCMR1_IC3F_0 | TIM_CCMR1_IC3F_1)
+#define TIM_CCMR1_IC4F_CK_INT_N_8    (TIM_CCMR1_IC4F_0 | TIM_CCMR1_IC4F_1)
+#endif
+
+#ifndef TIM_CCMR1_IC1F_DTF_DIV_8_N_8
+#define TIM_CCMR1_IC1F_DTF_DIV_8_N_8    (TIM_CCMR1_IC1F_0 | TIM_CCMR1_IC1F_3)
+#define TIM_CCMR1_IC2F_DTF_DIV_8_N_8    (TIM_CCMR1_IC2F_0 | TIM_CCMR1_IC2F_3)
+#define TIM_CCMR1_IC3F_DTF_DIV_8_N_8    (TIM_CCMR1_IC3F_0 | TIM_CCMR1_IC3F_3)
+#define TIM_CCMR1_IC4F_DTF_DIV_8_N_8    (TIM_CCMR1_IC4F_0 | TIM_CCMR1_IC4F_3)
+#endif

@@ -795,17 +795,17 @@
 
 #ifdef HARDWARE_GROUP_G0_A
 
-    #define    MCU_G071
-    #define    USE_TIMER_3_CHANNEL_1
-    #define    INPUT_PIN                   LL_GPIO_PIN_4
-    #define    INPUT_PIN_PORT              GPIOB
-    #define    IC_TIMER_CHANNEL            LL_TIM_CHANNEL_CH1
-    #define    IC_TIMER_REGISTER           TIM3
-    #define    IC_TIMER_POINTER            htim3
+    #define MCU_G071
+    #define USE_TIMER_3_CHANNEL_1
+    #define INPUT_PIN                      LL_GPIO_PIN_4
+    #define INPUT_PIN_PORT                 GPIOB
+    #define IC_TIMER_CHANNEL               LL_TIM_CHANNEL_CH1
+    #define IC_TIMER_REGISTER              TIM3
+    #define IC_TIMER_POINTER               htim3
 
-    #define    INPUT_DMA_CHANNEL           LL_DMA_CHANNEL_1
-    #define    DMA_HANDLE_TYPE_DEF         hdma_tim3_ch1
-    #define    IC_DMA_IRQ_NAME             DMA1_Channel1_IRQn
+    #define INPUT_DMA_CHANNEL              LL_DMA_CHANNEL_1
+    #define DMA_HANDLE_TYPE_DEF            hdma_tim3_ch1
+    #define IC_DMA_IRQ_NAME                DMA1_Channel1_IRQn
 
     #define PHASE_A_GPIO_LOW               LL_GPIO_PIN_1
     #define PHASE_A_GPIO_PORT_LOW          GPIOB

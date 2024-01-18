@@ -1,15 +1,20 @@
 #include "main.h"
 #include "userconfig.h"
 
+#define FOOL_AM32 \
+    .fool_am32_bootloader_0   = 0x01, \
+    .fool_am32_bootloader_1   = 0x01, \
+    .fool_am32_bootloader_2   = 0x08, \
+    .fool_am32_eeprom_layout  = 0x0A, \
+    .fool_am32_version_major  = 1,    \
+    .fool_am32_version_minor  = 99,   \
+    .fool_am32_name           = {'F', 'L', 'O', 'O', 'R', 'I', 'T', '\0', }, \
+
+
+
 // this stores a default settings copy in flash, somewhere inside the application flash memory
 const EEPROM_data_t default_eeprom = {
-    .fool_am32_bootloader_0   = 0x01,
-    .fool_am32_bootloader_1   = 0x01,
-    .fool_am32_bootloader_2   = 0x08,
-    .fool_am32_eeprom_layout  = 0x0A,
-    .fool_am32_version_major  = 1,
-    .fool_am32_version_minor  = 99,
-    .fool_am32_name           = {'F', 'L', 'O', 'O', 'R', 'I', 'T', '\0', },
+    FOOL_AM32
 
     .magic              = 0xDEADBEEF,
     .version_major      = VERSION_MAJOR,
@@ -22,10 +27,10 @@ const EEPROM_data_t default_eeprom = {
 
     .channel_0          = 1,
     .channel_1          = 2,
+    .channel_mode       = 5,
 
-    .rc_min             = 1000,
     .rc_mid             = 1500,
-    .rc_max             = 2000,
+    .rc_range           = 500,
     .rc_deadzone        = 10,
 
     .pwm_reload         = 1999,
@@ -35,14 +40,17 @@ const EEPROM_data_t default_eeprom = {
     .chan_swap          = false,
     .flip_0             = false,
     .flip_1             = false,
-    .arm_required       = true,
+    .tied               = false,
+    .arm_duration       = 100,
     .temperature_limit  = 0,
     .current_limit      = 0,
 };
 
 // this stores a copy in the flash region allocated for EEPROM, this is writable
 __attribute__((__section__(".EEPROM")))
-EEPROM_data_t cfge = default_eeprom;
+const EEPROM_data_t cfge = {
+    FOOL_AM32
+};
 uint32_t cfg_addr = (uint32_t)(&cfge);
 
 // this stores the config in RAM
@@ -55,9 +63,9 @@ const EEPROM_item_t cfg_items[] = {
     { .name = "baud"         , .ptr = (uint32_t)&(cfge.baud               ), .size = sizeof(cfge.baud                ), },
     { .name = "channel_0"    , .ptr = (uint32_t)&(cfge.channel_0          ), .size = sizeof(cfge.channel_0           ), },
     { .name = "channel_1"    , .ptr = (uint32_t)&(cfge.channel_1          ), .size = sizeof(cfge.channel_1           ), },
-    { .name = "rc_min"       , .ptr = (uint32_t)&(cfge.rc_min             ), .size = sizeof(cfge.rc_min              ), },
+    { .name = "channel_mode" , .ptr = (uint32_t)&(cfge.channel_mode       ), .size = sizeof(cfge.channel_mode        ), },
     { .name = "rc_mid"       , .ptr = (uint32_t)&(cfge.rc_mid             ), .size = sizeof(cfge.rc_mid              ), },
-    { .name = "rc_max"       , .ptr = (uint32_t)&(cfge.rc_max             ), .size = sizeof(cfge.rc_max              ), },
+    { .name = "rc_range"     , .ptr = (uint32_t)&(cfge.rc_range           ), .size = sizeof(cfge.rc_range            ), },
     { .name = "rc_deadzone"  , .ptr = (uint32_t)&(cfge.rc_deadzone        ), .size = sizeof(cfge.rc_deadzone         ), },
     { .name = "pwm_reload"   , .ptr = (uint32_t)&(cfge.pwm_reload         ), .size = sizeof(cfge.pwm_reload          ), },
     { .name = "pwm_headroom" , .ptr = (uint32_t)&(cfge.pwm_headroom       ), .size = sizeof(cfge.pwm_headroom        ), },
@@ -65,7 +73,8 @@ const EEPROM_item_t cfg_items[] = {
     { .name = "chanswap"     , .ptr = (uint32_t)&(cfge.chan_swap          ), .size = sizeof(cfge.chan_swap           ), },
     { .name = "flip0"        , .ptr = (uint32_t)&(cfge.flip_0             ), .size = sizeof(cfge.flip_0              ), },
     { .name = "flip1"        , .ptr = (uint32_t)&(cfge.flip_1             ), .size = sizeof(cfge.flip_1              ), },
-    { .name = "armrequired"  , .ptr = (uint32_t)&(cfge.arm_required       ), .size = sizeof(cfge.arm_required        ), },
+    { .name = "tied"         , .ptr = (uint32_t)&(cfge.tied               ), .size = sizeof(cfge.tied                ), },
+    { .name = "armdur"       , .ptr = (uint32_t)&(cfge.arm_duration       ), .size = sizeof(cfge.arm_duration        ), },
     { .name = "templim"      , .ptr = (uint32_t)&(cfge.temperature_limit  ), .size = sizeof(cfge.temperature_limit   ), },
     { .name = "currlim"      , .ptr = (uint32_t)&(cfge.current_limit      ), .size = sizeof(cfge.current_limit       ), },
     { .name = {0}, .ptr = 0, .size = 0, }, // indicate end of list

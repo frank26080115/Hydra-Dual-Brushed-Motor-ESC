@@ -39,8 +39,8 @@ typedef struct
     // start defining the actual EEPROM
 
     uint32_t magic;
-    uint32_t version_major;
-    uint32_t version_eeprom;
+    uint8_t version_major;
+    uint8_t version_eeprom;
 
     uint8_t voltage_split_mode;
     uint8_t input_mode;
@@ -50,11 +50,11 @@ typedef struct
     // CRSF channel selection
     uint8_t channel_0;
     uint8_t channel_1;
+    uint8_t channel_mode;
 
     // RC signal calibration, units are microseconds
-    uint16_t rc_min;
     uint16_t rc_mid;
-    uint16_t rc_max;
+    uint16_t rc_range;
     uint16_t rc_deadzone;
 
     // driver PWM options
@@ -65,7 +65,8 @@ typedef struct
     bool chan_swap;
     bool flip_0;
     bool flip_1;
-    bool arm_required;
+    bool tied;
+    uint16_t arm_duration;
     uint8_t temperature_limit;
     uint32_t current_limit;
 
