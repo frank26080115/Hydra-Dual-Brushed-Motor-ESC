@@ -2,6 +2,15 @@
 #include "userconfig.h"
 #include "inputpin.h"
 
+pid_t current_pid = {
+    .Kp = 400,
+    .Ki = 0,
+    .Kd = 1000,
+    .integral_limit = 20000,
+    .output_limit = 100000
+};
+int16_t current_limit_val = 0;
+
 int main(void)
 {
     mcu_init();
@@ -82,4 +91,19 @@ void boot_decide_cli(void)
             cli_enter(); // this never returns
         }
     }
+}
+
+void current_limit_task()
+{
+    static uint32_t last_time = 0;
+    if (cfg->current_limit <= 0) {
+        current_limit_val = 0;
+        return;
+    }
+    uint32_t now = millis();
+    if (last_time == now) {
+        return;
+    }
+    last_time = now;
+    current_limit_val = (int16_t)lroundf((pid_calc(&current_pid, lroundf(sense_current), cfg->current_limit * 100) / 10000));
 }

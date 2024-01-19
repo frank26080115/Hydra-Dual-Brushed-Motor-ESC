@@ -37,6 +37,7 @@ void led_task(void)
     if ((millis() - last_time) < 100) {
         return;
     }
+    last_time = millis();
 
     blink_tmr++; // this will increment forever, 32 bits means 4971 days of operation without overflow
 

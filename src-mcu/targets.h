@@ -1587,10 +1587,12 @@
     #define USE_ADC
     #ifndef CURRENT_ADC_PIN
         #define CURRENT_ADC_PIN        LL_GPIO_PIN_6
+        #define CURRENT_ADC_PORT       GPIOA
         #define CURRENT_ADC_CHANNEL    LL_ADC_CHANNEL_6
     #endif
     #ifndef VOLTAGE_ADC_PIN
         #define VOLTAGE_ADC_PIN        LL_GPIO_PIN_3
+        #define VOLTAGE_ADC_PORT       GPIOA
         #define VOLTAGE_ADC_CHANNEL    LL_ADC_CHANNEL_3
     #endif
     #ifndef LED_IS_ACTIVEHIGH
@@ -1673,9 +1675,11 @@
     #endif
     #ifndef CURRENT_ADC_PIN
         #define CURRENT_ADC_PIN     LL_GPIO_PIN_5
+        #define CURRENT_ADC_PORT    GPIOA
     #endif
     #ifndef VOLTAGE_ADC_PIN
         #define VOLTAGE_ADC_PIN     LL_GPIO_PIN_6
+        #define VOLTAGE_ADC_PORT    GPIOA
     #endif
 #endif
 

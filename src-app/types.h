@@ -47,6 +47,12 @@ typedef struct
     uint8_t phase_map;
     uint32_t baud;
 
+    // hardware ADC calibration
+    uint32_t voltage_divider;
+    uint32_t current_offset;
+    uint32_t current_scale;
+    uint16_t adc_filter
+
     // CRSF channel selection
     uint8_t channel_0;
     uint8_t channel_1;
@@ -70,6 +76,10 @@ typedef struct
     uint8_t temperature_limit;
     uint32_t current_limit;
 
+    int32_t currlim_kp;
+    int32_t currlim_ki;
+    int32_t currlim_kd;
+
     EEPROM_chksum_t chksum;
 } __attribute__((packed))
 EEPROM_data_t;
@@ -81,6 +91,19 @@ typedef struct
     uint8_t  size;
 } __attribute__((packed))
 EEPROM_item_t;
+
+typedef struct {
+    int32_t error;
+    int32_t Kp;
+    int32_t Ki;
+    int32_t Kd;
+    int32_t integral;
+    int32_t derivative;
+    int32_t last_error;
+    int32_t pid_output;
+    int32_t integral_limit;
+    int32_t output_limit;
+} pid_t;
 
 #ifdef __cplusplus
 }

@@ -24,7 +24,7 @@ const EEPROM_data_t default_eeprom = {
     .voltage_split_mode = VSPLITMODE_BOOST_ALWAYS,
     .input_mode         = INPUTMODE_RC,
     .phase_map          = 0,
-    .baud               = 420000,
+    .baud               = 416666,
 
     .channel_0          = 1,
     .channel_1          = 2,
@@ -45,6 +45,14 @@ const EEPROM_data_t default_eeprom = {
     .arm_duration       = 100,
     .temperature_limit  = 0,
     .current_limit      = 0,
+
+    .voltage_divider    = TARGET_VOLTAGE_DIVIDER,
+    .current_offset     = CURRENT_OFFSET,
+    .current_scale      = MILLIVOLT_PER_AMP,
+    .adc_filter         = 100,
+    .currlim_kp         = 400,
+    .currlim_ki         = 0,
+    .currlim_kd         = 1000,
 };
 
 // this stores a copy in the flash region allocated for EEPROM, this is writable
@@ -56,6 +64,8 @@ uint32_t cfg_addr = (uint32_t)(&cfge);
 
 // this stores the config in RAM
 EEPROM_data_t cfg;
+
+#define DCLR_ITM(a, b)        { .name = a, .ptr = (uint32_t)&(cfge.##b ), .size = sizeof(cfge.##b ), },
 
 const EEPROM_item_t cfg_items[] = {
     { .name = "vsplitmode"   , .ptr = (uint32_t)&(cfge.voltage_split_mode ), .size = sizeof(cfge.voltage_split_mode  ), },
@@ -78,6 +88,13 @@ const EEPROM_item_t cfg_items[] = {
     { .name = "armdur"       , .ptr = (uint32_t)&(cfge.arm_duration       ), .size = sizeof(cfge.arm_duration        ), },
     { .name = "templim"      , .ptr = (uint32_t)&(cfge.temperature_limit  ), .size = sizeof(cfge.temperature_limit   ), },
     { .name = "currlim"      , .ptr = (uint32_t)&(cfge.current_limit      ), .size = sizeof(cfge.current_limit       ), },
+    { .name = "voltdiv"      , .ptr = (uint32_t)&(cfge.voltage_divider    ), .size = sizeof(cfge.voltage_divider     ), },
+    { .name = "curroffset"   , .ptr = (uint32_t)&(cfge.current_offset     ), .size = sizeof(cfge.current_offset      ), },
+    { .name = "currscale"    , .ptr = (uint32_t)&(cfge.current_scale      ), .size = sizeof(cfge.current_scale       ), },
+    { .name = "adcfilter"    , .ptr = (uint32_t)&(cfge.adc_filter         ), .size = sizeof(cfge.adc_filter          ), },
+    { .name = "curlimkp"     , .ptr = (uint32_t)&(cfge.currlim_kp         ), .size = sizeof(cfge.currlim_kp          ), },
+    { .name = "curlimki"     , .ptr = (uint32_t)&(cfge.currlim_ki         ), .size = sizeof(cfge.currlim_ki          ), },
+    { .name = "curlimkd"     , .ptr = (uint32_t)&(cfge.currlim_kd         ), .size = sizeof(cfge.currlim_kd          ), },
     { .name = {0}, .ptr = 0, .size = 0, }, // indicate end of list
 };
 

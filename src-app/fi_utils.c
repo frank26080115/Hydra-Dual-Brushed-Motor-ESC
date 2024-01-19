@@ -90,3 +90,30 @@ bool item_strcmp(const char* usr_inp, const char* table_item)
     }
     return true;
 }
+
+float pid_calc(pid_t* pidnow, int actual, int target)
+{
+    // this is expected to run at 1 kHz loop time
+
+    pidnow->error = actual - target;
+    pidnow->integral = pidnow->integral + pidnow->error * pidnow->Ki;
+    if (pidnow->integral > pidnow->integral_limit) {
+        pidnow->integral = pidnow->integral_limit;
+    }
+    if (pidnow->integral < -pidnow->integral_limit) {
+        pidnow->integral = -pidnow->integral_limit;
+    }
+
+    pidnow->derivative = pidnow->Kd * (pidnow->error - pidnow->last_error);
+    pidnow->last_error = pidnow->error;
+
+    pidnow->pid_output = pidnow->error * pidnow->Kp + pidnow->integral + pidnow->derivative;
+
+    if (pidnow->pid_output > pidnow->output_limit) {
+        pidnow->pid_output = pidnow->output_limit;
+    }
+    if (pidnow->pid_output < -pidnow->output_limit) {
+        pidnow->pid_output = -pidnow->output_limit;
+    }
+    return pidnow->pid_output;
+}

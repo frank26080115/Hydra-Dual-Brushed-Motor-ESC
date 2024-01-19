@@ -11,6 +11,8 @@ int32_t* cmd_args;
 
 uint8_t cli_phaseremap;
 
+Cereal* cli_cereal;
+
 void cli_enter(void)
 {
     #if INPUT_PIN == LL_GPIO_PIN_2
@@ -20,6 +22,8 @@ void cli_enter(void)
     Cereal_TimerBitbang* cer = new Cereal_TimerBitbang(0, CLI_BUFF_SIZE);
     cer->begin(CLI_BAUD);
     #endif
+
+    cli_cereal = cer;
 
     cmd_args = (int32_t*)malloc(MAX_CMD_ARGS * sizeof(int32_t)); // do not waste RAM unless we are in CLI mode
 
@@ -109,6 +113,15 @@ void cli_enter(void)
 
         // do other things
         eeprom_save_if_needed();
+        if (cli_hwdebug) {
+            // report analog values if desired
+            sensor_task();
+            static uint32_t last_hwdebug = 0;
+            if ((millis() - last_hwdebug) >= 200) {
+                last_hwdebug = millis();
+                cli_reportSensors(cer);
+            }
+        }
     }
 }
 
@@ -132,11 +145,18 @@ void cli_execute(Cereal* cer, char* str)
             cli_hwdebug = cmd_args[0] != 0;
         }
         cer->printf("hardware debug: %u\r\n", cli_hwdebug);
+        // cli_hwdebug will cause periodic printout of analog sensor values
     }
     else if (item_strcmp("testpwm", str))
     {
+        // pulse a pin with a certain voltage
+        // useful for identifying which pin is which
+        // keep the pulse short to avoid damage
+        // analog sensor values are printed during the test
+        // this can be used to test current limits
+
         argc = cmd_parseArgs(str);
-        if (argc < 3) {
+        if (argc < 3 || cmd_args[0] <= 0) {
             cer->printf("\r\nERROR");
             return;
         }
@@ -148,9 +168,51 @@ void cli_execute(Cereal* cer, char* str)
             case 1: pwm_set_all_duty_remapped(0, cmd_args[1], 0, cli_phaseremap); break;
             case 2: pwm_set_all_duty_remapped(0, 0, cmd_args[1], cli_phaseremap); break;
         }
+
+        cer->reset_buffer();
+        uint32_t t = 0;
+        do
+        {
+            led_task();
+            // check sensors and perform current limit calculations
+            if (sensor_task()) {
+                current_limit_task();
+                cli_reportSensors(cer); // print if new data available
+                if (t == 0) {
+                    t = millis();
+                }
+            }
+            if (t != 0 && cmd_args[2] > 0 && (millis() - t) >= cmd_args[2]) {
+                // quit if time expired
+                break;
+            }
+            if (t != 0) {
+                // quit on key press
+                int16_t nc = cer->read();
+                if (nc > 0) {
+                    break;
+                }
+            }
+        } while (true);
+
+        pwm_set_all_duty_remapped(0, 0, 0, 0); // end
+        cer->printf("\r\ntest end");
+    }
+    else if (item_strcmp("testremap", str))
+    {
+        // changes the phase remapping temporarily for testing purposes
+        // it is not committed to EEPROM
+        argc = cmd_parseArgs(str);
+        if (argc < 1) {
+            cer->printf("\r\nERROR");
+            return;
+        }
+        cli_phaseremap = cmd_args[0];
+        cer->printf("\r\ntest remap val = %u", cli_phaseremap);
     }
     else
     {
+        // none of the commands match, loop through the potential settings to see if it's something to save
         int32_t x;
         bool res = eeprom_user_edit(str, &x);
         if (res) {
@@ -187,4 +249,9 @@ int cmd_parseArgs(char* str)
         i += 1;
    }
    return 0;
+}
+
+void cli_reportSensors(Cereal* cer)
+{
+    cer->printf("[%u]: %0.0f, %0.0f, %0.0f, %u, \r\n", millis(), sensor_temperatureC, sensor_voltage, sensor_current, current_limit_val);
 }
