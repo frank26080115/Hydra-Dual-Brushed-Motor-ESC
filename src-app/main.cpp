@@ -7,6 +7,8 @@ int main(void)
     mcu_init();
     led_init();
     inp_init();
+    pwm_init();
+    pwm_all_flt();
 
     eeprom_load_or_default();
 

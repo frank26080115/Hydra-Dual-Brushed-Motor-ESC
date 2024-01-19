@@ -11,4 +11,7 @@
 
 #define CLI_BAUD      19200 // baud rate used for CLI
 #define CLI_BUFF_SIZE 64
-#define CLI_ECHO      true
+#define CLI_ECHO      false // most of the one-wire USB-links already echo, so do not echo ourselves
+
+#define PWM_DEFAULT_AUTORELOAD    1999
+#define PWM_DEFAULT_HEAADROOM     50
