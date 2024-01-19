@@ -6,6 +6,11 @@
 #include "cereal_usart.h"
 #endif
 
+#define MAX_CMD_ARGS 8
+int32_t* cmd_args;
+
+uint8_t cli_phaseremap;
+
 void cli_enter(void)
 {
     #if INPUT_PIN == LL_GPIO_PIN_2
@@ -15,6 +20,10 @@ void cli_enter(void)
     Cereal_TimerBitbang* cer = new Cereal_TimerBitbang(0, CLI_BUFF_SIZE);
     cer->begin(CLI_BAUD);
     #endif
+
+    cmd_args = (int32_t*)malloc(MAX_CMD_ARGS * sizeof(int32_t)); // do not waste RAM unless we are in CLI mode
+
+    cli_phaseremap = cfg->phase_map;
 
     char buff[CLI_BUFF_SIZE];
     uint16_t buff_idx = 0;
@@ -44,6 +53,10 @@ void cli_enter(void)
                 #endif
                 buff[buff_idx] = '\0';
                 if (buff_idx > 0) {
+                    if (buff[buff_idx - 1] == ' ') {
+                        // trim away trailing space
+                        buff[buff_idx - 1] = '\0';
+                    }
                     cli_execute(cer, buff);
                 }
                 buff_idx = 0;
@@ -82,6 +95,7 @@ void cli_enter(void)
                 prev = c;
                 if (buff_idx < CLI_BUFF_SIZE - 2) {
                     // place in buffer if there is room
+                    c = c == '\t' ? ' ' : c; // convert tabs to spaces
                     buff[buff_idx] = c;
                     buff_idx++;
                     buff[buff_idx] = 0;
@@ -100,6 +114,7 @@ void cli_enter(void)
 
 void cli_execute(Cereal* cer, char* str)
 {
+    int argc;
     if (item_strcmp("list", str))
     {
         cer->printf("all settings:\r\n")
@@ -109,7 +124,67 @@ void cli_execute(Cereal* cer, char* str)
     }
     else if (item_strcmp("hwdebug", str))
     {
-        cli_hwdebug ^= true;
+        argc = cmd_parseArgs(str);
+        if (argc <= 0) {
+            cli_hwdebug ^= true;
+        }
+        else {
+            cli_hwdebug = cmd_args[0] != 0;
+        }
         cer->printf("hardware debug: %u\r\n", cli_hwdebug);
     }
+    else if (item_strcmp("testpwm", str))
+    {
+        argc = cmd_parseArgs(str);
+        if (argc < 3) {
+            cer->printf("\r\nERROR");
+            return;
+        }
+
+        int phase = (cmd_args[0] - 1) % 3;
+        switch (phase)
+        {
+            case 0: pwm_set_all_duty_remapped(cmd_args[1], 0, 0, cli_phaseremap); break;
+            case 1: pwm_set_all_duty_remapped(0, cmd_args[1], 0, cli_phaseremap); break;
+            case 2: pwm_set_all_duty_remapped(0, 0, cmd_args[1], cli_phaseremap); break;
+        }
+    }
+    else
+    {
+        int32_t x;
+        bool res = eeprom_user_edit(str, &x);
+        if (res) {
+            cer->printf("\r\nOK");
+            return;
+        }
+        else {
+            cer->printf("\r\nERROR");
+            return;
+        }
+    }
+}
+
+int cmd_parseArgs(char* str)
+{
+    int i = 0;
+    char * token = strtok(str, " ");
+    while( token != NULL && i < MAX_CMD_ARGS)
+    {
+        if (i != 0)
+        {
+            int32_t x;
+            if (token[0] == '0' && (token[1] == 'x' || token[1] == 'X'))
+            {
+                x = strtol(token, NULL, 16);
+            }
+            else
+            {
+                x = atoi();
+            }
+            cmd_args[i-1] = x;
+        }
+        token = strtok(NULL, " ");
+        i += 1;
+   }
+   return 0;
 }

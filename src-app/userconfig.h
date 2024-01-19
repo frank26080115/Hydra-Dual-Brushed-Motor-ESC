@@ -12,5 +12,5 @@ bool eeprom_load_or_default(void);
 void eeprom_save(void);
 void eeprom_save_if_needed(void);
 void eeprom_mark_dirty(void);
-bool eeprom_user_edit(const char* itm, const char* arg, int32_t* vptr);
+bool eeprom_user_edit(char* str, int32_t* vptr);
 void eeprom_print_all(Cereal* cer);

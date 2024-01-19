@@ -17,6 +17,7 @@ void pwm_all_flt()
     pwm_setFlt_B();
     pwm_setFlt_C();
     all_pin_states = PWMPINSTATE_FLT;
+    pwm_set_all_duty(0, 0, 0);
 }
 
 void pwm_all_low()
@@ -25,6 +26,7 @@ void pwm_all_low()
     pwm_setLow_B();
     pwm_setLow_C();
     all_pin_states = PWMPINSTATE_LOW;
+    pwm_set_all_duty(0, 0, 0);
 }
 
 void pwm_all_pwm()

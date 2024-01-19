@@ -34,8 +34,8 @@ const EEPROM_data_t default_eeprom = {
     .rc_range           = 500,
     .rc_deadzone        = 10,
 
-    .pwm_reload         = 1999,
-    .pwm_headroom       = 50,
+    .pwm_reload         = PWM_DEFAULT_AUTORELOAD,
+    .pwm_headroom       = PWM_DEFAULT_HEAADROOM,
 
     .braking            = true,
     .chan_swap          = false,
@@ -148,9 +148,12 @@ void eeprom_mark_dirty(void)
     eeprom_save_time = millis();
 }
 
-bool eeprom_user_edit(const char* itm, const char* arg, int32_t* vptr)
+bool eeprom_user_edit(char* str, int32_t* vptr)
 {
     int i;
+    char* token;
+    char* arg;
+
     for (i = 0; ; i++)
     {
         EEPROM_item_t* desc = (EEPROM_item_t*)&(cfg_items[i]);
@@ -159,6 +162,8 @@ bool eeprom_user_edit(const char* itm, const char* arg, int32_t* vptr)
         }
         if (item_strcmp(itm, (const char*)desc->name))
         {
+            token = strtok(str, " ");
+            arg = strtok(NULL, " ");
             int32_t v;
             if (arg[0] == '0' && (arg[1] == 'x' || arg[1] == 'X')) {
                 v = strtol(&arg[2], NULL, 16);

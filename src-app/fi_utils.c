@@ -2,6 +2,14 @@
 #include "main.h"
 #include "userconfig.h"
 
+void delay_ms(uint32_t x)
+{
+    uint32_t t = millis();
+    while ((millis() - t) < x) {
+        led_task();
+    }
+}
+
 int32_t fi_map(int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max, bool limit)
 {
     int32_t a = x - in_min;
