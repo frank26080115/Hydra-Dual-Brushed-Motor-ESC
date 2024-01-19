@@ -1593,6 +1593,9 @@
         #define VOLTAGE_ADC_PIN        LL_GPIO_PIN_3
         #define VOLTAGE_ADC_CHANNEL    LL_ADC_CHANNEL_3
     #endif
+    #ifndef LED_IS_ACTIVEHIGH
+    #define LED_IS_OPENDRAIN
+    #endif
     #ifndef LED_PIN
         #define LED_PIN                LL_GPIO_PIN_15
         #define LED_GPIO               GPIOA

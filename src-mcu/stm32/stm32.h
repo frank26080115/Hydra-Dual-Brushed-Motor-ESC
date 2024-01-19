@@ -34,6 +34,8 @@
 #include "stm32g0xx_ll_adc.h"
 #endif
 
+#define is_in_isr()    ((SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk) != 0)
+
 #define CLK_CNT(rate) ((SystemCoreClock + ((rate) >> 1)) / (rate))
 
 #ifndef TIM_SMCR_SMS_RM

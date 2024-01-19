@@ -50,3 +50,35 @@ int16_t rc_pulse_map(uint16_t x)
     int32_t nrange = cfg.rc_range - cfg.rc_deadband;
     return fi_map(x2, -nrange, nrange, -THROTTLE_UNIT_RANGE, THROTTLE_UNIT_RANGE, true);
 }
+
+bool item_strcmp(const char* usr_inp, const char* table_item)
+{
+    int slen = strlen(usr_inp);
+    int i;
+    for (i = 0; i < slen; i++)
+    {
+        char inpc = usr_inp[i];
+        char x = table_item[i];
+        if (inpc <= ' ' || inpc >= '~') {
+            inpc = 0;
+        }
+        if (x <= ' ' || x >= '~') {
+            x = 0;
+        }
+        if (inpc == 0 && x == 0) {
+            return true;
+        }
+        if (inpc >= 'A' && inpc <= 'Z') {
+            inpc -= 'A';
+            inpc += 'a';
+        }
+        if (x >= 'A' && x <= 'Z') {
+            x -= 'A';
+            x += 'a';
+        }
+        if (inpc != x) {
+            return false;
+        }
+    }
+    return true;
+}

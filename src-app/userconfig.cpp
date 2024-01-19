@@ -1,5 +1,6 @@
 #include "main.h"
 #include "userconfig.h"
+#include "cereal.h"
 
 #define FOOL_AM32 \
     .fool_am32_bootloader_0   = 0x01, \
@@ -147,38 +148,6 @@ void eeprom_mark_dirty(void)
     eeprom_save_time = millis();
 }
 
-bool eeprom_item_strcmp(const char* usr_inp, const char* table_item)
-{
-    int slen = strlen(usr_inp);
-    int i;
-    for (i = 0; i < slen; i++)
-    {
-        char inpc = usr_inp[i];
-        char x = table_item[i];
-        if (inpc <= ' ' || inpc >= '~') {
-            inpc = 0;
-        }
-        if (x <= ' ' || x >= '~') {
-            x = 0;
-        }
-        if (inpc == 0 && x == 0) {
-            return true;
-        }
-        if (inpc >= 'A' && inpc <= 'Z') {
-            inpc -= 'A';
-            inpc += 'a';
-        }
-        if (x >= 'A' && x <= 'Z') {
-            x -= 'A';
-            x += 'a';
-        }
-        if (inpc != x) {
-            return false;
-        }
-    }
-    return true;
-}
-
 bool eeprom_user_edit(const char* itm, const char* arg, int32_t* vptr)
 {
     int i;
@@ -188,7 +157,7 @@ bool eeprom_user_edit(const char* itm, const char* arg, int32_t* vptr)
         if (desc->ptr == 0) {
             return false;
         }
-        if (eeprom_item_strcmp(itm, (const char*)desc->name))
+        if (item_strcmp(itm, (const char*)desc->name))
         {
             int32_t v;
             if (arg[0] == '0' && (arg[1] == 'x' || arg[1] == 'X')) {
@@ -213,7 +182,7 @@ bool eeprom_user_edit(const char* itm, const char* arg, int32_t* vptr)
     return false;
 }
 
-void eeprom_print_all(void)
+void eeprom_print_all(Cereal* cer)
 {
     char buff[128];
     int i;
@@ -229,7 +198,7 @@ void eeprom_print_all(void)
         uint8_t* ptr8 = (uint8_t*)&cfg;
         int32_t v = 0;
         memcpy(&v, &(ptr8[itmidx]), desc->size);
-        sprintf(buff, "%s %li\r\n", desc->name, v);
-        // TODO: send out serial port
+        int len = sprintf(buff, "%s %li\r\n", desc->name, v);
+        cer->write(buff, len);
     }
 }

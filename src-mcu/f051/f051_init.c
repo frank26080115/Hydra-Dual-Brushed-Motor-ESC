@@ -66,4 +66,8 @@ void STM32_Sys_Init(void)
     }
     while (0);
     __enable_irq();
+
+    LL_APB1_GRP2_EnableClock(LL_APB1_GRP2_PERIPH_SYSCFG);
+    LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_PWR);
+    
 }
