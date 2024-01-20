@@ -14,6 +14,10 @@ extern void rc_ic_tim_init(void);
 extern void rc_ic_tim_init_2(void);
 extern bool ictimer_modeIsPulse;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void CerealBitbang_IRQHandler(void)
 {
     static int n = 0, b;
@@ -81,6 +85,10 @@ void CerealBitbang_IRQHandler(void)
         LL_TIM_EnableIT_CC1(RC_IC_TIMx);
     }
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 Cereal_TimerBitbang::Cereal_TimerBitbang(uint8_t id, uint16_t sz)
 {

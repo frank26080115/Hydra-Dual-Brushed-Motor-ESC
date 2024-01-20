@@ -1,5 +1,6 @@
 #include "main.h"
 #include "userconfig.h"
+#include "systick.h"
 
 #define FOOL_AM32                     \
     .fool_am32_bootloader_0   = 0x01, \
@@ -63,6 +64,8 @@ uint32_t cfg_addr = (uint32_t)(&cfge);
 // this stores the config in RAM
 EEPROM_data_t cfg;
 
+#ifdef ENABLE_COMPILE_CLI
+
 #define DCLR_ITM(__a, __b)        { .name = __a, .ptr = (uint32_t)&(cfge.__b ), .size = sizeof(cfge.__b ), }
 
 const EEPROM_item_t cfg_items[] = {
@@ -96,8 +99,11 @@ const EEPROM_item_t cfg_items[] = {
     { .ptr = 0, .size = 0, }, // indicate end of list
 };
 
+#endif
+
 EEPROM_chksum_t checksum_fletcher16(uint8_t* data, int len)
 {
+    #if 0
     uint16_t sum1 = 0;
     uint16_t sum2 = 0;
     int index;
@@ -108,6 +114,9 @@ EEPROM_chksum_t checksum_fletcher16(uint8_t* data, int len)
     }
 
     return (sum2 << 8) | sum1;
+    #else
+    return crsf_crc8((const uint8_t *)data, len);
+    #endif
 }
 
 bool eeprom_verify_checksum(uint8_t* ptr8)
@@ -163,6 +172,7 @@ void eeprom_mark_dirty(void)
     eeprom_save_time = millis();
 }
 
+#ifdef ENABLE_COMPILE_CLI
 bool eeprom_user_edit(char* str, int32_t* vptr)
 {
     int i;
@@ -200,3 +210,4 @@ bool eeprom_user_edit(char* str, int32_t* vptr)
     }
     return false;
 }
+#endif

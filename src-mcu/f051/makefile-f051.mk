@@ -8,13 +8,12 @@ LDSCRIPT_F051 := $(HAL_FOLDER_F051)/STM32F051K6TX_FLASH.ld
 
 SRC_DIR_F051 += \
 	$(SRC_HAL_DIR)/stm32 \
-	$(HAL_FOLDER_F051)/Startup \
-	$(HAL_FOLDER_F051)/Src \
+	$(HAL_FOLDER_F051) \
 	$(HAL_FOLDER_F051)/Drivers/STM32F0xx_HAL_Driver/Src
 
 CFLAGS_F051 := \
 	-I$(SRC_HAL_DIR)/stm32 \
-	-I$(HAL_FOLDER_F051)/Inc \
+	-I$(HAL_FOLDER_F051) \
 	-I$(HAL_FOLDER_F051)/Drivers/STM32F0xx_HAL_Driver/Inc \
 	-I$(HAL_FOLDER_F051)/Drivers/CMSIS/Include \
 	-I$(HAL_FOLDER_F051)/Drivers/CMSIS/Device/ST/STM32F0xx/Include
@@ -33,4 +32,6 @@ CFLAGS_F051 += \
 	-DUSE_FULL_LL_DRIVER \
 	-DPREFETCH_ENABLE=1
 
-SRC_F051 := $(foreach dir, $(SRC_DIR_F051), $(wildcard $(dir)/*.s $(dir)/*.c $(dir)/*.cpp))
+SRC_F051_C   := $(foreach dir, $(SRC_DIR_F051), $(wildcard $(dir)/*.c))
+SRC_F051_CPP := $(foreach dir, $(SRC_DIR_F051), $(wildcard $(dir)/*.cpp))
+SRC_F051_S   := $(foreach dir, $(SRC_DIR_F051), $(wildcard $(dir)/*.s))

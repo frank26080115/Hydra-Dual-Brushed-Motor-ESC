@@ -33,6 +33,10 @@ void USARTx_IRQHandler(USART_TypeDef* usart, fifo_t* fifo_rx, fifo_t* fifo_tx, v
     }
 }
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void USART1_IRQHandler(void)
 {
     USARTx_IRQHandler(USART1, fifo_rx_1, fifo_tx_1, (volatile bool*)&is_idle_1, (volatile uint32_t*)&last_rx_time_1);
@@ -43,10 +47,14 @@ void USART2_IRQHandler(void)
     USARTx_IRQHandler(USART2, fifo_rx_2, fifo_tx_2, (volatile bool*)&is_idle_2, (volatile uint32_t*)&last_rx_time_2);
 }
 
+#ifdef __cplusplus
+}
+#endif
+
 Cereal_USART::Cereal_USART(uint8_t id, uint16_t sz)
 {
     _id = id;
-    if (id == 1) {
+    if (id == 1 || _id == 3) {
         _usart = USART1;
     }
     else if (id == 2) {
@@ -126,6 +134,18 @@ void Cereal_USART::begin(uint32_t baud, bool invert, bool halfdup, bool swap)
         GPIO_InitStruct.Alternate  = LL_GPIO_AF_1;
         LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
     }
+    #if defined(STM32F051DISCO)
+    else if (_id == 3)
+    {
+        GPIO_InitStruct.Pin        = LL_GPIO_PIN_9 | LL_GPIO_PIN_10;
+        GPIO_InitStruct.Mode       = LL_GPIO_MODE_ALTERNATE;
+        GPIO_InitStruct.Speed      = LL_GPIO_SPEED_FREQ_HIGH;
+        GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+        GPIO_InitStruct.Pull       = LL_GPIO_PULL_NO;
+        GPIO_InitStruct.Alternate  = LL_GPIO_AF_1;
+        LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    }
+    #endif
 
     NVIC_SetPriority(USART1_IRQn, 1);
     NVIC_SetPriority(USART2_IRQn, 1);
@@ -154,7 +174,7 @@ void Cereal_USART::flush(void)
 
 uint32_t Cereal_USART::get_last_time(void)
 {
-    if (_id == 1) {
+    if (_id == 1 || _id == 3) {
         return last_rx_time_1;
     }
     else if (_id == 2) {
@@ -167,7 +187,7 @@ bool Cereal_USART::get_idle_flag(bool clr)
 {
     bool x = false;
     __disable_irq();
-    if (_id == 1) {
+    if (_id == 1 || _id == 3) {
         x = is_idle_1;
         if (clr) {
             is_idle_1 = false;

@@ -1,4 +1,5 @@
-obj
+obj/*
+bin/*
 
 # Prerequisites
 *.d

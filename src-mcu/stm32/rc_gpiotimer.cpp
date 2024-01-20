@@ -7,7 +7,7 @@ static uint32_t rc_pin;
 
 static volatile uint8_t overflow_cnt;
 static volatile uint16_t pulse_width;
-static volatile bool new_flag           = false;
+static volatile bool     new_flag       = false;
 static volatile uint32_t last_good_time = 0;
 static volatile uint8_t  good_pulse_cnt = 0;
 static volatile uint8_t  bad_pulse_cnt  = 0;
@@ -43,6 +43,10 @@ static volatile bool was_high;
 #endif
 
 #ifdef GPIOEXTI_IRQHandler
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void GPIOEXTI_IRQHandler(void)
 {
@@ -110,11 +114,16 @@ void GPIOEXTI_TIM_IRQHandler(void)
     }
 }
 
+#ifdef __cplusplus
+}
+#endif
+
 #endif
 
 RcPulse_GpioIsr* rc_makeGpioInput(void)
 {
-    return new RcPulse_GpioIsr(GPIOEXTI_TIMx, GPIOEXTI_GPIO, GPIOEXTI_Pin);
+    RcPulse_GpioIsr* x = new RcPulse_GpioIsr(GPIOEXTI_TIMx, GPIOEXTI_GPIO, GPIOEXTI_Pin);
+    return x;
 }
 
 RcPulse_GpioIsr::RcPulse_GpioIsr(TIM_TypeDef* TIMx, GPIO_TypeDef* GPIOx, uint32_t pin)
@@ -169,7 +178,7 @@ void RcPulse_GpioIsr::task(void)
     // do nothing
 }
 
-uint16_t RcPulse_GpioIsr::read(void)
+int16_t RcPulse_GpioIsr::read(void)
 {
     return rc_pulse_map((pulse_width + GPIO_RC_PULSE_OFFSET) / 4);
 }

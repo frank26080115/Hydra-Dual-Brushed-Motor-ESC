@@ -1,3 +1,5 @@
+#pragma once
+
 #include "rc.h"
 #include "mcu.h"
 
@@ -22,7 +24,7 @@ class RcPulse_InputCap : public RcPulse_STM32
         RcPulse_InputCap(TIM_TypeDef* TIMx, GPIO_TypeDef* GPIOx, uint32_t pin, uint32_t chan);
         virtual void init(void);
         virtual void task(void);
-        virtual uint16_t read(void);
+        virtual int16_t read(void);
         virtual bool is_alive(void);
         virtual bool has_new(bool clr);
 
@@ -36,11 +38,12 @@ class RcPulse_GpioIsr : public RcPulse_STM32
         RcPulse_GpioIsr(TIM_TypeDef* TIMx, GPIO_TypeDef* GPIOx, uint32_t pin);
         virtual void init(void);
         virtual void task(void);
-        virtual uint16_t read(void);
+        virtual int16_t read(void);
         virtual bool is_alive(void);
         virtual bool has_new(bool clr);
 };
 
 extern bool ictimer_modeIsPulse;
 
-RcPulse_GpioIsr* rc_makeGpioInput(void);
+RcPulse_GpioIsr*  rc_makeGpioInput(void);
+RcPulse_InputCap* rc_makeInputCapture(void);

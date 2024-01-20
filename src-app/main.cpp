@@ -3,8 +3,22 @@
 #include "inputpin.h"
 #include "phaseout.h"
 #include "sense.h"
-
+#include "rc.h"
+#include "led.h"
 #include <math.h>
+
+#ifdef STMICRO
+#include "rc_stm32.h"
+#include "cereal_timer.h"
+#include "cereal_usart.h"
+#endif
+
+RcChannel* rc1 = NULL;
+RcChannel* rc2 = NULL;
+
+#if defined(STM32F051DISCO)
+Cereal_USART* dbg_cer;
+#endif
 
 pidloop_t current_pid = {
     .Kp = 400,
@@ -15,12 +29,20 @@ pidloop_t current_pid = {
 };
 int16_t current_limit_val = 0;
 
+#ifdef ENABLE_COMPILE_CLI
 void boot_decide_cli(void);
 void cli_enter(void);
+#endif
 
 int main(void)
 {
     mcu_init();
+
+    #if defined(STM32F051DISCO)
+    dbg_cer = new Cereal_USART(3, CLI_BUFF_SIZE);
+    dbg_cer->begin(CLI_BAUD, false, true, false);
+    #endif
+
     led_init();
     inp_init();
     pwm_init();
@@ -28,8 +50,22 @@ int main(void)
 
     eeprom_load_or_default();
 
+    #ifdef ENABLE_COMPILE_CLI
     boot_decide_cli();
+    #endif
     ledblink_disarmed();
+
+    if (cfg.input_mode == INPUTMODE_RC)
+    {
+        rc1 = (RcChannel*)rc_makeInputCapture();
+        rc2 = (RcChannel*)rc_makeGpioInput();
+        // WARNING: this isn't very portable, but all of the ESCs so far only has one available input-capture pin
+        // if there are two input capture pins, is it worth it to change the code to get slightly better jitter performance?
+    }
+    else if (cfg.input_mode == INPUTMODE_CRSF)
+    {
+
+    }
 
     while (true)
     {
@@ -39,6 +75,7 @@ int main(void)
     return 0;
 }
 
+#ifdef ENABLE_COMPILE_CLI
 void boot_decide_cli(void)
 {
     ledblink_boot();
@@ -99,6 +136,7 @@ void boot_decide_cli(void)
         }
     }
 }
+#endif
 
 void current_limit_task()
 {

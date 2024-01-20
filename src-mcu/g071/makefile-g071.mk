@@ -9,13 +9,12 @@ LDSCRIPT_G071 := $(HAL_FOLDER_G071)/STM32G071GBUX_FLASH.ld
 
 SRC_DIR_G071 := \
 	$(SRC_HAL_DIR)/stm32 \
-	$(HAL_FOLDER_G071)/Startup \
-	$(HAL_FOLDER_G071)/Src \
+	$(HAL_FOLDER_G071) \
 	$(HAL_FOLDER_G071)/Drivers/STM32G0xx_HAL_Driver/Src
 
 CFLAGS_G071 := \
 	-I$(SRC_HAL_DIR)/stm32 \
-	-I$(HAL_FOLDER_G071)/Inc \
+	-I$(HAL_FOLDER_G071) \
 	-I$(HAL_FOLDER_G071)/Drivers/STM32G0xx_HAL_Driver/Inc \
 	-I$(HAL_FOLDER_G071)/Drivers/CMSIS/Include \
 	-I$(HAL_FOLDER_G071)/Drivers/CMSIS/Device/ST/STM32G0xx/Include
@@ -34,4 +33,6 @@ CFLAGS_G071 += \
 	-DUSE_FULL_LL_DRIVER \
 	-DPREFETCH_ENABLE=1
 
-SRC_G071 := $(foreach dir, $(SRC_DIR_G071), $(wildcard $(dir)/*.s $(dir)/*.c $(dir)/*.cpp))
+SRC_G071_C   := $(foreach dir, $(SRC_DIR_G071), $(wildcard $(dir)/*.c))
+SRC_G071_CPP := $(foreach dir, $(SRC_DIR_G071), $(wildcard $(dir)/*.cpp))
+SRC_G071_S   := $(foreach dir, $(SRC_DIR_G071), $(wildcard $(dir)/*.s))

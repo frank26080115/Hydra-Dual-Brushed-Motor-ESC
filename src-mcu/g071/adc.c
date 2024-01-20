@@ -83,7 +83,7 @@ void adc_init()
 
     LL_ADC_REG_SetDMATransfer(ADCx, backup_setting_adc_dma_transfer);
 
-    wait_loop_index = (ADC_DELAY_CALIB_ENABLE_CPU_CYCLES >> 1);
+    wait_loop_index = (LL_ADC_DELAY_CALIB_ENABLE_ADC_CYCLES >> 1);
     while (wait_loop_index != 0) {
         wait_loop_index--;
     }
@@ -92,7 +92,7 @@ void adc_init()
     while (LL_ADC_IsActiveFlag_ADRDY(ADCx) == 0) {
         LL_ADC_Enable(ADCx);
     }
-    ADCx->CCR |= ADC_CCR_TSEN;
+    ADC->CCR |= ADC_CCR_TSEN;
 }
 
 bool adc_task()

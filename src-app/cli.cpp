@@ -1,7 +1,11 @@
 #include "main.h"
+
+#ifdef ENABLE_COMPILE_CLI
+
 #include "cereal.h"
 
 #ifdef STMICRO
+#include "rc_stm32.h"
 #include "cereal_timer.h"
 #include "cereal_usart.h"
 #endif
@@ -10,6 +14,7 @@
 #include "phaseout.h"
 #include "userconfig.h"
 #include "sense.h"
+#include "rc.h"
 
 #define MAX_CMD_ARGS 8
 int32_t* cmd_args;
@@ -19,7 +24,11 @@ bool cli_hwdebug;
 extern int16_t current_limit_val;
 extern void current_limit_task(void);
 
-Cereal* cli_cereal;
+#if defined(STM32F051DISCO)
+extern Cereal_USART* dbg_cer;
+extern RcChannel* rc1;
+extern RcChannel* rc2;
+#endif
 
 void cli_reportSensors(Cereal*);
 void cli_execute(Cereal* cer, char* str);
@@ -33,15 +42,18 @@ extern const EEPROM_data_t cfge;
 
 void cli_enter(void)
 {
-    #if INPUT_PIN == LL_GPIO_PIN_2
+    #if defined(STM32F051DISCO)
+    Cereal_USART* cer = dbg_cer;
+    // since we are using the debugging UART, the two pins can be used for testing RC inputs
+    rc1 = (RcChannel*)rc_makeInputCapture();
+    rc2 = (RcChannel*)rc_makeGpioInput();
+    #elif INPUT_PIN == LL_GPIO_PIN_2
     Cereal_USART* cer = new Cereal_USART(2, CLI_BUFF_SIZE);
     cer->begin(CLI_BAUD, false, true, false);
     #elif INPUT_PIN == LL_GPIO_PIN_4
     Cereal_TimerBitbang* cer = new Cereal_TimerBitbang(0, CLI_BUFF_SIZE);
     cer->begin(CLI_BAUD);
     #endif
-
-    cli_cereal = cer;
 
     cmd_args = (int32_t*)malloc(MAX_CMD_ARGS * sizeof(int32_t)); // do not waste RAM unless we are in CLI mode
 
@@ -271,7 +283,22 @@ int cmd_parseArgs(char* str)
 
 void cli_reportSensors(Cereal* cer)
 {
-    cer->printf("[%lu]: %0.0f, %0.0f, %0.0f, %u, \r\n", millis(), sense_temperatureC, sense_voltage, sense_current, current_limit_val);
+    cer->printf("[%lu]: ", millis());
+    #if defined(STM32F051DISCO)
+    if (rc1->is_alive()) {
+        cer->printf("%d, ", rc1->read());
+    }
+    else {
+        cer->printf("?, ");
+    }
+    if (rc2->is_alive()) {
+        cer->printf("%d, ", rc2->read());
+    }
+    else {
+        cer->printf("?, ");
+    }
+    #endif
+    cer->printf("%0.0f, %0.0f, %0.0f, %u, \r\n", sense_temperatureC, sense_voltage, sense_current, current_limit_val);
 }
 
 void eeprom_print_all(Cereal* cer)
@@ -294,3 +321,5 @@ void eeprom_print_all(Cereal* cer)
         cer->write((uint8_t*)buff, len);
     }
 }
+
+#endif // ENABLE_COMPILE_CLI

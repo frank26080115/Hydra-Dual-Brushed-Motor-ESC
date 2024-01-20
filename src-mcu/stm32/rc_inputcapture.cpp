@@ -3,7 +3,7 @@
 #define RC_IC_TIMx IC_TIMER_REGISTER
 
 static volatile uint16_t pulse_width;
-static volatile bool new_flag           = false;
+static volatile bool     new_flag       = false;
 static volatile uint32_t last_good_time = 0;
 static volatile uint8_t  good_pulse_cnt = 0;
 static volatile uint8_t  bad_pulse_cnt  = 0;
@@ -78,6 +78,10 @@ void rc_ic_tim_init_2(void)
 bool ictimer_modeIsPulse;
 extern void CerealBitbang_IRQHandler(void);
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void RcPulse_IQRHandler(void)
 {
     if (ictimer_modeIsPulse)
@@ -108,6 +112,10 @@ void RcPulse_IQRHandler(void)
     }
 }
 
+#ifdef __cplusplus
+}
+#endif
+
 RcPulse_STM32::RcPulse_STM32(TIM_TypeDef* TIMx, GPIO_TypeDef* GPIOx, uint32_t pin)
 {
     _tim = TIMx;
@@ -123,7 +131,8 @@ RcPulse_InputCap::RcPulse_InputCap(TIM_TypeDef* TIMx, GPIO_TypeDef* GPIOx, uint3
 
 RcPulse_InputCap* rc_makeInputCapture(void)
 {
-    return new RcPulse_InputCap(RC_IC_TIMx, INPUT_PIN_PORT, INPUT_PIN, IC_TIMER_CHANNEL);
+    RcPulse_InputCap* x = new RcPulse_InputCap(RC_IC_TIMx, INPUT_PIN_PORT, INPUT_PIN, IC_TIMER_CHANNEL);
+    return x;
 }
 
 void RcPulse_InputCap::init(void)
@@ -148,7 +157,7 @@ void RcPulse_InputCap::task(void)
     // do nothing
 }
 
-uint16_t RcPulse_InputCap::read(void)
+int16_t RcPulse_InputCap::read(void)
 {
     return rc_pulse_map(pulse_width);
 }

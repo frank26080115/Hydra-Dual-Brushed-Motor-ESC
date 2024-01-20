@@ -24,7 +24,7 @@ enum
     // TODO: support SBUS and IBUS
 };
 
-#define EEPROM_chksum_t uint16_t
+#define EEPROM_chksum_t uint8_t
 
 typedef struct
 {
@@ -104,6 +104,15 @@ typedef struct {
     int32_t integral_limit;
     int32_t output_limit;
 } pidloop_t;
+
+typedef struct
+{
+    uint8_t sync;
+    uint8_t len;
+    uint8_t type;
+}
+__attribute__((packed))
+crsf_header_t;
 
 #ifdef __cplusplus
 }

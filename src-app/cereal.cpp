@@ -1,10 +1,7 @@
 #include "cereal.h"
 #include <stdarg.h>
 
-Cereal::Cereal()
-{
-}
-
+#if 0
 size_t Cereal::printf(const char *format, ...)
 {
     char loc_buf[64];
@@ -34,6 +31,7 @@ size_t Cereal::printf(const char *format, ...)
     }
     return len;
 }
+#endif
 
 size_t Cereal::write(uint8_t* buf, int len)
 {
@@ -54,9 +52,19 @@ int16_t Cereal::peek(void)
     return fifo_peek(fifo_rx);
 }
 
-int16_t Cereal::peektail(void)
+int16_t Cereal::peekAt(int16_t i)
 {
-    return fifo_peek(fifo_rx);
+    return fifo_peekAt(fifo_rx, i);
+}
+
+int16_t Cereal::peekTail(void)
+{
+    return fifo_peekTail(fifo_rx);
+}
+
+int16_t Cereal::consume(uint16_t x)
+{
+    return fifo_consume(fifo_rx, x);
 }
 
 int Cereal::available(void)

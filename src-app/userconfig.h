@@ -3,6 +3,10 @@
 #include "main.h"
 #include "eeprom.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern uint32_t eeprom_save_time;
 extern EEPROM_data_t cfg;
 
@@ -12,3 +16,7 @@ void eeprom_save(void);
 void eeprom_save_if_needed(void);
 void eeprom_mark_dirty(void);
 bool eeprom_user_edit(char* str, int32_t* vptr);
+
+#ifdef __cplusplus
+}
+#endif
