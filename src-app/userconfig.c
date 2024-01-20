@@ -1,14 +1,14 @@
 #include "main.h"
 #include "userconfig.h"
 
-#define FOOL_AM32 \
+#define FOOL_AM32                     \
     .fool_am32_bootloader_0   = 0x01, \
     .fool_am32_bootloader_1   = 0x01, \
     .fool_am32_bootloader_2   = 0x08, \
     .fool_am32_eeprom_layout  = 0x0A, \
     .fool_am32_version_major  = 1,    \
     .fool_am32_version_minor  = 99,   \
-    .fool_am32_name           = {'F', 'L', 'O', 'O', 'R', 'I', 'T', '\0', }, \
+    .fool_am32_name           = {'H', 'Y', 'D', 'R', 'A', '\0', }, \
 
 // this stores a default settings copy in flash, somewhere inside the application flash memory
 const EEPROM_data_t default_eeprom = {
@@ -63,36 +63,36 @@ uint32_t cfg_addr = (uint32_t)(&cfge);
 // this stores the config in RAM
 EEPROM_data_t cfg;
 
-#define DCLR_ITM(a, b)        { .name = a, .ptr = (uint32_t)&(cfge.##b ), .size = sizeof(cfge.##b ), },
+#define DCLR_ITM(__a, __b)        { .name = __a, .ptr = (uint32_t)&(cfge.__b ), .size = sizeof(cfge.__b ), }
 
 const EEPROM_item_t cfg_items[] = {
-    { .name = "vsplitmode"   , .ptr = (uint32_t)&(cfge.voltage_split_mode ), .size = sizeof(cfge.voltage_split_mode  ), },
-    { .name = "inputmode"    , .ptr = (uint32_t)&(cfge.input_mode         ), .size = sizeof(cfge.input_mode          ), },
-    { .name = "phasemap"     , .ptr = (uint32_t)&(cfge.phase_map          ), .size = sizeof(cfge.phase_map           ), },
-    { .name = "baud"         , .ptr = (uint32_t)&(cfge.baud               ), .size = sizeof(cfge.baud                ), },
-    { .name = "channel_0"    , .ptr = (uint32_t)&(cfge.channel_0          ), .size = sizeof(cfge.channel_0           ), },
-    { .name = "channel_1"    , .ptr = (uint32_t)&(cfge.channel_1          ), .size = sizeof(cfge.channel_1           ), },
-    { .name = "channel_mode" , .ptr = (uint32_t)&(cfge.channel_mode       ), .size = sizeof(cfge.channel_mode        ), },
-    { .name = "rc_mid"       , .ptr = (uint32_t)&(cfge.rc_mid             ), .size = sizeof(cfge.rc_mid              ), },
-    { .name = "rc_range"     , .ptr = (uint32_t)&(cfge.rc_range           ), .size = sizeof(cfge.rc_range            ), },
-    { .name = "rc_deadzone"  , .ptr = (uint32_t)&(cfge.rc_deadzone        ), .size = sizeof(cfge.rc_deadzone         ), },
-    { .name = "pwm_reload"   , .ptr = (uint32_t)&(cfge.pwm_reload         ), .size = sizeof(cfge.pwm_reload          ), },
-    { .name = "pwm_headroom" , .ptr = (uint32_t)&(cfge.pwm_headroom       ), .size = sizeof(cfge.pwm_headroom        ), },
-    { .name = "braking"      , .ptr = (uint32_t)&(cfge.braking            ), .size = sizeof(cfge.braking             ), },
-    { .name = "chanswap"     , .ptr = (uint32_t)&(cfge.chan_swap          ), .size = sizeof(cfge.chan_swap           ), },
-    { .name = "flip0"        , .ptr = (uint32_t)&(cfge.flip_0             ), .size = sizeof(cfge.flip_0              ), },
-    { .name = "flip1"        , .ptr = (uint32_t)&(cfge.flip_1             ), .size = sizeof(cfge.flip_1              ), },
-    { .name = "tied"         , .ptr = (uint32_t)&(cfge.tied               ), .size = sizeof(cfge.tied                ), },
-    { .name = "armdur"       , .ptr = (uint32_t)&(cfge.arm_duration       ), .size = sizeof(cfge.arm_duration        ), },
-    { .name = "templim"      , .ptr = (uint32_t)&(cfge.temperature_limit  ), .size = sizeof(cfge.temperature_limit   ), },
-    { .name = "currlim"      , .ptr = (uint32_t)&(cfge.current_limit      ), .size = sizeof(cfge.current_limit       ), },
-    { .name = "voltdiv"      , .ptr = (uint32_t)&(cfge.voltage_divider    ), .size = sizeof(cfge.voltage_divider     ), },
-    { .name = "curroffset"   , .ptr = (uint32_t)&(cfge.current_offset     ), .size = sizeof(cfge.current_offset      ), },
-    { .name = "currscale"    , .ptr = (uint32_t)&(cfge.current_scale      ), .size = sizeof(cfge.current_scale       ), },
-    { .name = "adcfilter"    , .ptr = (uint32_t)&(cfge.adc_filter         ), .size = sizeof(cfge.adc_filter          ), },
-    { .name = "curlimkp"     , .ptr = (uint32_t)&(cfge.currlim_kp         ), .size = sizeof(cfge.currlim_kp          ), },
-    { .name = "curlimki"     , .ptr = (uint32_t)&(cfge.currlim_ki         ), .size = sizeof(cfge.currlim_ki          ), },
-    { .name = "curlimkd"     , .ptr = (uint32_t)&(cfge.currlim_kd         ), .size = sizeof(cfge.currlim_kd          ), },
+    DCLR_ITM("vsplitmode"   , voltage_split_mode),
+    DCLR_ITM("inputmode"    , input_mode        ),
+    DCLR_ITM("phasemap"     , phase_map         ),
+    DCLR_ITM("baud"         , baud              ),
+    DCLR_ITM("channel_0"    , channel_0         ),
+    DCLR_ITM("channel_1"    , channel_1         ),
+    DCLR_ITM("channel_mode" , channel_mode      ),
+    DCLR_ITM("rc_mid"       , rc_mid            ),
+    DCLR_ITM("rc_range"     , rc_range          ),
+    DCLR_ITM("rc_deadzone"  , rc_deadzone       ),
+    DCLR_ITM("pwm_reload"   , pwm_reload        ),
+    DCLR_ITM("pwm_headroom" , pwm_headroom      ),
+    DCLR_ITM("braking"      , braking           ),
+    DCLR_ITM("chanswap"     , chan_swap         ),
+    DCLR_ITM("flip0"        , flip_0            ),
+    DCLR_ITM("flip1"        , flip_1            ),
+    DCLR_ITM("tied"         , tied              ),
+    DCLR_ITM("armdur"       , arm_duration      ),
+    DCLR_ITM("templim"      , temperature_limit ),
+    DCLR_ITM("currlim"      , current_limit     ),
+    DCLR_ITM("voltdiv"      , voltage_divider   ),
+    DCLR_ITM("curroffset"   , current_offset    ),
+    DCLR_ITM("currscale"    , current_scale     ),
+    DCLR_ITM("adcfilter"    , adc_filter        ),
+    DCLR_ITM("curlimkp"     , currlim_kp        ),
+    DCLR_ITM("curlimki"     , currlim_ki        ),
+    DCLR_ITM("curlimkd"     , currlim_kd        ),
     { .ptr = 0, .size = 0, }, // indicate end of list
 };
 

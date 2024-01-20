@@ -14,6 +14,7 @@
 #include "stm32f0xx_ll_usart.h"
 #include "stm32f0xx_ll_tim.h"
 #include "stm32f0xx_ll_adc.h"
+#include "stm32f0xx_ll_exti.h"
 #endif
 
 #ifdef MCU_F031
@@ -32,6 +33,7 @@
 #include "stm32g0xx_ll_usart.h"
 #include "stm32g0xx_ll_tim.h"
 #include "stm32g0xx_ll_adc.h"
+#include "stm32g0xx_ll_exti.h"
 #endif
 
 #define is_in_isr()    ((SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk) != 0)

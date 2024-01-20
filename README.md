@@ -2,7 +2,7 @@ Dual brushed motor ESC compatible with brushless motor ESCs
 
 **This project is a work in progress, nothing is done yet!!!**
 
-This is a replacement firmware for brushless motor ESCs that will convert them to being brushed motor ESCs that can independantly drive two brushed motors. This is advantagous because brushless motor ESCs are usually smaller and cheaper, when compared to buying dedicated dual motor brushed motor ESCs.
+This is a replacement firmware for brushless motor ESCs that will convert them to being brushed motor ESCs that can independently drive two brushed motors. This is advantageous because brushless motor ESCs are usually smaller and cheaper, when compared to buying dedicated dual motor brushed motor ESCs.
 
 This firmware must be installed after AM32 is installed on the ESC, as the installation needs to be done through the AM32 bootloader.
 
@@ -16,7 +16,7 @@ Brushless motor ESCs have 6 MOSFETs on them to form 3 half-bridges. These drive 
 
 ![](doc/imgs/brushless_halfbridges.png)
 
-Instead of connecting a single brushless motor, we connect two brushed motors. By changing the voltage (changing the PWM signal's duty cycle) of each half-bridge, we can control each of these two brushed motors indepedantly.
+Instead of connecting a single brushless motor, we connect two brushed motors. By changing the voltage (changing the PWM signal's duty cycle) of each half-bridge, we can control each of these two brushed motors independently.
 
 ![](doc/imgs/control_motor_directions.png)
 

@@ -8,21 +8,20 @@ class RcChannel
     public:
         virtual void init(void);
         virtual void task(void);
-        inline uint16_t read(void) { return val; }
-    protected:
-        uint16_t val_raw;
-        uint16_t val;
-};
-
-class RcPulse : public RcChannel
-{
-
+        virtual uint16_t read(void);
+        virtual bool is_alive(void);
+        virtual bool has_new(bool clr);
 };
 
 class RcBusChannel : public RcChannel
 {
     public:
         RcBusChannel(uint8_t chan_idx, Cereal* cer);
+        virtual void init(void);
+        virtual void task(void);
+        virtual uint16_t read(void);
+        virtual bool is_alive(void);
+        virtual bool has_new(bool clr);
 
     protected:
         Cereal* _cer;

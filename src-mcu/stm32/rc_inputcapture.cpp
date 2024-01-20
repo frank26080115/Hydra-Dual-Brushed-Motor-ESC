@@ -2,6 +2,12 @@
 
 #define RC_IC_TIMx IC_TIMER_REGISTER
 
+static volatile uint16_t pulse_width;
+static volatile bool new_flag           = false;
+static volatile uint32_t last_good_time = 0;
+static volatile uint8_t  good_pulse_cnt = 0;
+static volatile uint8_t  bad_pulse_cnt  = 0;
+
 void rc_ic_tim_init(void)
 {
     RC_IC_TIMx->BDTR  = TIM_BDTR_MOE;
@@ -78,14 +84,46 @@ void RcPulse_IQRHandler(void)
     {
         uint32_t p = RC_IC_TIMx->CCR1;   // Pulse period
         uint32_t w = RC_IC_TIMx->CCR2;   // Pulse width
-        if (p < 2000) return;            // Invalid signal
-        if (w < 800 || w > 2200) return; // Invalid signal
-        w = rc_pulse_map(w);
+        if (p < RC_INPUT_VALID_MAX || w < RC_INPUT_VALID_MIN || w > RC_INPUT_VALID_MAX)
+        {
+            if (bad_pulse_cnt < 3) {
+                bad_pulse_cnt++;
+            }
+            else {
+                good_pulse_cnt = 0;
+            }
+        }
+        else
+        {
+            pulse_width = w;
+            last_good_time = millis();
+            good_pulse_cnt++;
+            bad_pulse_cnt = 0;
+            new_flag = true;
+        }
     }
     else
     {
         CerealBitbang_IRQHandler();
     }
+}
+
+RcPulse_STM32::RcPulse_STM32(TIM_TypeDef* TIMx, GPIO_TypeDef* GPIOx, uint32_t pin)
+{
+    _tim = TIMx;
+    _gpio = GPIOx;
+    _pin = pin;
+}
+
+RcPulse_InputCap::RcPulse_InputCap(TIM_TypeDef* TIMx, GPIO_TypeDef* GPIOx, uint32_t pin, uint32_t chan)
+    : RcPulse_STM32(TIMx, GPIOx, pin)
+{
+    _chan = chan;
+}
+
+RcPulse_InputCap* rc_makeInputCapture(void)
+{
+    return new RcPulse_InputCap(RC_IC_TIMx, INPUT_PIN_PORT, INPUT_PIN, IC_TIMER_CHANNEL);
 }
 
 void RcPulse_InputCap::init(void)
@@ -103,4 +141,35 @@ void RcPulse_InputCap::init(void)
 
     ictimer_modeIsPulse = true;
     rc_ic_tim_init_2();
+}
+
+void RcPulse_InputCap::task(void)
+{
+    // do nothing
+}
+
+uint16_t RcPulse_InputCap::read(void)
+{
+    return rc_pulse_map(pulse_width);
+}
+
+bool RcPulse_InputCap::is_alive(void)
+{
+    if ((millis() - last_good_time) < RC_INPUT_TIMEOUT)
+    {
+        if (good_pulse_cnt >= 3) {
+            return true;
+        }
+    }
+    new_flag = false;
+    return false;
+}
+
+bool RcPulse_InputCap::has_new(bool clr)
+{
+    bool x = new_flag;
+    if (clr) {
+        new_flag = false;
+    }
+    return x;
 }
