@@ -1,4 +1,3 @@
-#include "adc.h"
 #include "sense.h"
 
 #define ADCx         ADC1
@@ -29,10 +28,11 @@ void adc_init()
     LL_DMA_SetPeriphSize           (ADC_DMAx, ADC_DMA_CHAN, LL_DMA_PDATAALIGN_HALFWORD);
     LL_DMA_SetMemorySize           (ADC_DMAx, ADC_DMA_CHAN, LL_DMA_MDATAALIGN_HALFWORD);
 
+    LL_ADC_SetCommonPathInternalCh(__LL_ADC_COMMON_INSTANCE(ADCx), LL_ADC_PATH_INTERNAL_TEMPSENSOR);
+
     LL_ADC_REG_SetSequencerChAdd(ADCx, VOLTAGE_ADC_CHANNEL);
     LL_ADC_REG_SetSequencerChAdd(ADCx, CURRENT_ADC_CHANNEL);
     LL_ADC_REG_SetSequencerChAdd(ADCx, LL_ADC_CHANNEL_TEMPSENSOR);
-    LL_ADC_SetCommonPathInternalCh(__LL_ADC_COMMON_INSTANCE(ADCx), LL_ADC_PATH_INTERNAL_TEMPSENSOR);
 
     ADC_InitStruct.Clock                = LL_ADC_CLOCK_SYNC_PCLK_DIV4;
     ADC_InitStruct.Resolution           = LL_ADC_RESOLUTION_12B;
@@ -66,14 +66,14 @@ void adc_init()
     // NVIC_SetPriority(DMA1_Channel1_IRQn, 3);
     // NVIC_EnableIRQ(DMA1_Channel1_IRQn);
 
-    LL_DMA_ConfigAddresses(ADC_DMAx, ADC_DMA_CHAN, LL_ADC_DMA_GetRegAddr(ADC1, LL_ADC_DMA_REG_REGULAR_DATA), (uint32_t)&adc_buff, LL_DMA_DIRECTION_PERIPH_TO_MEMORY);
+    LL_DMA_ConfigAddresses(ADC_DMAx, ADC_DMA_CHAN, LL_ADC_DMA_GetRegAddr(ADCx, LL_ADC_DMA_REG_REGULAR_DATA), (uint32_t)&adc_buff, LL_DMA_DIRECTION_PERIPH_TO_MEMORY);
     LL_DMA_SetDataLength(ADC_DMAx, ADC_DMA_CHAN, 3);
 
     // LL_DMA_EnableIT_TC(ADC_DMAx, ADC_DMA_CHAN);
     // LL_DMA_EnableIT_TE(ADC_DMAx, ADC_DMA_CHAN);
     LL_DMA_EnableChannel(ADC_DMAx, ADC_DMA_CHAN);
 
-    LL_ADC_REG_StartConversion(ADC1);
+    LL_ADC_REG_StartConversion(ADCx);
 }
 
 bool adc_task()

@@ -15,5 +15,6 @@ class Cereal_TimerBitbang : public Cereal
         virtual bool get_idle_flag(bool clr);
 
     protected:
+        uint16_t _buff_size;
         fifo_t* fifo_tx;
 };

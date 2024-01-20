@@ -1,6 +1,5 @@
 #include "main.h"
 #include "userconfig.h"
-#include "cereal.h"
 
 #define FOOL_AM32 \
     .fool_am32_bootloader_0   = 0x01, \
@@ -10,8 +9,6 @@
     .fool_am32_version_major  = 1,    \
     .fool_am32_version_minor  = 99,   \
     .fool_am32_name           = {'F', 'L', 'O', 'O', 'R', 'I', 'T', '\0', }, \
-
-
 
 // this stores a default settings copy in flash, somewhere inside the application flash memory
 const EEPROM_data_t default_eeprom = {
@@ -25,6 +22,11 @@ const EEPROM_data_t default_eeprom = {
     .input_mode         = INPUTMODE_RC,
     .phase_map          = 0,
     .baud               = 416666,
+
+    .voltage_divider    = TARGET_VOLTAGE_DIVIDER,
+    .current_offset     = CURRENT_OFFSET,
+    .current_scale      = MILLIVOLT_PER_AMP,
+    .adc_filter         = 100,
 
     .channel_0          = 1,
     .channel_1          = 2,
@@ -46,10 +48,6 @@ const EEPROM_data_t default_eeprom = {
     .temperature_limit  = 0,
     .current_limit      = 0,
 
-    .voltage_divider    = TARGET_VOLTAGE_DIVIDER,
-    .current_offset     = CURRENT_OFFSET,
-    .current_scale      = MILLIVOLT_PER_AMP,
-    .adc_filter         = 100,
     .currlim_kp         = 400,
     .currlim_ki         = 0,
     .currlim_kd         = 1000,
@@ -95,7 +93,7 @@ const EEPROM_item_t cfg_items[] = {
     { .name = "curlimkp"     , .ptr = (uint32_t)&(cfge.currlim_kp         ), .size = sizeof(cfge.currlim_kp          ), },
     { .name = "curlimki"     , .ptr = (uint32_t)&(cfge.currlim_ki         ), .size = sizeof(cfge.currlim_ki          ), },
     { .name = "curlimkd"     , .ptr = (uint32_t)&(cfge.currlim_kd         ), .size = sizeof(cfge.currlim_kd          ), },
-    { .name = {0}, .ptr = 0, .size = 0, }, // indicate end of list
+    { .ptr = 0, .size = 0, }, // indicate end of list
 };
 
 EEPROM_chksum_t checksum_fletcher16(uint8_t* data, int len)
@@ -168,7 +166,6 @@ void eeprom_mark_dirty(void)
 bool eeprom_user_edit(char* str, int32_t* vptr)
 {
     int i;
-    char* token;
     char* arg;
 
     for (i = 0; ; i++)
@@ -177,9 +174,9 @@ bool eeprom_user_edit(char* str, int32_t* vptr)
         if (desc->ptr == 0) {
             return false;
         }
-        if (item_strcmp(itm, (const char*)desc->name))
+        if (item_strcmp(str, (const char*)desc->name))
         {
-            token = strtok(str, " ");
+            strtok(str, " ");
             arg = strtok(NULL, " ");
             int32_t v;
             if (arg[0] == '0' && (arg[1] == 'x' || arg[1] == 'X')) {
@@ -202,25 +199,4 @@ bool eeprom_user_edit(char* str, int32_t* vptr)
         }
     }
     return false;
-}
-
-void eeprom_print_all(Cereal* cer)
-{
-    char buff[128];
-    int i;
-    for (i = 0; ; i++)
-    {
-        EEPROM_item_t* desc = (EEPROM_item_t*)&(cfg_items[i]);
-        if (desc->ptr == 0) {
-            return;
-        }
-        uint32_t ptrstart = (uint32_t)&cfge;
-        uint32_t itmidx = desc->ptr - ptrstart;
-        itmidx += (uint32_t)&cfg;
-        uint8_t* ptr8 = (uint8_t*)&cfg;
-        int32_t v = 0;
-        memcpy(&v, &(ptr8[itmidx]), desc->size);
-        int len = sprintf(buff, "%s %li\r\n", desc->name, v);
-        cer->write(buff, len);
-    }
 }

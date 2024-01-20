@@ -28,4 +28,4 @@ class RcBusChannel : public RcChannel
         Cereal* _cer;
 };
 
-extern uint16_t rc_pulse_map(uint16_t x);
+extern int16_t rc_pulse_map(uint16_t x);

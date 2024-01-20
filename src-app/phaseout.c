@@ -49,7 +49,7 @@ void pwm_full_coast()
     pwm_all_flt();
 }
 
-void pwm_set_all_duty(uint16_t a, uint16_t b, uint16_t c);
+void pwm_set_all_duty(uint16_t a, uint16_t b, uint16_t c)
 {
     // this logic only applies to brushed motor operation
     // do not use this code for brushless motors

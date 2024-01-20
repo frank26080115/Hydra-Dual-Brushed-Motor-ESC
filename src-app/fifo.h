@@ -29,6 +29,7 @@ static inline fifo_t* fifo_init(uint16_t sz)
     f->size = sz;
     f->pread = 0;
     f->pwrite = 0;
+    return f;
 }
 
 static inline void fifo_reset(fifo_t* f)

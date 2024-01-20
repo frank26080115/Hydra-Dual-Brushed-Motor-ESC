@@ -42,7 +42,7 @@ const uint8_t blinkpattern_boot2[] = {
     BLINK_LOOP,
 };
 
-const uint8_t blinkpattern_boot2[] = {
+const uint8_t blinkpattern_cli[] = {
     // fast double purple blink
     BLINK_RGB_TIME(1, 0, 1, 1),
     BLINK_OFF_TIME(1),

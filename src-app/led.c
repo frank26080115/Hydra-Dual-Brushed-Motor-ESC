@@ -1,4 +1,6 @@
 #include "led.h"
+#include <stddef.h>
+#include "systick.h"
 
 void led_init(void)
 {
@@ -102,6 +104,10 @@ void ledblink_boot2(void) {
     led_set_pattern_primary(blinkpattern_boot2);
 }
 
+void ledblink_cli(void) {
+    led_set_pattern_primary(blinkpattern_cli);
+}
+
 void ledblink_disarmed(void) {
     led_set_pattern_primary(blinkpattern_unarmed);
 }
@@ -113,8 +119,3 @@ void ledblink_armed_stopped(void) {
 void ledblink_moving(int8_t dir) {
     led_set_pattern_primary(blinkpattern_running);
 }
-
-void ledblink_cli(void) {
-    led_set_pattern_primary(blinkpattern_cli);
-}
-

@@ -1,6 +1,9 @@
 #pragma once
 
 #include "mcu.h"
+#include <stdint.h>
+#include <stdbool.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -9,25 +12,25 @@ extern "C" {
 extern bool complementry_pwm;
 extern bool braking;
 
-void pwm_init();
+extern void pwm_init();
 
-void pwm_setPWM_A();
-void pwm_setFlt_A();
-void pwm_setLow_A();
-void pwm_setPWM_B();
-void pwm_setFlt_B();
-void pwm_setLow_B();
-void pwm_setPWM_C();
-void pwm_setFlt_C();
-void pwm_setLow_C();
+extern void pwm_setPWM_A();
+extern void pwm_setFlt_A();
+extern void pwm_setLow_A();
+extern void pwm_setPWM_B();
+extern void pwm_setFlt_B();
+extern void pwm_setLow_B();
+extern void pwm_setPWM_C();
+extern void pwm_setFlt_C();
+extern void pwm_setLow_C();
 
 void pwm_all_flt();
 void pwm_all_low();
 void pwm_all_pwm();
 
-inline void pwm_setDuty_A(uint16_t x);
-inline void pwm_setDuty_B(uint16_t x);
-inline void pwm_setDuty_C(uint16_t x);
+extern inline void pwm_setDuty_A(uint16_t x);
+extern inline void pwm_setDuty_B(uint16_t x);
+extern inline void pwm_setDuty_C(uint16_t x);
 
 void pwm_proportional_brake(); // implement this in HAL
 void pwm_full_brake();

@@ -6,12 +6,30 @@
 #include "cereal_usart.h"
 #endif
 
+#include "led.h"
+#include "phaseout.h"
+#include "userconfig.h"
+#include "sense.h"
+
 #define MAX_CMD_ARGS 8
 int32_t* cmd_args;
 
 uint8_t cli_phaseremap;
+bool cli_hwdebug;
+extern int16_t current_limit_val;
+extern void current_limit_task(void);
 
 Cereal* cli_cereal;
+
+void cli_reportSensors(Cereal*);
+void cli_execute(Cereal* cer, char* str);
+int cmd_parseArgs(char* str);
+void eeprom_print_all(Cereal* cer);
+
+extern "C" {
+extern const EEPROM_item_t cfg_items[];
+extern const EEPROM_data_t cfge;
+}
 
 void cli_enter(void)
 {
@@ -27,7 +45,7 @@ void cli_enter(void)
 
     cmd_args = (int32_t*)malloc(MAX_CMD_ARGS * sizeof(int32_t)); // do not waste RAM unless we are in CLI mode
 
-    cli_phaseremap = cfg->phase_map;
+    cli_phaseremap = cfg.phase_map;
 
     char buff[CLI_BUFF_SIZE];
     uint16_t buff_idx = 0;
@@ -115,7 +133,7 @@ void cli_enter(void)
         eeprom_save_if_needed();
         if (cli_hwdebug) {
             // report analog values if desired
-            sensor_task();
+            sense_task();
             static uint32_t last_hwdebug = 0;
             if ((millis() - last_hwdebug) >= 200) {
                 last_hwdebug = millis();
@@ -130,7 +148,7 @@ void cli_execute(Cereal* cer, char* str)
     int argc;
     if (item_strcmp("list", str))
     {
-        cer->printf("all settings:\r\n")
+        cer->printf("all settings:\r\n");
         eeprom_print_all(cer);
         cer->write('\r');
         cer->write('\n');
@@ -175,14 +193,14 @@ void cli_execute(Cereal* cer, char* str)
         {
             led_task();
             // check sensors and perform current limit calculations
-            if (sensor_task()) {
+            if (sense_task()) {
                 current_limit_task();
                 cli_reportSensors(cer); // print if new data available
                 if (t == 0) {
                     t = millis();
                 }
             }
-            if (t != 0 && cmd_args[2] > 0 && (millis() - t) >= cmd_args[2]) {
+            if (t != 0 && cmd_args[2] > 0 && ((int)millis() - t) >= cmd_args[2]) {
                 // quit if time expired
                 break;
             }
@@ -241,7 +259,7 @@ int cmd_parseArgs(char* str)
             }
             else
             {
-                x = atoi();
+                x = atoi(token);
             }
             cmd_args[i-1] = x;
         }
@@ -253,5 +271,26 @@ int cmd_parseArgs(char* str)
 
 void cli_reportSensors(Cereal* cer)
 {
-    cer->printf("[%u]: %0.0f, %0.0f, %0.0f, %u, \r\n", millis(), sensor_temperatureC, sensor_voltage, sensor_current, current_limit_val);
+    cer->printf("[%lu]: %0.0f, %0.0f, %0.0f, %u, \r\n", millis(), sense_temperatureC, sense_voltage, sense_current, current_limit_val);
+}
+
+void eeprom_print_all(Cereal* cer)
+{
+    char buff[128];
+    int i;
+    for (i = 0; ; i++)
+    {
+        EEPROM_item_t* desc = (EEPROM_item_t*)&(cfg_items[i]);
+        if (desc->ptr == 0) {
+            return;
+        }
+        uint32_t ptrstart = (uint32_t)&cfge;
+        uint32_t itmidx = desc->ptr - ptrstart;
+        itmidx += (uint32_t)&cfg;
+        uint8_t* ptr8 = (uint8_t*)&cfg;
+        int32_t v = 0;
+        memcpy(&v, &(ptr8[itmidx]), desc->size);
+        int len = sprintf(buff, "%s %li\r\n", desc->name, v);
+        cer->write((uint8_t*)buff, len);
+    }
 }

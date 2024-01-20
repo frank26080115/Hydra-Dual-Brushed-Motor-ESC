@@ -17,7 +17,6 @@ void rc_ic_tim_init(void)
         TIM_CCMR1_CC4S_IN_TI1 | TIM_CCMR1_IC4F_CK_INT_N_8
     #endif
         ;
-    TIM_CCMR1_CC1S_IN_TI1 | TIM_CCMR1_IC1F_CK_INT_N_8;
     RC_IC_TIMx->CCER  = 
     #if LL_TIM_CHANNEL_CH1 == IC_TIMER_CHANNEL
         TIM_CCER_CC1E
@@ -55,13 +54,13 @@ void rc_ic_tim_init_2(void)
     GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
     GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
 
-    #if RC_IC_TIMx == TIM3
+    #if INPUT_PIN == LL_GPIO_PIN_4
     GPIO_InitStruct.Pin = INPUT_PIN;
     GPIO_InitStruct.Alternate = LL_GPIO_AF_1;
     LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
     NVIC_SetPriority(TIM3_IRQn, 0);
     NVIC_EnableIRQ(TIM3_IRQn);
-    #elif RC_IC_TIMx == TIM15
+    #elif INPUT_PIN == LL_GPIO_PIN_2
     GPIO_InitStruct.Pin = INPUT_PIN;
     GPIO_InitStruct.Alternate = LL_GPIO_AF_0;
     LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
@@ -71,6 +70,7 @@ void rc_ic_tim_init_2(void)
 }
 
 bool ictimer_modeIsPulse;
+extern void CerealBitbang_IRQHandler(void);
 
 void RcPulse_IQRHandler(void)
 {
@@ -104,5 +104,3 @@ void RcPulse_InputCap::init(void)
     ictimer_modeIsPulse = true;
     rc_ic_tim_init_2();
 }
-
-uint16_t RcPulse_InputCap::init(void)

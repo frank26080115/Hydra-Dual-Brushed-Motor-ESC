@@ -81,7 +81,7 @@ static inline void led_init_gpio(GPIO_TypeDef *GPIOx, uint32_t Pin, bool opendra
     }
 }
 
-static inline void led_set(GPIO_TypeDef *GPIOx, uint32_t Pin, bool ison, bool opendrain)
+inline void led_set(GPIO_TypeDef* GPIOx, uint32_t Pin, bool ison, bool opendrain)
 {
     if ((ison && opendrain) || (!ison && !opendrain)) {
         LL_GPIO_ResetOutputPin(GPIOx, Pin);

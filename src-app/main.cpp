@@ -1,8 +1,12 @@
 #include "main.h"
 #include "userconfig.h"
 #include "inputpin.h"
+#include "phaseout.h"
+#include "sense.h"
 
-pid_t current_pid = {
+#include <math.h>
+
+pidloop_t current_pid = {
     .Kp = 400,
     .Ki = 0,
     .Kd = 1000,
@@ -10,6 +14,9 @@ pid_t current_pid = {
     .output_limit = 100000
 };
 int16_t current_limit_val = 0;
+
+void boot_decide_cli(void);
+void cli_enter(void);
 
 int main(void)
 {
@@ -96,7 +103,7 @@ void boot_decide_cli(void)
 void current_limit_task()
 {
     static uint32_t last_time = 0;
-    if (cfg->current_limit <= 0) {
+    if (cfg.current_limit <= 0) {
         current_limit_val = 0;
         return;
     }
@@ -105,5 +112,5 @@ void current_limit_task()
         return;
     }
     last_time = now;
-    current_limit_val = (int16_t)lroundf((pid_calc(&current_pid, lroundf(sense_current), cfg->current_limit * 100) / 10000));
+    current_limit_val = (int16_t)lroundf((pid_calc(&current_pid, lroundf(sense_current), cfg.current_limit * 100) / 10000));
 }

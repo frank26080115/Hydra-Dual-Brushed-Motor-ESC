@@ -1595,8 +1595,8 @@
         #define VOLTAGE_ADC_PORT       GPIOA
         #define VOLTAGE_ADC_CHANNEL    LL_ADC_CHANNEL_3
     #endif
-    #ifndef LED_IS_ACTIVEHIGH
-    #define LED_IS_OPENDRAIN
+    #ifndef LED_IS_OPENDRAIN
+    #define LED_IS_OPENDRAIN true
     #endif
     #ifndef LED_PIN
         #define LED_PIN                LL_GPIO_PIN_15

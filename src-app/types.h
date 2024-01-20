@@ -51,7 +51,7 @@ typedef struct
     uint32_t voltage_divider;
     uint32_t current_offset;
     uint32_t current_scale;
-    uint16_t adc_filter
+    uint16_t adc_filter;
 
     // CRSF channel selection
     uint8_t channel_0;
@@ -103,7 +103,7 @@ typedef struct {
     int32_t pid_output;
     int32_t integral_limit;
     int32_t output_limit;
-} pid_t;
+} pidloop_t;
 
 #ifdef __cplusplus
 }

@@ -2,11 +2,14 @@
 #include "main.h"
 #include "userconfig.h"
 
+#include <math.h>
+
 void delay_ms(uint32_t x)
 {
     uint32_t t = millis();
     while ((millis() - t) < x) {
         led_task();
+        sense_task();
     }
 }
 
@@ -51,11 +54,11 @@ int16_t rc_pulse_map(uint16_t x)
 {
     int32_t x2 = x;
     x2 -= cfg.rc_mid;
-    x2 = x2 >= cfg.rc_deadband ? (x2 - cfg.rc_deadband) : (-x2 >= cfg.rc_deadband ? (x2 + cfg.rc_deadband) : (0));
+    x2 = x2 >= cfg.rc_deadzone ? (x2 - cfg.rc_deadzone) : (-x2 >= cfg.rc_deadzone ? (x2 + cfg.rc_deadzone) : (0));
     if (x2 == 0) {
         return 0;
     }
-    int32_t nrange = cfg.rc_range - cfg.rc_deadband;
+    int32_t nrange = cfg.rc_range - cfg.rc_deadzone;
     return fi_map(x2, -nrange, nrange, -THROTTLE_UNIT_RANGE, THROTTLE_UNIT_RANGE, true);
 }
 
@@ -91,7 +94,7 @@ bool item_strcmp(const char* usr_inp, const char* table_item)
     return true;
 }
 
-float pid_calc(pid_t* pidnow, int actual, int target)
+float pid_calc(pidloop_t* pidnow, int actual, int target)
 {
     // this is expected to run at 1 kHz loop time
 

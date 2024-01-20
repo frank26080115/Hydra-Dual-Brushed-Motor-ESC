@@ -11,76 +11,74 @@ static fifo_t*       cereal_fifo_rx;
 static volatile uint32_t last_rx_time;
 
 extern void rc_ic_tim_init(void);
-extern void rc_ic_tim_init2(void);
+extern void rc_ic_tim_init_2(void);
 extern bool ictimer_modeIsPulse;
 
 void CerealBitbang_IRQHandler(void)
 {
     static int n = 0, b;
-    switch (RC_IC_TIMx->DIER) // Which interrupt enabled is kind of like our state machine
+    if (LL_TIM_IsActiveFlag_UPDATE(RC_IC_TIMx))
     {
-        case TIM_DIER_UIE:    // We are writing
-            RC_IC_TIMx->SR = ~TIM_SR_UIF;
-            if (fifo_available(cereal_fifo_tx) > 0) {
-                int p = -1;
-                if (n == 0) { // Start bit
-                    b = fifo_pop(cereal_fifo_tx);
-                    n++;
-                }
-                else if (n < 10) { // Data bits
-                    if (b & 1) p = 0;
-                    b >>= 1;
-                } else { // Stop bit
-                    n = 0;
-                    p = 0;
-                }
-                RC_IC_TIMx->CCR1 = p; // Generate the pulse
-                break;
-            }
-
-            // Go into receive mode if no more data needs to be sent
-            RC_IC_TIMx->SMCR = TIM_SMCR_SMS_RM | LL_TIM_TS_TI1F_ED; // Reset on any edge on TI1
-            RC_IC_TIMx->CCER = TIM_CCER_CC2E | TIM_CCER_CC2P;       // IC2 on falling edge on TI1
-            RC_IC_TIMx->SR   = ~TIM_SR_CC2IF;                       // Clear flag
-            RC_IC_TIMx->DIER = TIM_DIER_CC2IE;                      // Enable capture/compare 2 interrupt
-            RC_IC_TIMx->CCR1 = CLK_CNT(cereal_baud * 2);            // Half-bit time
-            RC_IC_TIMx->EGR  = TIM_EGR_UG;
-            break;
-
-        case TIM_DIER_CC1IE: // Half-bit time
-            RC_IC_TIMx->SR = ~TIM_SR_CC1IF; // Clear the flag
-            int p = LL_GPIO_IsInputPinSet(INPUT_PIN_PORT, INPUT_PIN); // Signal level
+        LL_TIM_ClearFlag_UPDATE(RC_IC_TIMx);
+        if (fifo_available(cereal_fifo_tx) > 0) {
+            int p = -1;
             if (n == 0) { // Start bit
+                b = fifo_pop(cereal_fifo_tx);
                 n++;
-                //if (p) WWDG_CR = WWDG_CR_WDGA; // Data error
-                b = 0;
-                break;
             }
-            if (n < 10) { // Data bit
+            else if (n < 10) { // Data bits
+                if (b & 1) p = 0;
                 b >>= 1;
-                if (p) {
-                    b |= 0x80;
-                }
-                break;
+            } else { // Stop bit
+                n = 0;
+                p = 0;
             }
-            //if (!p || i == sizeof iobuf - 1) WWDG_CR = WWDG_CR_WDGA; // Data error
-            RC_IC_TIMx->SR = ~TIM_SR_CC2IF;
-            RC_IC_TIMx->DIER = TIM_DIER_CC2IE;
-            n = 0;
+            RC_IC_TIMx->CCR1 = p; // Generate the pulse
+            return;
+        }
 
-            fifo_push(cereal_fifo_rx, b);
+        // Go into receive mode if no more data needs to be sent
+        RC_IC_TIMx->SMCR = TIM_SMCR_SMS_RM | LL_TIM_TS_TI1F_ED; // Reset on any edge on TI1
+        RC_IC_TIMx->CCER = TIM_CCER_CC2E | TIM_CCER_CC2P;       // IC2 on falling edge on TI1
+        RC_IC_TIMx->SR   = ~TIM_SR_CC2IF;                       // Clear flag
+        RC_IC_TIMx->DIER = TIM_DIER_CC2IE;                      // Enable capture/compare 2 interrupt
+        RC_IC_TIMx->CCR1 = CLK_CNT(cereal_baud * 2);            // Half-bit time
+        RC_IC_TIMx->EGR  = TIM_EGR_UG;
+    }
+    else if (LL_TIM_IsActiveFlag_CC1(RC_IC_TIMx))
+    {
+        LL_TIM_ClearFlag_CC1(RC_IC_TIMx);
+        int p = LL_GPIO_IsInputPinSet(INPUT_PIN_PORT, INPUT_PIN); // Signal level
+        if (n == 0) { // Start bit
+            n++;
+            //if (p) WWDG_CR = WWDG_CR_WDGA; // Data error
+            b = 0;
+            return;
+        }
+        if (n < 10) { // Data bit
+            b >>= 1;
+            if (p) {
+                b |= 0x80;
+            }
+            return;
+        }
+        //if (!p || i == sizeof iobuf - 1) WWDG_CR = WWDG_CR_WDGA; // Data error
+        RC_IC_TIMx->SR = ~TIM_SR_CC2IF;
+        RC_IC_TIMx->DIER = TIM_DIER_CC2IE;
+        n = 0;
 
-            RC_IC_TIMx->SMCR = 0;
-            RC_IC_TIMx->CCR1 = 0; // Preload high level
-            RC_IC_TIMx->EGR  = TIM_EGR_UG;    // Update registers and trigger UEV
-            RC_IC_TIMx->CCER = TIM_CCER_CC1E; // Enable output
-            RC_IC_TIMx->DIER = TIM_DIER_UIE;
-            break;
+        fifo_push(cereal_fifo_rx, b);
 
-        case TIM_DIER_CC2IE: // Falling edge
-            RC_IC_TIMx->SR = ~(TIM_SR_CC1IF | TIM_SR_CC2IF);
-            RC_IC_TIMx->DIER = TIM_DIER_CC1IE;
-            break;
+        RC_IC_TIMx->SMCR = 0;
+        RC_IC_TIMx->CCR1 = 0; // Preload high level
+        RC_IC_TIMx->EGR  = TIM_EGR_UG;    // Update registers and trigger UEV
+        RC_IC_TIMx->CCER = TIM_CCER_CC1E; // Enable output
+        RC_IC_TIMx->DIER = TIM_DIER_UIE;
+    }
+    else if (LL_TIM_IsActiveFlag_CC2(RC_IC_TIMx))
+    {
+        LL_TIM_ClearFlag_CC2(RC_IC_TIMx);
+        LL_TIM_EnableIT_CC1(RC_IC_TIMx);
     }
 }
 

@@ -1,14 +1,16 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 #include "fifo.h"
+#include "systick.h"
 
 class Cereal
 {
     public:
-        Cereal(uint8_t id);
+        Cereal(void);
         virtual void write(uint8_t x);
         virtual size_t write(uint8_t* buf, int len);
         virtual void flush(void);

@@ -6,10 +6,10 @@ static fifo_t* fifo_rx_2;
 static fifo_t* fifo_tx_2;
 static volatile uint32_t last_rx_time_1;
 static volatile uint32_t last_rx_time_2;
-static bool is_idle_1;
-static bool is_idle_2;
+static volatile bool is_idle_1;
+static volatile bool is_idle_2;
 
-void USARTx_IRQHandler(USART_TypeDef* usart, fifo_t* fifo_rx, fifo_t* fifo_tx, bool* is_idle, uint32_t* timestamp)
+void USARTx_IRQHandler(USART_TypeDef* usart, fifo_t* fifo_rx, fifo_t* fifo_tx, volatile bool* is_idle, volatile uint32_t* timestamp)
 {
     if (LL_USART_IsActiveFlag_RXNE(usart))
     {
@@ -35,15 +35,15 @@ void USARTx_IRQHandler(USART_TypeDef* usart, fifo_t* fifo_rx, fifo_t* fifo_tx, b
 
 void USART1_IRQHandler(void)
 {
-    USARTx_IRQHandler(USART1, fifo_rx_1, fifo_tx_1, &last_rx_time_1);
+    USARTx_IRQHandler(USART1, fifo_rx_1, fifo_tx_1, (volatile bool*)&is_idle_1, (volatile uint32_t*)&last_rx_time_1);
 }
 
 void USART2_IRQHandler(void)
 {
-    USARTx_IRQHandler(USART2, fifo_rx_2, fifo_tx_2, &last_rx_time_2);
+    USARTx_IRQHandler(USART2, fifo_rx_2, fifo_tx_2, (volatile bool*)&is_idle_2, (volatile uint32_t*)&last_rx_time_2);
 }
 
-Cereal_USART::Cereal_USART(uint8_t id, uint8_t sz)
+Cereal_USART::Cereal_USART(uint8_t id, uint16_t sz)
 {
     _id = id;
     if (id == 1) {
@@ -95,12 +95,18 @@ void Cereal_USART::begin(uint32_t baud, bool invert, bool halfdup, bool swap)
     else {
         cr2 &= ~USART_CR2_SWAP;
     }
-    _usart->USART2_CR2 = cr2;
+    _usart->CR2 = cr2;
 
-    _usart->USART2_CR1 = USART_CR1_UE | USART_CR1_TE | USART_CR1_RE | USART_CR1_TCIE | USART_CR1_RXNEIE;
+    _usart->CR1 = USART_CR1_UE | USART_CR1_TE | USART_CR1_RE | USART_CR1_TCIE | 
+        #if defined(MCU_F051)
+            USART_CR1_RXNEIE
+        #elif defined(MCU_G071)
+            LL_USART_CR1_RXNEIE_RXFNEIE
+        #endif
+        ;
 
     LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
-    if (id == 1)
+    if (_id == 1)
     {
         GPIO_InitStruct.Pin        = LL_GPIO_PIN_6;
         GPIO_InitStruct.Mode       = LL_GPIO_MODE_ALTERNATE;
@@ -110,7 +116,7 @@ void Cereal_USART::begin(uint32_t baud, bool invert, bool halfdup, bool swap)
         GPIO_InitStruct.Alternate  = LL_GPIO_AF_0;
         LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
     }
-    else if (id == 2)
+    else if (_id == 2)
     {
         GPIO_InitStruct.Pin        = LL_GPIO_PIN_2;
         GPIO_InitStruct.Mode       = LL_GPIO_MODE_ALTERNATE;
@@ -132,7 +138,7 @@ void Cereal_USART::write(uint8_t x)
     fifo_push(fifo_tx, x);
     if (LL_USART_IsActiveFlag_TXE(_usart)) {
         uint8_t y = fifo_pop(fifo_tx);
-        LL_USART_TransmitData8(usart, y);
+        LL_USART_TransmitData8(_usart, y);
     }
     if (x == '\n') {
         flush();
@@ -146,45 +152,6 @@ void Cereal_USART::flush(void)
     }
 }
 
-int16_t Cereal_USART::read(void)
-{
-    return fifo_pop(fifo_rx);
-}
-
-int16_t Cereal_USART::peek(void)
-{
-    return fifo_peek(fifo_rx);
-}
-
-int Cereal_USART::available(void)
-{
-    return fifo_available(fifo_rx);
-}
-
-int Cereal_USART::read(uint8_t* buf, int len)
-{
-    int i;
-    for (i = 0; i < len; i++)
-    {
-        int16_t c = fifo_read(fifo_rx);
-        if (c < 0) {
-            return i;
-        }
-        buf[i] = c;
-    }
-    return i;
-}
-
-void Cereal_USART::reset_buffer(void)
-{
-    fifo_reset(fifo_rx);
-}
-
-uint8_t* Cereal_USART::get_buffer(void)
-{
-    return fifo_rx->buf;
-}
-
 uint32_t Cereal_USART::get_last_time(void)
 {
     if (_id == 1) {
@@ -193,6 +160,7 @@ uint32_t Cereal_USART::get_last_time(void)
     else if (_id == 2) {
         return last_rx_time_2;
     }
+    return 0;
 }
 
 bool Cereal_USART::get_idle_flag(bool clr)

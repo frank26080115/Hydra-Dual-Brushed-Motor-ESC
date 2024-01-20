@@ -1,4 +1,9 @@
 #include "cereal.h"
+#include <stdarg.h>
+
+Cereal::Cereal()
+{
+}
 
 size_t Cereal::printf(const char *format, ...)
 {
@@ -64,7 +69,7 @@ int Cereal::read(uint8_t* buf, int len)
     int i;
     for (i = 0; i < len; i++)
     {
-        int16_t c = fifo_read(fifo_rx);
+        int16_t c = fifo_pop(fifo_rx);
         if (c < 0) {
             return i;
         }

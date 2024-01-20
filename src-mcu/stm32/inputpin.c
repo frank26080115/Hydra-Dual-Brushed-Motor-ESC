@@ -20,5 +20,5 @@ void inp_pullDown(void) {
 }
 
 bool inp_read(void) {
-    LL_GPIO_IsInputPinSet(INPUT_PIN_PORT, INPUT_PIN);
+    return LL_GPIO_IsInputPinSet(INPUT_PIN_PORT, INPUT_PIN);
 }
