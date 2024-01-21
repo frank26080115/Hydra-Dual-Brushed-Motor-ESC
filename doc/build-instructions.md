@@ -27,4 +27,16 @@ Use `cd` to navigate to the code repository.
 
 Use the command `make clean` first. Then use the command `make`, which should generate all of the firmware files.
 
-(currently the build requires a clean build always, sorry!)
+For a single target, the command looks like `make -s MCU_TYPE=<MCU> TARGET=<TARGETNAME> binary` , for example, `make -s MCU_TYPE=F051 TARGET=REPEAT_DRIVE_F051 binary`
+
+Batch build will be slow as all the files need to be completely rebuilt for every ESC target. Individual targets can be rebuilt quickly without starting from a clean state.
+
+# Modifying a Build
+
+Compiler preprocessor defines that can be enabled or disabled to save memory:
+
+ * `ENABLE_CEREAL_TX` ability to transmit bytes over serial
+ * `ENABLE_LED_BLINK` complex blinking behavior vs simple colours and simple blinks
+ * `ENABLE_COMPILE_CLI` if the CLI is available, a ton of memory is used for `printf`
+
+I have fanagled around with a bunch of build options to minimize the final flash size. Also, I have removed all instances of `malloc` and `new`.

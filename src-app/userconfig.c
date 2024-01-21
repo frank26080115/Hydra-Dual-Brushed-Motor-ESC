@@ -1,6 +1,8 @@
 #include "main.h"
 #include "userconfig.h"
 #include "systick.h"
+#include <string.h>
+#include <stdlib.h>
 
 #define FOOL_AM32                     \
     .fool_am32_bootloader_0   = 0x01, \
@@ -27,10 +29,10 @@ const EEPROM_data_t default_eeprom = {
     .voltage_divider    = TARGET_VOLTAGE_DIVIDER,
     .current_offset     = CURRENT_OFFSET,
     .current_scale      = MILLIVOLT_PER_AMP,
-    .adc_filter         = 100,
+    .adc_filter         = ADC_FILTER_DEFAULT,
 
-    .channel_0          = 1,
-    .channel_1          = 2,
+    .channel_1          = 1,
+    .channel_2          = 2,
     .channel_mode       = 5,
 
     .rc_mid             = 1500,
@@ -38,16 +40,18 @@ const EEPROM_data_t default_eeprom = {
     .rc_deadzone        = 10,
 
     .pwm_reload         = PWM_DEFAULT_AUTORELOAD,
-    .pwm_headroom       = PWM_DEFAULT_HEAADROOM,
+    .pwm_headroom       = PWM_DEFAULT_HEADROOM,
 
     .braking            = true,
     .chan_swap          = false,
-    .flip_0             = false,
     .flip_1             = false,
+    .flip_2             = false,
     .tied               = false,
-    .arm_duration       = 100,
+    .arm_duration       = RC_ARMING_CNT_REQ,
+    .disarm_timeout     = RC_DISARM_TIMEOUT,
     .temperature_limit  = 0,
     .current_limit      = 0,
+    .voltage_limit      = 0,
 
     .currlim_kp         = 400,
     .currlim_ki         = 0,
@@ -55,7 +59,7 @@ const EEPROM_data_t default_eeprom = {
 };
 
 // this stores a copy in the flash region allocated for EEPROM, this is writable
-__attribute__((__section__(".EEPROM")))
+__attribute__((__section__(".eeprom")))
 const EEPROM_data_t cfge = {
     FOOL_AM32
 };
@@ -73,8 +77,8 @@ const EEPROM_item_t cfg_items[] = {
     DCLR_ITM("inputmode"    , input_mode        ),
     DCLR_ITM("phasemap"     , phase_map         ),
     DCLR_ITM("baud"         , baud              ),
-    DCLR_ITM("channel_0"    , channel_0         ),
     DCLR_ITM("channel_1"    , channel_1         ),
+    DCLR_ITM("channel_2"    , channel_2         ),
     DCLR_ITM("channel_mode" , channel_mode      ),
     DCLR_ITM("rc_mid"       , rc_mid            ),
     DCLR_ITM("rc_range"     , rc_range          ),
@@ -83,12 +87,14 @@ const EEPROM_item_t cfg_items[] = {
     DCLR_ITM("pwm_headroom" , pwm_headroom      ),
     DCLR_ITM("braking"      , braking           ),
     DCLR_ITM("chanswap"     , chan_swap         ),
-    DCLR_ITM("flip0"        , flip_0            ),
     DCLR_ITM("flip1"        , flip_1            ),
+    DCLR_ITM("flip2"        , flip_2            ),
     DCLR_ITM("tied"         , tied              ),
     DCLR_ITM("armdur"       , arm_duration      ),
+    DCLR_ITM("disarmtime"   , disarm_timeout    ),
     DCLR_ITM("templim"      , temperature_limit ),
     DCLR_ITM("currlim"      , current_limit     ),
+    DCLR_ITM("voltlim"      , voltage_limit     ),
     DCLR_ITM("voltdiv"      , voltage_divider   ),
     DCLR_ITM("curroffset"   , current_offset    ),
     DCLR_ITM("currscale"    , current_scale     ),
@@ -136,10 +142,15 @@ bool eeprom_load_or_default(void)
         return true;
     }
     else {
-        memcpy(&cfg, &default_eeprom, sizeof(EEPROM_data_t));
-        eeprom_save();
+        eeprom_factory_reset();
         return false;
     }
+}
+
+void eeprom_factory_reset(void)
+{
+    memcpy(&cfg, &default_eeprom, sizeof(EEPROM_data_t));
+    eeprom_save();
 }
 
 uint32_t eeprom_save_time;
@@ -154,7 +165,7 @@ void eeprom_save(void)
     ptre->chksum = calculated_chksum;
     memcpy(&cfg, &default_eeprom, head_len);                       // ensures header is written
     eeprom_write((uint8_t*)&cfg, sizeof(EEPROM_data_t), cfg_addr); // commit to flash
-    eeprom_save_time = 0;
+    eeprom_save_time = 0; // remove dirty flag
 }
 
 void eeprom_save_if_needed(void)
@@ -205,6 +216,7 @@ bool eeprom_user_edit(char* str, int32_t* vptr)
                 *vptr = 0;
                 memcpy(vptr, &v, desc->size);
             }
+            eeprom_mark_dirty();
             return true;
         }
     }

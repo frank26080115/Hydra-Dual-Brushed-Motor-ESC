@@ -15,6 +15,7 @@ enum
     VSPLITMODE_HALF_VOLTAGE,
     VSPLITMODE_BOOST_ALWAYS,
     VSPLITMODE_BOOST_FORWARD,
+    VSPLITMODE_END,
 };
 
 enum
@@ -45,23 +46,25 @@ typedef struct
     uint8_t voltage_split_mode;
     uint8_t input_mode;
     uint8_t phase_map;
-    uint32_t baud;
+    uint32_t baud;             // 0 means automatic, otherwise it will override CRSF baudrate
 
     // hardware ADC calibration
-    uint32_t voltage_divider;
-    uint32_t current_offset;
-    uint32_t current_scale;
-    uint16_t adc_filter;
+    uint32_t voltage_divider;  // default uses target hardware definition
+    uint32_t current_offset;   // default uses target hardware definition
+    uint32_t current_scale;    // default uses target hardware definition
+    uint16_t adc_filter;       // 0 to 1000, 100 meaning 10% of new-value and 90% of old-value
 
     // CRSF channel selection
-    uint8_t channel_0;
     uint8_t channel_1;
+    uint8_t channel_2;
     uint8_t channel_mode;
+    // use 0 if not used
 
     // RC signal calibration, units are microseconds
     uint16_t rc_mid;
     uint16_t rc_range;
     uint16_t rc_deadzone;
+    // these `rc_*` values do not apply to CRSF data
 
     // driver PWM options
     uint32_t pwm_reload;
@@ -69,12 +72,14 @@ typedef struct
 
     bool braking;
     bool chan_swap;
-    bool flip_0;
     bool flip_1;
+    bool flip_2;
     bool tied;
-    uint16_t arm_duration;
+    uint32_t arm_duration;
+    uint32_t disarm_timeout;
     uint8_t temperature_limit;
     uint32_t current_limit;
+    uint32_t voltage_limit;
 
     int32_t currlim_kp;
     int32_t currlim_ki;
@@ -113,6 +118,15 @@ typedef struct
 }
 __attribute__((packed))
 crsf_header_t;
+
+typedef struct
+{
+    uint8_t version_major;
+    uint8_t version_eeprom;
+    char device_name[24 - 2]; // size must match allocation in linker script
+}
+__attribute__((packed))
+firmware_info_s;
 
 #ifdef __cplusplus
 }

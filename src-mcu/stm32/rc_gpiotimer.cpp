@@ -2,45 +2,20 @@
 #include "rc_stm32.h"
 
 static GPIO_TypeDef* rc_gpio;
-static TIM_TypeDef* rc_tim;
-static uint32_t rc_pin;
+static TIM_TypeDef*  rc_tim;
+static uint32_t      rc_pin;
 
-static volatile uint8_t overflow_cnt;
+static volatile uint8_t  overflow_cnt;
 static volatile uint16_t pulse_width;
 static volatile bool     new_flag       = false;
 static volatile uint32_t last_good_time = 0;
 static volatile uint8_t  good_pulse_cnt = 0;
 static volatile uint8_t  bad_pulse_cnt  = 0;
+static volatile uint32_t arm_pulse_cnt  = 0;
+static volatile bool     armed          = false;
+static uint16_t arming_val_min = 0, arming_val_max = 0;
 
 static volatile bool was_high;
-
-#if defined(MCU_F051)
-// PB6 is telemetry pin
-#define GPIOEXTI_TIMx              TIM2
-#define GPIOEXTI_Pin               LL_GPIO_PIN_6
-#define GPIOEXTI_GPIO              GPIOB
-#define GPIOEXTI_IRQHandler        EXTI4_15_IRQHandler
-#define GPIOEXTI_IRQn              EXTI4_15_IRQn
-#define GPIOEXTI_Port              LL_SYSCFG_EXTI_PORTB
-#define GPIOEXTI_Line              LL_EXTI_LINE_6
-#define GPIOEXTI_SYSCFG_Line       LL_SYSCFG_EXTI_LINE6
-#define GPIOEXTI_TIM_IRQHandler    TIM2_IRQHandler
-#define GPIOEXTI_TIM_IRQn          TIM2_IRQn
-#define GPIO_RC_PULSE_OFFSET       0
-#elif defined(MCU_G071)
-// PB6 is telemetry pin
-#define GPIOEXTI_TIMx              TIM2
-#define GPIOEXTI_Pin               LL_GPIO_PIN_6
-#define GPIOEXTI_GPIO              GPIOB
-#define GPIOEXTI_IRQHandler        EXTI4_15_IRQHandler
-#define GPIOEXTI_IRQn              EXTI4_15_IRQn
-#define GPIOEXTI_Port              EXTI_EXTICR2_EXTI6
-#define GPIOEXTI_Line              LL_EXTI_LINE_6
-#define GPIOEXTI_SYSCFG_Line       LL_EXTI_CONFIG_LINE6
-#define GPIOEXTI_TIM_IRQHandler    TIM2_IRQHandler
-#define GPIOEXTI_TIM_IRQn          TIM2_IRQn
-#define GPIO_RC_PULSE_OFFSET       0
-#endif
 
 #ifdef GPIOEXTI_IRQHandler
 
@@ -74,6 +49,15 @@ void GPIOEXTI_IRQHandler(void)
                 }
                 bad_pulse_cnt = 0;
                 new_flag = true;
+                if (t >= arming_val_min && t <= arming_val_max) {
+                    arm_pulse_cnt++;
+                    if (arm_pulse_cnt >= arm_pulses_required) {
+                        armed = true;
+                    }
+                }
+                else {
+                    arm_pulse_cnt = 0;
+                }
             }
             else
             {
@@ -83,6 +67,7 @@ void GPIOEXTI_IRQHandler(void)
                 else {
                     good_pulse_cnt = 0;
                 }
+                arm_pulse_cnt = 0;
             }
         }
         was_high = false;
@@ -110,6 +95,7 @@ void GPIOEXTI_TIM_IRQHandler(void)
         LL_TIM_ClearFlag_UPDATE(rc_tim);
         if (overflow_cnt < 8) {
             overflow_cnt++;
+            arm_pulse_cnt = 0;
         }
     }
 }
@@ -120,22 +106,18 @@ void GPIOEXTI_TIM_IRQHandler(void)
 
 #endif
 
-RcPulse_GpioIsr* rc_makeGpioInput(void)
-{
-    RcPulse_GpioIsr* x = new RcPulse_GpioIsr(GPIOEXTI_TIMx, GPIOEXTI_GPIO, GPIOEXTI_Pin);
-    return x;
-}
-
 RcPulse_GpioIsr::RcPulse_GpioIsr(TIM_TypeDef* TIMx, GPIO_TypeDef* GPIOx, uint32_t pin)
-    : RcPulse_STM32(TIMx, GPIOx, pin)
 {
+    _tim  = TIMx;
+    _gpio = GPIOx;
+    _pin  = pin;
 }
 
 void RcPulse_GpioIsr::init(void)
 {
-    rc_tim = _tim;
+    rc_tim  = _tim;
     rc_gpio = _gpio;
-    rc_pin = _pin;
+    rc_pin  = _pin;
 
     LL_TIM_InitTypeDef timcfg = {0};
     timcfg.Prescaler     = __LL_TIM_CALC_PSC(SystemCoreClock, 4000000);
@@ -171,11 +153,25 @@ void RcPulse_GpioIsr::init(void)
     NVIC_EnableIRQ(GPIOEXTI_IRQn);
 
     was_high = LL_GPIO_IsInputPinSet(rc_gpio, rc_pin);
+
+    uint16_t test_arming_val = 0;
+    int last_v = -THROTTLE_UNIT_RANGE;
+    for (test_arming_val = 1250 * 4; test_arming_val < 1750 * 4; test_arming_val++) {
+        int v = rc_pulse_map((test_arming_val + GPIO_RC_PULSE_OFFSET) / 4);
+        if (v == 0 && last_v < 0 && arming_val_min == 0) {
+            arming_val_min = test_arming_val - 1;
+        }
+        if (v == 0 && last_v > 0 && arming_val_max == 0) {
+            arming_val_max = test_arming_val;
+            break;
+        }
+        last_v = v;
+    }
 }
 
 void RcPulse_GpioIsr::task(void)
 {
-    // do nothing
+    RcChannel::task();
 }
 
 int16_t RcPulse_GpioIsr::read(void)
@@ -192,6 +188,7 @@ bool RcPulse_GpioIsr::is_alive(void)
         }
     }
     new_flag = false;
+    arm_pulse_cnt = 0;
     return false;
 }
 
@@ -202,4 +199,21 @@ bool RcPulse_GpioIsr::has_new(bool clr)
         new_flag = false;
     }
     return x;
+}
+
+bool RcPulse_GpioIsr::is_armed(void)
+{
+    if ((millis() - last_good_time) < disarm_timeout || disarm_timeout <= 0)
+    {
+        return armed;
+    }
+    armed = false;
+    arm_pulse_cnt = 0;
+    return false;
+}
+
+void RcPulse_GpioIsr::disarm(void)
+{
+    armed = false;
+    arm_pulse_cnt = 0;
 }

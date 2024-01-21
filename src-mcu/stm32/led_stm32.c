@@ -1,9 +1,13 @@
 #include "led.h"
+#ifdef USE_LED_STRIP
+#include "ws2812.h"
+#endif
 
 static inline void led_init_gpio(GPIO_TypeDef *GPIOx, uint32_t Pin, bool opendrain)
 {
     LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
 
+    #if 0
     #if defined(GPIOA)
     if (GPIOx == GPIOA) {
         #ifdef LL_AHB1_GRP1_PERIPH_GPIOA
@@ -64,8 +68,8 @@ static inline void led_init_gpio(GPIO_TypeDef *GPIOx, uint32_t Pin, bool opendra
         #endif
     }
     #endif
-
     // TODO: add more clock initialization when required
+    #endif
 
     GPIO_InitStruct.Pin        = Pin;
     GPIO_InitStruct.Mode       = LL_GPIO_MODE_OUTPUT;
@@ -81,7 +85,7 @@ static inline void led_init_gpio(GPIO_TypeDef *GPIOx, uint32_t Pin, bool opendra
     }
 }
 
-inline void led_set(GPIO_TypeDef* GPIOx, uint32_t Pin, bool ison, bool opendrain)
+void led_set(GPIO_TypeDef* GPIOx, uint32_t Pin, bool ison, bool opendrain)
 {
     if ((ison && opendrain) || (!ison && !opendrain)) {
         LL_GPIO_ResetOutputPin(GPIOx, Pin);

@@ -7,10 +7,15 @@ class RcChannel
 {
     public:
         virtual void init(void);
-        virtual void task(void);
-        virtual int16_t read(void);
-        virtual bool is_alive(void);
+        virtual void task(void);           // called periodically for house keeping
+        virtual int16_t read(void);        // outputs normalized signed value, already accounting for deadzone
+        virtual bool is_alive(void);       // used to check if wire is unplugged or receiver is off
         virtual bool has_new(bool clr);
+        virtual bool is_armed(void);
+        virtual void disarm(void);
 };
 
-extern int16_t rc_pulse_map(uint16_t x);
+extern uint32_t arm_pulses_required;       // copy user config data into this variable
+extern uint32_t disarm_timeout;            // copy user config data into this variable
+
+extern int16_t rc_pulse_map(uint16_t x);   // outputs normalized signed value, already accounting for deadzone

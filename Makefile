@@ -23,7 +23,7 @@ VERSION_EEPROM = 1
 IDENTIFIER = HYDRA
 
 CFLAGS_COMMON  := -DVERSION_MAJOR=$(VERSION_MAJOR) -DVERSION_EEPROM=$(VERSION_EEPROM)
-CFLAGS_COMMON  += -I$(SRC_APP_DIR) -I$(SRC_HAL_DIR) -Os -Wall -ffunction-sections
+CFLAGS_COMMON  += -I$(SRC_APP_DIR) -I$(SRC_HAL_DIR) -Os -Wall -ffunction-sections -fdata-sections -fno-exceptions -ffreestanding -flto
 CFLAGS_COMMON  += -D$(TARGET)
 
 SRC_COMMON_C   := $(foreach dir, $(SRC_APP_DIR), $(wildcard $(dir)/*.c))
@@ -42,7 +42,7 @@ CPP_OBJS = $(addsuffix .o,$(addprefix $(OBJ_DIR)/,$(basename $(SRC_COMMON_CPP)))
 ASM_OBJS = $(addsuffix .o,$(addprefix $(OBJ_DIR)/,$(basename $(SRC_COMMON_S))))   $(addsuffix .o,$(addprefix $(OBJ_DIR)/,$(basename $(SRC_$(MCU_TYPE)_S))))
 ALL_OBJS = $(ASM_OBJS) $(CPP_OBJS) $(C_OBJS)
 
-.PHONY : clean all binary f051 g071
+.PHONY : clean cleanobjs all binary f051 g071
 all  : $(TARGETS_F051) $(TARGETS_G071)
 f051 : $(TARGETS_F051)
 g071 : $(TARGETS_G071)
@@ -50,37 +50,43 @@ g071 : $(TARGETS_G071)
 clean :
 	rm -rf $(BIN_DIR)/* $(OBJ_DIR)/*
 
+cleanobjs:
+	rm -rf $(OBJ_DIR)/*
+
 binary : $(TARGET_BASENAME).bin
 	@$(ECHO) All done
 
 $(TARGETS_F051) :
-	@$(MAKE) -s MCU_TYPE=F051 TARGET=$@ binary
+	@$(MAKE) -s MCU_TYPE=F051 TARGET=$@ cleanobjs binary
 
 $(TARGETS_G071) :
-	@$(MAKE) -s MCU_TYPE=G071 TARGET=$@ binary
+	@$(MAKE) -s MCU_TYPE=G071 TARGET=$@ cleanobjs binary
 
 $(OBJ_DIR)/%.o: %.cpp
 	@mkdir -p $(dir $@)
-	@echo %% $(notdir $<)
+#	@echo %% $(notdir $<)
 	$(CPP) $(MCU_$(MCU_TYPE)) $(CFLAGS_$(MCU_TYPE)) $(CFLAGS_COMMON) -std=c++11 -c -o $@ $<
 
 $(OBJ_DIR)/%.o: %.c
 	@mkdir -p $(dir $@)
-	@echo %% $(notdir $<)
-	@$(CC) $(MCU_$(MCU_TYPE)) $(CFLAGS_$(MCU_TYPE)) $(CFLAGS_COMMON) -std=c99 -c -o $@ $<
+#	@echo %% $(notdir $<)
+	@$(CC) $(MCU_$(MCU_TYPE)) $(CFLAGS_$(MCU_TYPE)) $(CFLAGS_COMMON) -std=gnu99 -c -o $@ $<
 
 $(OBJ_DIR)/%.o: %.s
 	@mkdir -p $(dir $@)
-	@echo %% $(notdir $<)
+#	@echo %% $(notdir $<)
 	@$(CC) -x assembler-with-cpp $(MCU_$(MCU_TYPE)) $(CFLAGS_$(MCU_TYPE)) $(CFLAGS_COMMON) -c -o $@ $<
 
 $(TARGET_BASENAME).elf: $(ALL_OBJS)
 	@echo "[LD] $@"
 	$(QUIET)mkdir -p $(dir $@)
-	@$(CPP) -o $@ $^ -T$(LDSCRIPT_$(MCU_TYPE)) $(MCU_$(MCU_TYPE)) $(CFLAGS_$(MCU_TYPE)) $(CFLAGS_COMMON) -lm -lc -lnosys --specs=rdimon.specs -static -Wl,-gc-sections
-	$(SIZE) $@
+	@$(CPP) -o $@ $^ -T$(LDSCRIPT_$(MCU_TYPE)) $(MCU_$(MCU_TYPE)) -lm -lc -lnosys --specs=nano.specs -static -Wl,-gc-sections -Wl,--print-memory-usage -Wl,--cref,-Map=$@.map
+	$(SIZE) -G $@
+	@arm-none-eabi-nm -t d -S --size-sort $@ > $@.size
+	@arm-none-eabi-objdump -t $@ >> $@.size
+	@arm-none-eabi-objdump -D $@ > $@.lst
 
 $(TARGET_BASENAME).bin: $(TARGET_BASENAME).elf
 	@$(ECHO) Generating $(notdir $@)
-	$(QUIET)$(OC) -O binary $(<) $@
-	$(QUIET)$(OC) $(<) -O ihex $(@:.bin=.hex)
+	$(QUIET)$(OC) --add-section EEPROM=$(<) -O binary $(<) $@
+	$(QUIET)$(OC) --add-section EEPROM=$(<) $(<) -O ihex $(@:.bin=.hex)

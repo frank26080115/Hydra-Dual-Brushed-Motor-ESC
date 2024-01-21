@@ -3,16 +3,20 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#ifdef ENABLE_COMPILE_CLI
 #include <stdio.h>
+#endif
 #include "fifo.h"
 #include "systick.h"
 
 class Cereal
 {
     public:
+    #ifdef ENABLE_CEREAL_TX
         virtual void write(uint8_t x);
         virtual size_t write(uint8_t* buf, int len);
         virtual void flush(void);
+    #endif
         virtual int16_t read(void);
         virtual int16_t peek(void);
         virtual int16_t peekAt(int16_t);
@@ -25,7 +29,6 @@ class Cereal
         virtual uint32_t get_last_time(void);
         virtual bool get_idle_flag(bool clr);
         inline uint8_t get_id(void) { return _id; };
-        inline void set_echo(bool x) { _echo = x; };
 
         #ifdef ENABLE_COMPILE_CLI
         size_t printf(const char * format, ...) __attribute__ ((format (printf, 2, 3)));
@@ -34,5 +37,15 @@ class Cereal
     protected:
         uint8_t _id; // only represents which serial port it is
         fifo_t* fifo_rx;
-        bool _echo;
 };
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+extern uint8_t cer_buff_1[CEREAL_BUFFER_SIZE];
+extern uint8_t cer_buff_2[CEREAL_BUFFER_SIZE];
+
+#ifdef __cplusplus
+}
+#endif

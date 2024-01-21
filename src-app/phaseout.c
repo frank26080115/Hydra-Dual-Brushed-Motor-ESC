@@ -1,5 +1,9 @@
 #include "phaseout.h"
 
+#ifdef STMICRO
+#include "phaseout_stm32.h"
+#endif
+
 bool braking;
 
 enum
@@ -79,8 +83,11 @@ void pwm_set_all_duty(uint16_t a, uint16_t b, uint16_t c)
 #define HW_PHASES_REMAP 0
 #endif
 
-void pwm_set_all_duty_remapped(uint16_t a, uint16_t b, uint16_t c, uint8_t map)
+static uint8_t phase_remap = 0;
+
+void pwm_set_all_duty_remapped(uint16_t a, uint16_t b, uint16_t c)
 {
+    uint8_t map = phase_remap;
     map += HW_PHASES_REMAP;
     map %= 6;
     switch (map)
@@ -92,4 +99,9 @@ void pwm_set_all_duty_remapped(uint16_t a, uint16_t b, uint16_t c, uint8_t map)
         case 4: pwm_set_all_duty(c, a, b); break;
         case 5: pwm_set_all_duty(c, b, a); break;
     }
+}
+
+void pwm_set_remap(uint8_t map)
+{
+    phase_remap = map;
 }

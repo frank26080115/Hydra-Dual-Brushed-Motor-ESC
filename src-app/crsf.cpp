@@ -2,12 +2,6 @@
 
 #define CRSF_CHAN_CNT 16
 #define CRSF_SYNC_BYTE 0xC8
-// these CRSF_CHANNEL_VALUE_ constants are taken from https://github.com/ExpressLRS/ExpressLRS/blob/master/src/lib/CrsfProtocol/crsf_protocol.h 
-#define CRSF_CHANNEL_VALUE_MIN  172 // 987us - actual CRSF min is 0 with E.Limits on
-#define CRSF_CHANNEL_VALUE_1000 191
-#define CRSF_CHANNEL_VALUE_MID  992
-#define CRSF_CHANNEL_VALUE_2000 1792
-#define CRSF_CHANNEL_VALUE_MAX  1811 // 2012us - actual CRSF max is 1984 with E.Limits on
 #define CRSF_FRAMETYPE_RC_CHANNELS_PACKED 0x16
 
 uint8_t crsf_crc8(const uint8_t *ptr, uint8_t len);
@@ -19,29 +13,29 @@ static volatile uint32_t last_good_time = 0;
 static volatile uint8_t  good_pulse_cnt = 0;
 static volatile uint8_t  bad_pulse_cnt  = 0;
 
-CrsfChannel::CrsfChannel(Cereal* cer, uint8_t idx)
+CrsfChannel::CrsfChannel(void)
+{
+}
+
+void CrsfChannel::init(Cereal* cer, uint8_t idx)
 {
     cereal = cer;
     _idx = idx;
 }
 
-void CrsfChannel::init(void)
-{
-
-}
-
 void CrsfChannel::task(void)
 {
-    if (cereal->get_idle_flag(true) || (millis() - last_good_time) >= 100)
+    if (cereal->get_idle_flag(true) || (millis() - last_good_time) >= 100) // UART is idle or a long time has passed
     {
+        // check packet header for match
         if (cereal->peek() == CRSF_SYNC_BYTE
             && cereal->peekAt(2) == CRSF_FRAMETYPE_RC_CHANNELS_PACKED
-            && cereal->peekAt(1) >= 8
+            && cereal->peekAt(1) >= (cereal->available() + 2)
         ) {
             uint8_t* buff = cereal->get_buffer();
             crsf_header_t* hdr = (crsf_header_t*)buff;
             uint8_t crc = crsf_crc8(&(hdr->type), hdr->len - 1);
-            if (crc == buff[hdr->len + 1])
+            if (crc == buff[hdr->len + 1]) // CRC matches
             {
                 // decompress, 11 bits per channel
                 if (hdr->len >= 8) {
@@ -73,7 +67,22 @@ void CrsfChannel::task(void)
                 bad_pulse_cnt = 0;
                 last_good_time = millis();
                 new_flag = true;
-                cereal->consume(hdr->len + 1);
+                cereal->consume(hdr->len + 2); // pop the buffer
+                if (arm_pulses_required > 0)
+                {
+                    if (read() == 0) {
+                        arming_cnt++;
+                        if (arming_cnt >= arm_pulses_required) {
+                            armed = true;
+                        }
+                    }
+                    else {
+                        arming_cnt = 0;
+                    }
+                }
+                else {
+                    armed = true;
+                }
             }
             else
             {
@@ -83,6 +92,7 @@ void CrsfChannel::task(void)
                 else {
                     good_pulse_cnt = 0;
                 }
+                arming_cnt = 0;
             }
 
             cereal->reset_buffer();
@@ -93,6 +103,7 @@ void CrsfChannel::task(void)
     }
     if ((millis() - last_good_time) >= 200)
     {
+        arming_cnt = 0;
         while (true)
         {
             int16_t d = cereal->peek();
@@ -104,8 +115,16 @@ void CrsfChannel::task(void)
             }
         }
     }
-}
 
+    if (disarm_timeout > 0)
+    {
+        if ((millis() - last_good_time) >= disarm_timeout)
+        {
+            armed = false;
+            arming_cnt = 0;
+        }
+    }
+}
 
 int16_t CrsfChannel::read(void)
 {
@@ -114,6 +133,9 @@ int16_t CrsfChannel::read(void)
     }
 
     uint32_t x = crsf_channels[_idx - 1];
+    if (x == CRSF_CHANNEL_VALUE_MID) {
+        return 0;
+    }
     return fi_map(x, CRSF_CHANNEL_VALUE_1000, CRSF_CHANNEL_VALUE_2000, -THROTTLE_UNIT_RANGE, THROTTLE_UNIT_RANGE, true);
 }
 
@@ -144,4 +166,20 @@ bool CrsfChannel::has_new(bool clr)
         new_flag = false;
     }
     return x;
+}
+
+bool CrsfChannel::is_armed(void)
+{
+    return armed;
+}
+
+void CrsfChannel::disarm(void)
+{
+    armed = false;
+    arming_cnt = 0;
+}
+
+uint16_t crsf_readChan(uint8_t i)
+{
+    return crsf_channels[i - 1];
 }

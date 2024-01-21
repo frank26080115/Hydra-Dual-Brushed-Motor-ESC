@@ -105,7 +105,7 @@
 #endif
 
 #ifdef  WRAITH32_F421
-    #define TARGET_NAME               "WRAITH32_F421"
+    #define TARGET_NAME               "WRAITH32"
     #define DEAD_TIME                 60
     #define HARDWARE_GROUP_AT_045
     #define HARDWARE_GROUP_AT_C
@@ -117,7 +117,6 @@
 #endif
 
 #ifdef  AIKON_55A_F421
-    #define FIRMWARE_NAME           "AIKON F4 55A"
     #define TARGET_NAME             "AIKON_55A_F421"
     #define DEAD_TIME               60
     #define HARDWARE_GROUP_AT_C
@@ -134,7 +133,6 @@
 #endif
 
 #ifdef AT32DEV_F415
-    #define FIRMWARE_NAME           "AT32F415    "
     #define TARGET_NAME             "AT32DEV_F415"
     #define DEAD_TIME               80
     #define HARDWARE_GROUP_AT_D
@@ -142,7 +140,6 @@
 #endif
 
 #ifdef TEKKO32_F415
-    #define FIRMWARE_NAME           "Tekko32 F4  "
     #define TARGET_NAME             "TEKKO32_F415"
     #define DEAD_TIME               100
     #define HARDWARE_GROUP_AT_D
@@ -158,7 +155,6 @@
 #endif
 
 #ifdef IFLIGHT_F051
-    #define TARGET_NAME             "IFLIGHT_F051"
     #define FIRMWARE_NAME           "IFlight_50A "
     #define DEAD_TIME               45
     #define HARDWARE_GROUP_F0_B
@@ -237,7 +233,7 @@
 #endif
 
 #ifdef WRAITH32V1_F051
-    #define FIRMWARE_NAME           "Wraith_32 V1"
+    #define FIRMWARE_NAME           "Wraith_32"
     #define DEAD_TIME               45
     #define TARGET_VOLTAGE_DIVIDER  75
     #define HARDWARE_GROUP_F0_C
@@ -245,7 +241,7 @@
 #endif
 
 #ifdef WRAITH32V2_F051
-    #define FIRMWARE_NAME           "WRAITH32V2_F051"
+    #define FIRMWARE_NAME           "WRAITH32V2"
     #define DEAD_TIME               60
     #define TARGET_VOLTAGE_DIVIDER  75
     #define MILLIVOLT_PER_AMP       50
@@ -1579,6 +1575,7 @@
     #define UTILITY_TIMER              TIM17
     #define COM_TIMER                  TIM14
     #define TIM1_AUTORELOAD            1999
+    #define PWM_DEFAULT_AUTORELOAD     TIM1_AUTORELOAD
     #define APPLICATION_ADDRESS        0x08001000
     #define MAIN_COMP                  COMP1
     #define EXTI_LINE                  LL_EXTI_LINE_21
@@ -1587,13 +1584,17 @@
     #define USE_ADC
     #ifndef CURRENT_ADC_PIN
         #define CURRENT_ADC_PIN        LL_GPIO_PIN_6
-        #define CURRENT_ADC_PORT       GPIOA
         #define CURRENT_ADC_CHANNEL    LL_ADC_CHANNEL_6
+    #endif
+    #ifndef CURRENT_ADC_PORT
+        #define CURRENT_ADC_PORT       GPIOA
     #endif
     #ifndef VOLTAGE_ADC_PIN
         #define VOLTAGE_ADC_PIN        LL_GPIO_PIN_3
-        #define VOLTAGE_ADC_PORT       GPIOA
         #define VOLTAGE_ADC_CHANNEL    LL_ADC_CHANNEL_3
+    #endif
+    #ifndef VOLTAGE_ADC_PORT
+        #define VOLTAGE_ADC_PORT       GPIOA
     #endif
     #ifndef LED_IS_OPENDRAIN
     #define LED_IS_OPENDRAIN true
@@ -1661,6 +1662,7 @@
     #define UTILITY_TIMER           TIM17
     #define COM_TIMER               TIM14
     #define TIM1_AUTORELOAD         2667
+    #define PWM_DEFAULT_AUTORELOAD  TIM1_AUTORELOAD
     #define APPLICATION_ADDRESS     0x08001000
     #define MAIN_COMP               COMP2
     #define EXTI_LINE               LL_EXTI_LINE_18
@@ -1675,10 +1677,14 @@
     #endif
     #ifndef CURRENT_ADC_PIN
         #define CURRENT_ADC_PIN     LL_GPIO_PIN_5
+    #endif
+    #ifndef CURRENT_ADC_PORT
         #define CURRENT_ADC_PORT    GPIOA
     #endif
     #ifndef VOLTAGE_ADC_PIN
         #define VOLTAGE_ADC_PIN     LL_GPIO_PIN_6
+    #endif
+    #ifndef VOLTAGE_ADC_PORT
         #define VOLTAGE_ADC_PORT    GPIOA
     #endif
 #endif

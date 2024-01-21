@@ -17,7 +17,8 @@ CFLAGS_G071 := \
 	-I$(HAL_FOLDER_G071) \
 	-I$(HAL_FOLDER_G071)/Drivers/STM32G0xx_HAL_Driver/Inc \
 	-I$(HAL_FOLDER_G071)/Drivers/CMSIS/Include \
-	-I$(HAL_FOLDER_G071)/Drivers/CMSIS/Device/ST/STM32G0xx/Include
+	-I$(HAL_FOLDER_G071)/Drivers/CMSIS/Device/ST/STM32G0xx/Include \
+
 
 CFLAGS_G071 += \
 	-DHSE_VALUE=8000000 \
@@ -31,7 +32,11 @@ CFLAGS_G071 += \
 	-DLSI_VALUE=32000 \
 	-DHSI_VALUE=16000000 \
 	-DUSE_FULL_LL_DRIVER \
-	-DPREFETCH_ENABLE=1
+	-DPREFETCH_ENABLE=1 \
+	-DENABLE_CEREAL_TX \
+	-DENABLE_LED_BLINK \
+	-DENABLE_COMPILE_CLI \
+
 
 SRC_G071_C   := $(foreach dir, $(SRC_DIR_G071), $(wildcard $(dir)/*.c))
 SRC_G071_CPP := $(foreach dir, $(SRC_DIR_G071), $(wildcard $(dir)/*.cpp))

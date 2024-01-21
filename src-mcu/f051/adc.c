@@ -78,9 +78,17 @@ void adc_init()
 
 bool adc_task()
 {
+    bool ret = false;
+    bool start_again = false;
+    if (LL_DMA_IsActiveFlag_TE1(ADC_DMAx))
+    {
+        LL_DMA_ClearFlag_TE1(ADC_DMAx);
+        start_again = true;
+    }
     if (LL_DMA_IsActiveFlag_TC1(ADC_DMAx))
     {
         LL_DMA_ClearFlag_TC1(ADC_DMAx);
+        start_again = true;
 
         adc_raw_temperature = adc_buff[2];
         if (VOLTAGE_ADC_PIN > CURRENT_ADC_PIN) {
@@ -90,7 +98,11 @@ bool adc_task()
             adc_raw_voltage = adc_buff[0];
             adc_raw_current = adc_buff[1];
         }
-        return true;
+        ret = true;
     }
-    return false;
+    if (start_again)
+    {
+        LL_ADC_REG_StartConversion(ADCx);
+    }
+    return ret;
 }

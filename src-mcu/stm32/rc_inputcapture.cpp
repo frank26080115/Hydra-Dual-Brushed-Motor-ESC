@@ -2,11 +2,20 @@
 
 #define RC_IC_TIMx IC_TIMER_REGISTER
 
+#if INPUT_PIN == LL_GPIO_PIN_4 || INPUT_PIN == LL_GPIO_PIN_6
+#define RcPulse_IQRHandler TIM3_IRQHandler
+#elif INPUT_PIN == LL_GPIO_PIN_2
+#define RcPulse_IQRHandler TIM15_IRQHandler
+#endif
+
 static volatile uint16_t pulse_width;
 static volatile bool     new_flag       = false;
 static volatile uint32_t last_good_time = 0;
 static volatile uint8_t  good_pulse_cnt = 0;
 static volatile uint8_t  bad_pulse_cnt  = 0;
+static volatile uint32_t arm_pulse_cnt  = 0;
+static volatile bool     armed          = false;
+static uint16_t arming_val_min = 0, arming_val_max = 0;
 
 void rc_ic_tim_init(void)
 {
@@ -60,7 +69,7 @@ void rc_ic_tim_init_2(void)
     GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
     GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
 
-    #if INPUT_PIN == LL_GPIO_PIN_4
+    #if INPUT_PIN == LL_GPIO_PIN_4 || INPUT_PIN == LL_GPIO_PIN_6
     GPIO_InitStruct.Pin = INPUT_PIN;
     GPIO_InitStruct.Alternate = LL_GPIO_AF_1;
     LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
@@ -75,21 +84,29 @@ void rc_ic_tim_init_2(void)
     #endif
 }
 
+#ifdef ENABLE_COMPILE_CLI
 bool ictimer_modeIsPulse;
-extern void CerealBitbang_IRQHandler(void);
+#endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#ifdef ENABLE_COMPILE_CLI
+extern void CerealBitbang_IRQHandler(void);
+#endif
+
 void RcPulse_IQRHandler(void)
 {
+    #ifdef ENABLE_COMPILE_CLI
     if (ictimer_modeIsPulse)
+    #endif
     {
         uint32_t p = RC_IC_TIMx->CCR1;   // Pulse period
         uint32_t w = RC_IC_TIMx->CCR2;   // Pulse width
         if (p < RC_INPUT_VALID_MAX || w < RC_INPUT_VALID_MIN || w > RC_INPUT_VALID_MAX)
         {
+            arm_pulse_cnt = 0;
             if (bad_pulse_cnt < 3) {
                 bad_pulse_cnt++;
             }
@@ -104,35 +121,41 @@ void RcPulse_IQRHandler(void)
             good_pulse_cnt++;
             bad_pulse_cnt = 0;
             new_flag = true;
+            if (arm_pulses_required > 0)
+            {
+                if (w >= arming_val_min && w <= arming_val_max) {
+                    arm_pulse_cnt++;
+                    if (arm_pulse_cnt >= arm_pulses_required) {
+                        armed = true;
+                    }
+                }
+                else {
+                    arm_pulse_cnt = 0;
+                }
+            }
+            else {
+                armed = true;
+            }
         }
     }
+    #ifdef ENABLE_COMPILE_CLI
     else
     {
         CerealBitbang_IRQHandler();
     }
+    #endif
 }
 
 #ifdef __cplusplus
 }
 #endif
 
-RcPulse_STM32::RcPulse_STM32(TIM_TypeDef* TIMx, GPIO_TypeDef* GPIOx, uint32_t pin)
+RcPulse_InputCap::RcPulse_InputCap(TIM_TypeDef* TIMx, GPIO_TypeDef* GPIOx, uint32_t pin, uint32_t chan)
 {
     _tim = TIMx;
     _gpio = GPIOx;
     _pin = pin;
-}
-
-RcPulse_InputCap::RcPulse_InputCap(TIM_TypeDef* TIMx, GPIO_TypeDef* GPIOx, uint32_t pin, uint32_t chan)
-    : RcPulse_STM32(TIMx, GPIOx, pin)
-{
     _chan = chan;
-}
-
-RcPulse_InputCap* rc_makeInputCapture(void)
-{
-    RcPulse_InputCap* x = new RcPulse_InputCap(RC_IC_TIMx, INPUT_PIN_PORT, INPUT_PIN, IC_TIMER_CHANNEL);
-    return x;
 }
 
 void RcPulse_InputCap::init(void)
@@ -148,13 +171,30 @@ void RcPulse_InputCap::init(void)
     RC_IC_TIMx->SR    = ~TIM_SR_CC2IF;
     RC_IC_TIMx->DIER  = TIM_DIER_CC2IE;
 
+    #ifdef ENABLE_COMPILE_CLI
     ictimer_modeIsPulse = true;
+    #endif
+
     rc_ic_tim_init_2();
+
+    uint16_t test_arming_val = 0;
+    int last_v = -THROTTLE_UNIT_RANGE;
+    for (test_arming_val = 1250; test_arming_val < 1750; test_arming_val++) {
+        int v = rc_pulse_map(test_arming_val);
+        if (v == 0 && last_v < 0 && arming_val_min == 0) {
+            arming_val_min = test_arming_val - 1;
+        }
+        if (v == 0 && last_v > 0 && arming_val_max == 0) {
+            arming_val_max = test_arming_val;
+            break;
+        }
+        last_v = v;
+    }
 }
 
 void RcPulse_InputCap::task(void)
 {
-    // do nothing
+    RcChannel::task();
 }
 
 int16_t RcPulse_InputCap::read(void)
@@ -171,6 +211,7 @@ bool RcPulse_InputCap::is_alive(void)
         }
     }
     new_flag = false;
+    arm_pulse_cnt = 0;
     return false;
 }
 
@@ -181,4 +222,21 @@ bool RcPulse_InputCap::has_new(bool clr)
         new_flag = false;
     }
     return x;
+}
+
+bool RcPulse_InputCap::is_armed(void)
+{
+    if ((millis() - last_good_time) < disarm_timeout || disarm_timeout <= 0)
+    {
+        return armed;
+    }
+    armed = false;
+    arm_pulse_cnt = 0;
+    return false;
+}
+
+void RcPulse_InputCap::disarm(void)
+{
+    armed = false;
+    arm_pulse_cnt = 0;
 }

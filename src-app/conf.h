@@ -9,13 +9,21 @@
 
 #define THROTTLE_UNIT_RANGE 1000 // scales all inputs to be in the range between -1000 and 1000
 
+#define CEREAL_BUFFER_SIZE 128 // malloc is too big to compile so we have a few static buffers being used
+
 #define CLI_BAUD      19200 // baud rate used for CLI
 #define CLI_BUFF_SIZE 64
 #define CLI_ECHO      false // most of the one-wire USB-links already echo, so do not echo ourselves
 
-#define PWM_DEFAULT_AUTORELOAD    1999
-#define PWM_DEFAULT_HEAADROOM     50
+#define PWM_DEFAULT_HEADROOM     50
+
+#define ADC_FILTER_DEFAULT  100 // 0 to 1000, 100 meaning 10% of new-value and 90% of old-value
 
 #define RC_INPUT_TIMEOUT    200
 #define RC_INPUT_VALID_MIN  800
 #define RC_INPUT_VALID_MAX  2200
+#define RC_DISARM_TIMEOUT   3000    // this can be adjusted in EEPROM
+#define RC_ARMING_CNT_REQ   10      // this can be adjusted in EEPROM
+
+#define TEMPERATURE_OVER    20
+#define UNDERVOLTAGE        100

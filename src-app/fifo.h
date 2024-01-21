@@ -5,7 +5,6 @@ extern "C" {
 #endif
 
 #include <stdint.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include "mcu.h"
@@ -21,8 +20,7 @@ typedef struct
     uint16_t pwrite;
 }
 fifo_t;
-
-fifo_t* fifo_init(uint16_t sz);
+void    fifo_init(fifo_t* f, void* buff, uint16_t sz);
 void    fifo_reset(fifo_t* f);
 int16_t fifo_peek(fifo_t* f);
 int16_t fifo_peekAt(fifo_t* f, int16_t i);

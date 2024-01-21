@@ -3,18 +3,25 @@
 #include "cereal.h"
 #include "stm32.h"
 
+#ifdef ENABLE_COMPILE_CLI
+
 class Cereal_TimerBitbang : public Cereal
 {
     public:
-        Cereal_TimerBitbang(uint8_t id, uint16_t sz);
+        Cereal_TimerBitbang(uint8_t id);
 
-        virtual void begin(uint32_t baud);
+        virtual void init(uint32_t baud);
+        #ifdef ENABLE_CEREAL_TX
         virtual void write(uint8_t x);
         virtual void flush(void);
+        #endif
         virtual uint32_t get_last_time(void);
         virtual bool get_idle_flag(bool clr);
 
     protected:
-        uint16_t _buff_size;
+        #ifdef ENABLE_CEREAL_TX
         fifo_t* fifo_tx;
+        #endif
 };
+
+#endif

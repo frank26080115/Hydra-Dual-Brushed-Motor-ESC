@@ -4,15 +4,6 @@
 
 #include <math.h>
 
-void delay_ms(uint32_t x)
-{
-    uint32_t t = millis();
-    while ((millis() - t) < x) {
-        led_task();
-        sense_task();
-    }
-}
-
 int32_t fi_map(int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max, bool limit)
 {
     int32_t a = x - in_min;
@@ -64,7 +55,7 @@ int16_t rc_pulse_map(uint16_t x)
 
 bool item_strcmp(const char* usr_inp, const char* table_item)
 {
-    int slen = strlen(usr_inp);
+    int slen = 16; //strlen(usr_inp);
     int i;
     for (i = 0; i < slen; i++)
     {
@@ -94,7 +85,7 @@ bool item_strcmp(const char* usr_inp, const char* table_item)
     return true;
 }
 
-float pid_calc(pidloop_t* pidnow, int actual, int target)
+int32_t pid_calc(pidloop_t* pidnow, int actual, int target)
 {
     // this is expected to run at 1 kHz loop time
 
@@ -139,7 +130,8 @@ uint8_t crsf_crc8(const uint8_t *ptr, int len)
         0x72, 0xA7, 0x0D, 0xD8, 0x8C, 0x59, 0xF3, 0x26, 0x5B, 0x8E, 0x24, 0xF1, 0xA5, 0x70, 0xDA, 0x0F,
         0x20, 0xF5, 0x5F, 0x8A, 0xDE, 0x0B, 0xA1, 0x74, 0x09, 0xDC, 0x76, 0xA3, 0xF7, 0x22, 0x88, 0x5D,
         0xD6, 0x03, 0xA9, 0x7C, 0x28, 0xFD, 0x57, 0x82, 0xFF, 0x2A, 0x80, 0x55, 0x01, 0xD4, 0x7E, 0xAB,
-        0x84, 0x51, 0xFB, 0x2E, 0x7A, 0xAF, 0x05, 0xD0, 0xAD, 0x78, 0xD2, 0x07, 0x53, 0x86, 0x2C, 0xF9};
+        0x84, 0x51, 0xFB, 0x2E, 0x7A, 0xAF, 0x05, 0xD0, 0xAD, 0x78, 0xD2, 0x07, 0x53, 0x86, 0x2C, 0xF9,
+    };
 
     uint8_t crc = 0;
     for (int i = 0; i < len; i++)
@@ -147,4 +139,11 @@ uint8_t crsf_crc8(const uint8_t *ptr, int len)
         crc = crsf_crc8tab[crc ^ *ptr++];
     }
     return crc;
+}
+
+int32_t fi_lpf(int32_t oldval, int32_t newval, int32_t fltconst)
+{
+    int32_t oldvalX = oldval * (1000 - fltconst);
+    int32_t newvalX = newval * fltconst;
+    return (oldvalX + newvalX + 500) / 1000;
 }

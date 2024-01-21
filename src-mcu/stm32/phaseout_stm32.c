@@ -1,10 +1,7 @@
 #include "phaseout.h"
+#include "phaseout_stm32.h"
 
-bool complementry_pwm;
-
-#define PWMOUTTIMx TIM1
-
-#ifndef PWM_ENABLE_BRIDGE
+bool complementary_pwm;
 
 #ifdef USE_INVERTED_LOW
     #define LOW_BITREG_ON  BRR
@@ -34,7 +31,9 @@ void pwm_init()
     TIM_InitStruct.RepetitionCounter = 0;
     LL_TIM_Init(PWMOUTTIMx, &TIM_InitStruct);
     LL_TIM_EnableARRPreload(PWMOUTTIMx);
+    #ifdef MCU_F051
     LL_TIM_SetClockSource(PWMOUTTIMx, LL_TIM_CLOCKSOURCE_INTERNAL);
+    #endif
     LL_TIM_OC_EnablePreload(PWMOUTTIMx, LL_TIM_CHANNEL_CH1);
 #ifdef USE_SWAPPED_OUPUT
     TIM_OC_InitStruct.OCMode = LL_TIM_OCMODE_PWM2;
@@ -44,6 +43,8 @@ void pwm_init()
     TIM_OC_InitStruct.OCState = LL_TIM_OCSTATE_DISABLE;
     TIM_OC_InitStruct.OCNState = LL_TIM_OCSTATE_DISABLE;
     TIM_OC_InitStruct.CompareValue = 0;
+
+#ifdef MCU_F051
 #ifdef USE_INVERTED_HIGH
     TIM_OC_InitStruct.OCPolarity = LL_TIM_OCPOLARITY_LOW;
     TIM_OC_InitStruct.OCIdleState = LL_TIM_OCIDLESTATE_HIGH;
@@ -56,6 +57,12 @@ void pwm_init()
     TIM_OC_InitStruct.OCNIdleState = LL_TIM_OCIDLESTATE_HIGH;
 #else
     TIM_OC_InitStruct.OCNPolarity = LL_TIM_OCPOLARITY_HIGH;
+    TIM_OC_InitStruct.OCNIdleState = LL_TIM_OCIDLESTATE_LOW;
+#endif
+#elif defined(MCU_G071)
+    TIM_OC_InitStruct.OCPolarity = LL_TIM_OCPOLARITY_HIGH;
+    TIM_OC_InitStruct.OCNPolarity = LL_TIM_OCPOLARITY_HIGH;
+    TIM_OC_InitStruct.OCIdleState = LL_TIM_OCIDLESTATE_LOW;
     TIM_OC_InitStruct.OCNIdleState = LL_TIM_OCIDLESTATE_LOW;
 #endif
     LL_TIM_OC_Init(PWMOUTTIMx, LL_TIM_CHANNEL_CH1, &TIM_OC_InitStruct);
@@ -76,16 +83,58 @@ void pwm_init()
     LL_TIM_OC_Init(PWMOUTTIMx, LL_TIM_CHANNEL_CH4, &TIM_OC_InitStruct);
     LL_TIM_OC_DisableFast(PWMOUTTIMx, LL_TIM_CHANNEL_CH4);
     LL_TIM_SetTriggerOutput(PWMOUTTIMx, LL_TIM_TRGO_RESET);
+    #ifdef MCU_G071
+    LL_TIM_SetTriggerOutput2(TIM1, LL_TIM_TRGO2_RESET);
+    #endif
     LL_TIM_DisableMasterSlaveMode(PWMOUTTIMx);
+
     TIM_BDTRInitStruct.OSSRState = LL_TIM_OSSR_DISABLE;
     TIM_BDTRInitStruct.OSSIState = LL_TIM_OSSI_DISABLE;
     TIM_BDTRInitStruct.LockLevel = LL_TIM_LOCKLEVEL_OFF;
     TIM_BDTRInitStruct.DeadTime = DEAD_TIME;
     TIM_BDTRInitStruct.BreakState = LL_TIM_BREAK_DISABLE;
     TIM_BDTRInitStruct.BreakPolarity = LL_TIM_BREAK_POLARITY_HIGH;
+    #ifdef MCU_G071
+    TIM_BDTRInitStruct.BreakFilter = LL_TIM_BREAK_FILTER_FDIV1;
+    TIM_BDTRInitStruct.BreakAFMode = LL_TIM_BREAK_AFMODE_INPUT;
+    TIM_BDTRInitStruct.Break2State = LL_TIM_BREAK2_DISABLE;
+    TIM_BDTRInitStruct.Break2Polarity = LL_TIM_BREAK2_POLARITY_HIGH;
+    TIM_BDTRInitStruct.Break2Filter = LL_TIM_BREAK2_FILTER_FDIV1;
+    TIM_BDTRInitStruct.Break2AFMode = LL_TIM_BREAK_AFMODE_INPUT;
+    #endif
     TIM_BDTRInitStruct.AutomaticOutput = LL_TIM_AUTOMATICOUTPUT_DISABLE;
     LL_TIM_BDTR_Init(PWMOUTTIMx, &TIM_BDTRInitStruct);
 
+#ifdef MCU_G071
+#ifdef PWM_ENABLE_BRIDGE
+#define PHASE_C_GPIO_LOW PHASE_C_GPIO_ENABLE
+#define PHASE_B_GPIO_LOW PHASE_B_GPIO_ENABLE
+#define PHASE_A_GPIO_LOW PHASE_A_GPIO_ENABLE
+#define PHASE_C_GPIO_PORT_LOW PHASE_C_GPIO_PORT_ENABLE
+#define PHASE_B_GPIO_PORT_LOW PHASE_B_GPIO_PORT_ENABLE
+#define PHASE_A_GPIO_PORT_LOW PHASE_A_GPIO_PORT_ENABLE
+
+#define PHASE_C_GPIO_HIGH PHASE_C_GPIO_PWM
+#define PHASE_B_GPIO_HIGH PHASE_B_GPIO_PWM
+#define PHASE_A_GPIO_HIGH PHASE_A_GPIO_PWM
+#define PHASE_C_GPIO_PORT_HIGH PHASE_C_GPIO_PORT_PWM
+#define PHASE_B_GPIO_PORT_HIGH PHASE_B_GPIO_PORT_PWM
+#define PHASE_A_GPIO_PORT_HIGH PHASE_A_GPIO_PORT_PWM
+#endif
+#ifndef OPEN_DRAIN_PWM
+#define PWM_OUTPUT_TYPE LL_GPIO_OUTPUT_PUSHPULL
+#else
+#define PWM_OUTPUT_TYPE LL_GPIO_OUTPUT_OPENDRAIN
+#endif
+#ifndef LOW_OUTPUT_TYPE
+#define LOW_OUTPUT_TYPE PWM_OUTPUT_TYPE
+#endif
+#ifndef HIGH_OUTPUT_TYPE
+#define HIGH_OUTPUT_TYPE PWM_OUTPUT_TYPE
+#endif
+#endif
+
+#ifdef MCU_F051
 #ifdef USE_OPEN_DRAIN_LOW
 #define LOW_OUTPUT_TYPE LL_GPIO_OUTPUT_OPENDRAIN
 #else
@@ -96,6 +145,8 @@ void pwm_init()
 #else
 #define HIGH_OUTPUT_TYPE LL_GPIO_OUTPUT_PUSHPULL
 #endif
+#endif
+
     GPIO_InitStruct.Pin = PHASE_A_GPIO_LOW;
     GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
     GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_LOW;
@@ -180,9 +231,11 @@ void pwm_proportional_brake()
     LL_GPIO_SetPinMode(PHASE_C_GPIO_PORT_LOW, PHASE_C_GPIO_LOW, LL_GPIO_MODE_ALTERNATE);
 }
 
+#ifndef PWM_ENABLE_BRIDGE
+
 void pwm_setPWM_B()
 {
-    if (!complementry_pwm) {
+    if (!complementary_pwm) {
         LL_GPIO_SetPinMode(PHASE_B_GPIO_PORT_LOW, PHASE_B_GPIO_LOW, LL_GPIO_MODE_OUTPUT);
         PHASE_B_GPIO_PORT_LOW->LOW_BITREG_OFF = PHASE_B_GPIO_LOW;
     }
@@ -210,7 +263,7 @@ void pwm_setLow_B()
 
 void pwm_setPWM_C()
 {
-    if (!complementry_pwm) {
+    if (!complementary_pwm) {
         LL_GPIO_SetPinMode(PHASE_C_GPIO_PORT_LOW, PHASE_C_GPIO_LOW, LL_GPIO_MODE_OUTPUT);
         PHASE_C_GPIO_PORT_LOW->LOW_BITREG_OFF = PHASE_C_GPIO_LOW;
     }
@@ -241,7 +294,7 @@ void pwm_setLow_C()
 
 void pwm_setPWM_A()
 {
-    if (!complementry_pwm) {
+    if (!complementary_pwm) {
         LL_GPIO_SetPinMode(PHASE_A_GPIO_PORT_LOW, PHASE_A_GPIO_LOW, LL_GPIO_MODE_OUTPUT);
         PHASE_A_GPIO_PORT_LOW->LOW_BITREG_OFF = PHASE_A_GPIO_LOW;
     }
@@ -269,9 +322,11 @@ void pwm_setLow_A()
 
 #else
 
+
+
 void pwm_setPWM_B()
 {
-    if (!complementry_pwm) {
+    if (!complementary_pwm) {
         //LL_GPIO_SetPinMode(PHASE_B_GPIO_PORT_LOW, PHASE_B_GPIO_LOW, LL_GPIO_MODE_OUTPUT);
         //PHASE_B_GPIO_PORT_LOW->LOW_BITREG_OFF = PHASE_B_GPIO_LOW;
     }
@@ -301,7 +356,7 @@ void pwm_setLow_B()
 
 void pwm_setPWM_C()
 {
-    if (!complementry_pwm) {
+    if (!complementary_pwm) {
         //  LL_GPIO_SetPinMode(PHASE_C_GPIO_PORT_LOW, PHASE_C_GPIO_LOW, LL_GPIO_MODE_OUTPUT);
         //PHASE_C_GPIO_PORT_LOW->LOW_BITREG_OFF = PHASE_C_GPIO_LOW;
     }
@@ -331,7 +386,7 @@ void pwm_setLow_C()
 
 void pwm_setPWM_A()
 {
-    if (!complementry_pwm) {
+    if (!complementary_pwm) {
         //  LL_GPIO_SetPinMode(PHASE_A_GPIO_PORT_LOW, PHASE_A_GPIO_LOW, LL_GPIO_MODE_OUTPUT);
         //PHASE_A_GPIO_PORT_LOW->LOW_BITREG_OFF = PHASE_A_GPIO_LOW;
     }
@@ -359,18 +414,3 @@ void pwm_setLow_A()
 }
 
 #endif
-
-inline void pwm_setDuty_A(uint16_t x)
-{
-    PWMOUTTIMx->CCR3 = x;
-}
-
-inline void pwm_setDuty_B(uint16_t x)
-{
-    PWMOUTTIMx->CCR2 = x;
-}
-
-inline void pwm_setDuty_C(uint16_t x)
-{
-    PWMOUTTIMx->CCR1 = x;
-}

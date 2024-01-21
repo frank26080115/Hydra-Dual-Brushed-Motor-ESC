@@ -93,19 +93,33 @@ void adc_init()
         LL_ADC_Enable(ADCx);
     }
     ADC->CCR |= ADC_CCR_TSEN;
+
+    LL_ADC_REG_StartConversion(ADCx);
 }
 
 bool adc_task()
 {
+    bool ret = false;
+    bool start_again = false;
+    if (LL_DMA_IsActiveFlag_TE2(ADC_DMAx))
+    {
+        LL_DMA_ClearFlag_TE2(ADC_DMAx);
+        start_again = true;
+    }
     if (LL_DMA_IsActiveFlag_TC2(ADC_DMAx))
     {
         LL_DMA_ClearFlag_TC2(ADC_DMAx);
+        start_again = true;
 
         adc_raw_temperature = adc_buff[2];
         adc_raw_voltage     = adc_buff[1];
         adc_raw_current     = adc_buff[0];
 
-        return true;
+        ret = true;
     }
-    return false;
+    if (start_again)
+    {
+        LL_ADC_REG_StartConversion(ADCx);
+    }
+    return ret;
 }

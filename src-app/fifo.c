@@ -1,13 +1,11 @@
 #include "fifo.h"
 
-fifo_t* fifo_init(uint16_t sz)
+void fifo_init(fifo_t* f, void* buff, uint16_t sz)
 {
-    fifo_t* f = (fifo_t*)malloc(sizeof(fifo_t));
-    f->buf = (uint8_t*)malloc((size_t)sz);
+    f->buf = (uint8_t*)buff;
     f->size = sz;
     f->pread = 0;
     f->pwrite = 0;
-    return f;
 }
 
 void fifo_reset(fifo_t* f)

@@ -1,13 +1,17 @@
 #include "cereal_timer.h"
 
+#ifdef ENABLE_COMPILE_CLI
+
 #define RC_IC_TIMx IC_TIMER_REGISTER
 
 // only one instance of this cereal port is allowed
 // so we use global static variables that can be access through ISRs
 
 static uint32_t      cereal_baud;
-static fifo_t*       cereal_fifo_tx;
-static fifo_t*       cereal_fifo_rx;
+#ifdef ENABLE_CEREAL_TX
+static fifo_t        cereal_fifo_tx;
+#endif
+static fifo_t        cereal_fifo_rx;
 static volatile uint32_t last_rx_time;
 
 extern void rc_ic_tim_init(void);
@@ -24,10 +28,10 @@ void CerealBitbang_IRQHandler(void)
     if (LL_TIM_IsActiveFlag_UPDATE(RC_IC_TIMx))
     {
         LL_TIM_ClearFlag_UPDATE(RC_IC_TIMx);
-        if (fifo_available(cereal_fifo_tx) > 0) {
+        if (fifo_available(&cereal_fifo_tx) > 0) {
             int p = -1;
             if (n == 0) { // Start bit
-                b = fifo_pop(cereal_fifo_tx);
+                b = fifo_pop(&cereal_fifo_tx);
                 n++;
             }
             else if (n < 10) { // Data bits
@@ -71,7 +75,7 @@ void CerealBitbang_IRQHandler(void)
         RC_IC_TIMx->DIER = TIM_DIER_CC2IE;
         n = 0;
 
-        fifo_push(cereal_fifo_rx, b);
+        fifo_push(&cereal_fifo_rx, b);
 
         RC_IC_TIMx->SMCR = 0;
         RC_IC_TIMx->CCR1 = 0; // Preload high level
@@ -90,18 +94,17 @@ void CerealBitbang_IRQHandler(void)
 }
 #endif
 
-Cereal_TimerBitbang::Cereal_TimerBitbang(uint8_t id, uint16_t sz)
+Cereal_TimerBitbang::Cereal_TimerBitbang(uint8_t id)
 {
     _id = id;
-    _buff_size = sz;
 }
 
-void Cereal_TimerBitbang::begin(uint32_t baud)
+void Cereal_TimerBitbang::init(uint32_t baud)
 {
-    cereal_fifo_tx = fifo_init(_buff_size);
-    cereal_fifo_rx = fifo_init(_buff_size);
-    fifo_tx = cereal_fifo_tx;
-    fifo_rx = cereal_fifo_rx;
+    fifo_init(&cereal_fifo_rx, cer_buff_1, CEREAL_BUFFER_SIZE);
+    fifo_init(&cereal_fifo_tx, cer_buff_2, CEREAL_BUFFER_SIZE);
+    fifo_tx = &cereal_fifo_tx;
+    fifo_rx = &cereal_fifo_rx;
     cereal_baud = baud;
     rc_ic_tim_init();
     RC_IC_TIMx->CCER  = 0;
@@ -127,6 +130,8 @@ void Cereal_TimerBitbang::begin(uint32_t baud)
         LL_GPIO_AF_0
     #elif INPUT_PIN == LL_GPIO_PIN_4
         LL_GPIO_AF_1
+    #elif INPUT_PIN == LL_GPIO_PIN_6
+        LL_GPIO_AF_1
     #endif
         ;
     LL_GPIO_Init(INPUT_PIN_PORT, &GPIO_InitStruct);
@@ -135,6 +140,7 @@ void Cereal_TimerBitbang::begin(uint32_t baud)
     rc_ic_tim_init_2();
 }
 
+#ifdef ENABLE_CEREAL_TX
 void Cereal_TimerBitbang::write(uint8_t x)
 {
     fifo_push(fifo_tx, x);
@@ -149,6 +155,7 @@ void Cereal_TimerBitbang::flush(void)
         // do nothing but wait
     }
 }
+#endif
 
 uint32_t Cereal_TimerBitbang::get_last_time(void)
 {
@@ -163,3 +170,5 @@ bool Cereal_TimerBitbang::get_idle_flag(bool clr)
     __enable_irq();
     return x;
 }
+
+#endif

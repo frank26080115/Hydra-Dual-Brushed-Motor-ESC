@@ -1,6 +1,12 @@
 #include "main.h"
 
 #ifdef ENABLE_COMPILE_CLI
+#ifndef ENABLE_CEREAL_TX
+#error
+#endif
+
+#include <stdlib.h>
+#include <stdio.h>
 
 #include "cereal.h"
 
@@ -17,7 +23,7 @@
 #include "rc.h"
 
 #define MAX_CMD_ARGS 8
-int32_t* cmd_args;
+int32_t cmd_args[MAX_CMD_ARGS];
 
 uint8_t cli_phaseremap;
 bool cli_hwdebug;
@@ -25,9 +31,27 @@ extern int16_t current_limit_val;
 extern void current_limit_task(void);
 
 #if defined(STM32F051DISCO)
-extern Cereal_USART* dbg_cer;
+extern Cereal_USART dbg_cer;
 extern RcChannel* rc1;
 extern RcChannel* rc2;
+#endif
+
+#ifdef STMICRO
+#if INPUT_PIN == LL_GPIO_PIN_2
+extern Cereal_USART main_cer;
+#elif INPUT_PIN == LL_GPIO_PIN_4
+extern Cereal_USART main_cer;
+#ifdef ENABLE_COMPILE_CLI
+extern Cereal_TimerBitbang cli_cer;
+#endif
+#else
+extern Cereal_USART main_cer;
+#ifdef ENABLE_COMPILE_CLI
+extern Cereal_TimerBitbang cli_cer;
+#endif
+#endif
+#else
+#error unsupported
 #endif
 
 void cli_reportSensors(Cereal*);
@@ -43,19 +67,20 @@ extern const EEPROM_data_t cfge;
 void cli_enter(void)
 {
     #if defined(STM32F051DISCO)
-    Cereal_USART* cer = dbg_cer;
+    Cereal_USART* cer = &dbg_cer;
     // since we are using the debugging UART, the two pins can be used for testing RC inputs
-    rc1 = (RcChannel*)rc_makeInputCapture();
-    rc2 = (RcChannel*)rc_makeGpioInput();
+    rc1->init();
+    rc2->init();
     #elif INPUT_PIN == LL_GPIO_PIN_2
-    Cereal_USART* cer = new Cereal_USART(2, CLI_BUFF_SIZE);
-    cer->begin(CLI_BAUD, false, true, false);
+    Cereal_USART* cer = &main_cer;
+    cer->init(CLI_BAUD, false, true, false);
     #elif INPUT_PIN == LL_GPIO_PIN_4
-    Cereal_TimerBitbang* cer = new Cereal_TimerBitbang(0, CLI_BUFF_SIZE);
-    cer->begin(CLI_BAUD);
+    Cereal_TimerBitbang* cer = &cli_cer;
+    cer->init(CLI_BAUD);
+    #else
+    Cereal_TimerBitbang* cer = &cli_cer;
+    cer->init(CLI_BAUD);
     #endif
-
-    cmd_args = (int32_t*)malloc(MAX_CMD_ARGS * sizeof(int32_t)); // do not waste RAM unless we are in CLI mode
 
     cli_phaseremap = cfg.phase_map;
 
@@ -174,8 +199,13 @@ void cli_execute(Cereal* cer, char* str)
         else {
             cli_hwdebug = cmd_args[0] != 0;
         }
-        cer->printf("hardware debug: %u\r\n", cli_hwdebug);
+        cer->printf("\r\nhardware debug: %u\r\n", cli_hwdebug);
         // cli_hwdebug will cause periodic printout of analog sensor values
+    }
+    else if (item_strcmp("factoryreset", str))
+    {
+        eeprom_factory_reset();
+        cer->printf("\r\nfactory reset EEPROM done");
     }
     else if (item_strcmp("testpwm", str))
     {
@@ -191,12 +221,14 @@ void cli_execute(Cereal* cer, char* str)
             return;
         }
 
+        pwm_set_remap(cli_phaseremap);
+
         int phase = (cmd_args[0] - 1) % 3;
         switch (phase)
         {
-            case 0: pwm_set_all_duty_remapped(cmd_args[1], 0, 0, cli_phaseremap); break;
-            case 1: pwm_set_all_duty_remapped(0, cmd_args[1], 0, cli_phaseremap); break;
-            case 2: pwm_set_all_duty_remapped(0, 0, cmd_args[1], cli_phaseremap); break;
+            case 0: pwm_set_all_duty_remapped(cmd_args[1], 0, 0); break;
+            case 1: pwm_set_all_duty_remapped(0, cmd_args[1], 0); break;
+            case 2: pwm_set_all_duty_remapped(0, 0, cmd_args[1]); break;
         }
 
         cer->reset_buffer();
@@ -212,7 +244,7 @@ void cli_execute(Cereal* cer, char* str)
                     t = millis();
                 }
             }
-            if (t != 0 && cmd_args[2] > 0 && ((int)millis() - t) >= cmd_args[2]) {
+            if (t != 0 && cmd_args[2] > 0 && (int)(millis() - t) >= cmd_args[2]) {
                 // quit if time expired
                 break;
             }
@@ -225,7 +257,7 @@ void cli_execute(Cereal* cer, char* str)
             }
         } while (true);
 
-        pwm_set_all_duty_remapped(0, 0, 0, 0); // end
+        pwm_set_all_duty_remapped(0, 0, 0); // end
         cer->printf("\r\ntest end");
     }
     else if (item_strcmp("testremap", str))
@@ -298,7 +330,7 @@ void cli_reportSensors(Cereal* cer)
         cer->printf("?, ");
     }
     #endif
-    cer->printf("%0.0f, %0.0f, %0.0f, %u, \r\n", sense_temperatureC, sense_voltage, sense_current, current_limit_val);
+    cer->printf("%ld, %ld, %ld, %d, \r\n", sense_temperatureC, sense_voltage, sense_current, current_limit_val);
 }
 
 void eeprom_print_all(Cereal* cer)

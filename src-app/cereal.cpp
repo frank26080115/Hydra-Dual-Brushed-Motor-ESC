@@ -1,7 +1,18 @@
 #include "cereal.h"
 #include <stdarg.h>
 
-#if 0
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+uint8_t cer_buff_1[CEREAL_BUFFER_SIZE];
+uint8_t cer_buff_2[CEREAL_BUFFER_SIZE];
+
+#ifdef __cplusplus
+}
+#endif
+
+#ifdef ENABLE_COMPILE_CLI
 size_t Cereal::printf(const char *format, ...)
 {
     char loc_buf[64];
@@ -12,27 +23,35 @@ size_t Cereal::printf(const char *format, ...)
     va_copy(copy, arg);
     int len = vsnprintf(temp, sizeof(loc_buf), format, copy);
     va_end(copy);
-    if(len < 0) {
+    if (len < 0) {
         va_end(arg);
         return 0;
     }
-    if(len >= (int)sizeof(loc_buf)){  // comparation of same sign type for the compiler
+    if (len >= (int)sizeof(loc_buf)) {
+        #if 0
         temp = (char*) malloc(len+1);
         if(temp == NULL) {
             va_end(arg);
             return 0;
         }
         len = vsnprintf(temp, len+1, format, arg);
+        #else
+        va_end(arg);
+        return 0;
+        #endif
     }
     va_end(arg);
     len = write((uint8_t*)temp, len);
-    if(temp != loc_buf){
+    #if 0
+    if (temp != loc_buf){
         free(temp);
     }
+    #endif
     return len;
 }
 #endif
 
+#ifdef ENABLE_CEREAL_TX
 size_t Cereal::write(uint8_t* buf, int len)
 {
     int i;
@@ -41,6 +60,16 @@ size_t Cereal::write(uint8_t* buf, int len)
     }
     return len;
 }
+
+void Cereal::write(uint8_t x) {
+    // dummy, must be overridden
+}
+
+void Cereal::flush(void) {
+    // dummy, must be overridden
+}
+
+#endif
 
 int16_t Cereal::read(void)
 {

@@ -41,9 +41,9 @@ MEMORY
 {
   RAM          (xrw) : ORIGIN = 0x20000000, LENGTH = 36K
   FLASH_VECTAB  (rx)  : ORIGIN = 0x08001000, LENGTH = 192
-  FLASH_VERSION (rx)  : ORIGIN = 0x080010C0, LENGTH = 14
+  FLASH_VERSION (rx)  : ORIGIN = 0x080010C0, LENGTH = 24
   FLASH         (rx)  : ORIGIN = ORIGIN(FLASH_VERSION) + LENGTH(FLASH_VERSION), LENGTH = 62K - 32 - (LENGTH(FLASH_VECTAB) + LENGTH(FLASH_VERSION))
-  FILE_NAME     (rx)  : ORIGIN = 0x0800F800 - 32, LENGTH = 32
+  /* FILE_NAME     (rx)  : ORIGIN = 0x0800F800 - 32, LENGTH = 32 */
   EEPROM        (rx)  : ORIGIN = 0x0800F800, LENGTH = 2K
 }
 
@@ -135,12 +135,14 @@ SECTIONS
   } >FLASH
 
   /* The file name */
+/*
   .file_name :
   {
     . = ALIGN(4);
 	KEEP (*(.file_name))
   } >FILE_NAME
- 
+*/
+
  /* Used by the startup to initialize data */
   _sidata = LOADADDR(.data);
 
@@ -183,6 +185,12 @@ SECTIONS
     . = . + _Min_Stack_Size;
     . = ALIGN(8);
   } >RAM
+
+  .eeprom :
+  {
+    . = ALIGN(8);
+    *(.eeprom)
+  } >EEPROM
 
   /* Remove information from the compiler libraries */
   /DISCARD/ :

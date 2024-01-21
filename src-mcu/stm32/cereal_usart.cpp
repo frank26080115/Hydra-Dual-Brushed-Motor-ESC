@@ -1,15 +1,21 @@
 #include "cereal_usart.h"
 
-static fifo_t* fifo_rx_1;
-static fifo_t* fifo_tx_1;
-static fifo_t* fifo_rx_2;
-static fifo_t* fifo_tx_2;
+static fifo_t fifo_rx_1;
+static fifo_t fifo_rx_2;
+#ifdef ENABLE_CEREAL_TX
+static fifo_t fifo_tx_1;
+static fifo_t fifo_tx_2;
+#endif
 static volatile uint32_t last_rx_time_1;
 static volatile uint32_t last_rx_time_2;
 static volatile bool is_idle_1;
 static volatile bool is_idle_2;
 
-void USARTx_IRQHandler(USART_TypeDef* usart, fifo_t* fifo_rx, fifo_t* fifo_tx, volatile bool* is_idle, volatile uint32_t* timestamp)
+void USARTx_IRQHandler(USART_TypeDef* usart, fifo_t* fifo_rx,
+#ifdef ENABLE_CEREAL_TX
+fifo_t* fifo_tx,
+#endif
+volatile bool* is_idle, volatile uint32_t* timestamp)
 {
     if (LL_USART_IsActiveFlag_RXNE(usart))
     {
@@ -17,6 +23,7 @@ void USARTx_IRQHandler(USART_TypeDef* usart, fifo_t* fifo_rx, fifo_t* fifo_tx, v
         fifo_push(fifo_rx, x);
         *timestamp = millis();
     }
+    #ifdef ENABLE_CEREAL_TX
     if (LL_USART_IsActiveFlag_TC(usart))
     {
         LL_USART_ClearFlag_TC(usart);
@@ -26,6 +33,7 @@ void USARTx_IRQHandler(USART_TypeDef* usart, fifo_t* fifo_rx, fifo_t* fifo_tx, v
             LL_USART_TransmitData8(usart, x);
         }
     }
+    #endif
     if (LL_USART_IsActiveFlag_IDLE(usart))
     {
         LL_USART_ClearFlag_IDLE(usart);
@@ -39,19 +47,27 @@ extern "C" {
 
 void USART1_IRQHandler(void)
 {
-    USARTx_IRQHandler(USART1, fifo_rx_1, fifo_tx_1, (volatile bool*)&is_idle_1, (volatile uint32_t*)&last_rx_time_1);
+    USARTx_IRQHandler(USART1, &fifo_rx_1,
+    #ifdef ENABLE_CEREAL_TX
+    &fifo_tx_1,
+    #endif
+    (volatile bool*)&is_idle_1, (volatile uint32_t*)&last_rx_time_1);
 }
 
 void USART2_IRQHandler(void)
 {
-    USARTx_IRQHandler(USART2, fifo_rx_2, fifo_tx_2, (volatile bool*)&is_idle_2, (volatile uint32_t*)&last_rx_time_2);
+    USARTx_IRQHandler(USART2, &fifo_rx_2,
+    #ifdef ENABLE_CEREAL_TX
+    &fifo_tx_2,
+    #endif
+    (volatile bool*)&is_idle_2, (volatile uint32_t*)&last_rx_time_2);
 }
 
 #ifdef __cplusplus
 }
 #endif
 
-Cereal_USART::Cereal_USART(uint8_t id, uint16_t sz)
+Cereal_USART::Cereal_USART(uint8_t id)
 {
     _id = id;
     if (id == 1 || _id == 3) {
@@ -60,23 +76,26 @@ Cereal_USART::Cereal_USART(uint8_t id, uint16_t sz)
     else if (id == 2) {
         _usart = USART2;
     }
-    _buff_size = sz;
 }
 
-void Cereal_USART::begin(uint32_t baud, bool invert, bool halfdup, bool swap)
+void Cereal_USART::init(uint32_t baud, bool invert, bool halfdup, bool swap)
 {
-    fifo_rx = fifo_init(_buff_size);
-    fifo_tx = fifo_init(_buff_size);
 
     if (_id == 1) {
-        fifo_rx_1 = fifo_rx;
-        fifo_tx_1 = fifo_tx;
+        fifo_init(&fifo_rx_1, cer_buff_1, CEREAL_BUFFER_SIZE);
+        #ifdef ENABLE_CEREAL_TX
+        fifo_init(&fifo_tx_1, cer_buff_2, CEREAL_BUFFER_SIZE);
+        fifo_tx = &fifo_tx_1;
+        #endif
         is_idle_1 = false;
         last_rx_time_1 = 0;
     }
     else if (_id == 2) {
-        fifo_rx_2 = fifo_rx;
-        fifo_tx_2 = fifo_tx;
+        fifo_init(&fifo_rx_2, cer_buff_1, CEREAL_BUFFER_SIZE);
+        #ifdef ENABLE_CEREAL_TX
+        fifo_init(&fifo_tx_2, cer_buff_2, CEREAL_BUFFER_SIZE);
+        fifo_tx = &fifo_tx_2;
+        #endif
         is_idle_2 = false;
         last_rx_time_2 = 0;
     }
@@ -153,6 +172,7 @@ void Cereal_USART::begin(uint32_t baud, bool invert, bool halfdup, bool swap)
     NVIC_EnableIRQ(USART2_IRQn);
 }
 
+#ifdef ENABLE_CEREAL_TX
 void Cereal_USART::write(uint8_t x)
 {
     fifo_push(fifo_tx, x);
@@ -171,6 +191,7 @@ void Cereal_USART::flush(void)
         // do nothing but wait
     }
 }
+#endif
 
 uint32_t Cereal_USART::get_last_time(void)
 {
