@@ -22,6 +22,7 @@ const EEPROM_data_t default_eeprom = {
     .version_eeprom     = VERSION_EEPROM,
 
     .voltage_split_mode = VSPLITMODE_BOOST_ALWAYS,
+    .load_balance       = false,
     .input_mode         = INPUTMODE_RC,
     .phase_map          = 0,
     .baud               = 416666,
@@ -74,6 +75,7 @@ EEPROM_data_t cfg;
 
 const EEPROM_item_t cfg_items[] = {
     DCLR_ITM("vsplitmode"   , voltage_split_mode),
+    DCLR_ITM("loadbal"      , load_balance      ),
     DCLR_ITM("inputmode"    , input_mode        ),
     DCLR_ITM("phasemap"     , phase_map         ),
     DCLR_ITM("baud"         , baud              ),

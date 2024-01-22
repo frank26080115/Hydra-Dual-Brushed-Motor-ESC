@@ -36,7 +36,7 @@
 
 /*********************************************************************AT32F421 targets*********************************************/
 
-#ifdef  SWAP_PB0_PA7_F421
+#ifdef SWAP_PB0_PA7_F421
     #define TARGET_NAME             "SWAP_PB0_PA7"
     #define DEAD_TIME               60
     #define HARDWARE_GROUP_AT_045
@@ -46,7 +46,7 @@
     #define PA6_NTC_ONLY
 #endif
 
-#ifdef  F4A_SINGLE_F421
+#ifdef F4A_SINGLE_F421
     #define TARGET_NAME             "F4A_SINGLE_F421"
     #define DEAD_TIME               60
     #define HARDWARE_GROUP_AT_540
@@ -72,7 +72,7 @@
     #define HARDWARE_GROUP_AT_045
 #endif
 
-#ifdef  AT32F421_PB4_054
+#ifdef AT32F421_PB4_054
     #define TARGET_NAME             "AT32F421_PB4_054"
     #define DEAD_TIME               80
     #define HARDWARE_GROUP_AT_B
@@ -80,7 +80,7 @@
     #define HAS_TELEMETRY_PIN
 #endif
 
-#ifdef  AT32F421_PB4_405
+#ifdef AT32F421_PB4_405
     #define TARGET_NAME             "AT32F421_PB4_405"
     #define DEAD_TIME               80
     #define HARDWARE_GROUP_AT_B
@@ -88,7 +88,7 @@
     #define HAS_TELEMETRY_PIN
 #endif
 
-#ifdef  AT32F421_PB4_540
+#ifdef AT32F421_PB4_540
     #define TARGET_NAME             "AT32F421_PB4_540"
     #define DEAD_TIME               80
     #define HARDWARE_GROUP_AT_B
@@ -96,7 +96,7 @@
     #define HAS_TELEMETRY_PIN
 #endif
 
-#ifdef  FOXEER_F421
+#ifdef FOXEER_F421
     #define TARGET_NAME             "FOXEER_F421"
     #define DEAD_TIME               60
     #define HARDWARE_GROUP_AT_540
@@ -104,7 +104,7 @@
     #define HAS_TELEMETRY_PIN
 #endif
 
-#ifdef  WRAITH32_F421
+#ifdef WRAITH32_F421
     #define TARGET_NAME               "WRAITH32"
     #define DEAD_TIME                 60
     #define HARDWARE_GROUP_AT_045
@@ -116,7 +116,7 @@
     #define TARGET_STALL_PROTECTION_INTERVAL 9000
 #endif
 
-#ifdef  AIKON_55A_F421
+#ifdef AIKON_55A_F421
     #define TARGET_NAME             "AIKON_55A_F421"
     #define DEAD_TIME               60
     #define HARDWARE_GROUP_AT_C
@@ -124,7 +124,7 @@
     #define HAS_TELEMETRY_PIN
 #endif
 
-#ifdef  AIKON_SINGLE_F421
+#ifdef AIKON_SINGLE_F421
     #define TARGET_NAME             "AIKON_SINGLE_F421"
     #define DEAD_TIME               60
     #define HARDWARE_GROUP_AT_B
@@ -357,8 +357,20 @@
     #define HAS_TELEMETRY_PIN
     #define VOLTAGE_BASED_RAMP
     #define USE_RGB_LED
-    #define LED_PIN_RED   LL_GPIO_PIN_15
-    #define LED_GPIO_RED  GPIOA
+    #define LED_PIN_RED             LL_GPIO_PIN_15
+    #define LED_GPIO_RED            GPIOA
+#endif
+
+#ifdef STM32F051DISCO
+    #define FIRMWARE_NAME           "STMDISCO"
+    #define DEAD_TIME               25
+    #define HARDWARE_GROUP_F0_B
+    #define HAS_TELEMETRY_PIN
+    #define VOLTAGE_BASED_RAMP
+    #define DEVELOPMENT_BOARD
+    #define LED_PIN                 LL_GPIO_PIN_9
+    #define LED_GPIO                GPIOC
+    #define LED_IS_OPENDRAIN        false
 #endif
 
 #ifdef FLASHHOBBY_F051
@@ -419,7 +431,7 @@
     #define USE_LED_STRIP
 #endif
 
-#ifdef  NEUTRONRC_G071
+#ifdef NEUTRONRC_G071
     #define FIRMWARE_NAME           "NeutronRC G0"
     #define DEAD_TIME               60
     #define MILLIVOLT_PER_AMP       33
@@ -428,6 +440,22 @@
     #define HARDWARE_GROUP_G0_N
     #define HAS_TELEMETRY_PIN
     #define SIXTY_FOUR_KB_MEMORY
+    #define USE_LED_STRIP
+#endif
+
+#ifdef STM32G071NUCLEO
+    #define FIRMWARE_NAME           "NUCLEO"
+    #define DEAD_TIME               60
+    #define MILLIVOLT_PER_AMP       33
+    #define CURRENT_OFFSET          0
+    #define TARGET_VOLTAGE_DIVIDER  210
+    #define HARDWARE_GROUP_G0_N
+    #define HAS_TELEMETRY_PIN
+    #define SIXTY_FOUR_KB_MEMORY
+    #define DEVELOPMENT_BOARD
+    #define LED_PIN                 LL_GPIO_PIN_5
+    #define LED_GPIO                GPIOA
+    #define LED_IS_OPENDRAIN        false
 #endif
 
 #ifdef AIKON_PRO_G071

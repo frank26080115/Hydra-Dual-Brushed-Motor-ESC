@@ -15,6 +15,8 @@ OBJ_DIR     = obj
 
 include src-mcu/f051/makefile-f051.mk
 include src-mcu/g071/makefile-g071.mk
+include src-mcu/f051/makefile-f051disco.mk
+include src-mcu/g071/makefile-g071nucleo.mk
 
 # default build, override from command line
 MCU_TYPE ?= F051
@@ -42,10 +44,12 @@ CPP_OBJS = $(addsuffix .o,$(addprefix $(OBJ_DIR)/,$(basename $(SRC_COMMON_CPP)))
 ASM_OBJS = $(addsuffix .o,$(addprefix $(OBJ_DIR)/,$(basename $(SRC_COMMON_S))))   $(addsuffix .o,$(addprefix $(OBJ_DIR)/,$(basename $(SRC_$(MCU_TYPE)_S))))
 ALL_OBJS = $(ASM_OBJS) $(CPP_OBJS) $(C_OBJS)
 
-.PHONY : clean cleanobjs all binary f051 g071
-all  : $(TARGETS_F051) $(TARGETS_G071)
+.PHONY : clean cleanobjs all binary f051 g071 f051disco g071nucleo
+all  : $(TARGETS_F051) $(TARGETS_G071) $(TARGETS_F051DISCO) $(TARGETS_G071NUCLEO)
 f051 : $(TARGETS_F051)
 g071 : $(TARGETS_G071)
+f051disco  : $(TARGETS_F051DISCO)
+g071nucleo : $(TARGETS_G071NUCLEO)
 
 clean :
 	rm -rf $(BIN_DIR)/* $(OBJ_DIR)/*
@@ -61,6 +65,12 @@ $(TARGETS_F051) :
 
 $(TARGETS_G071) :
 	@$(MAKE) -s MCU_TYPE=G071 TARGET=$@ cleanobjs binary
+
+$(TARGETS_F051DISCO) :
+	@$(MAKE) -s MCU_TYPE=F051DISCO TARGET=$@ cleanobjs binary
+
+$(TARGETS_G071NUCLEO) :
+	@$(MAKE) -s MCU_TYPE=G071NUCLEO TARGET=$@ cleanobjs binary
 
 $(OBJ_DIR)/%.o: %.cpp
 	@mkdir -p $(dir $@)

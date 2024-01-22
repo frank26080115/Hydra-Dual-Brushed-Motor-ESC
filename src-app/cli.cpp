@@ -30,7 +30,7 @@ bool cli_hwdebug;
 extern int16_t current_limit_val;
 extern void current_limit_task(void);
 
-#if defined(STM32F051DISCO)
+#if defined(DEVELOPMENT_BOARD)
 extern Cereal_USART dbg_cer;
 extern RcChannel* rc1;
 extern RcChannel* rc2;
@@ -66,7 +66,9 @@ extern const EEPROM_data_t cfge;
 
 void cli_enter(void)
 {
-    #if defined(STM32F051DISCO)
+    ledblink_cli();
+
+    #if defined(DEVELOPMENT_BOARD)
     Cereal_USART* cer = &dbg_cer;
     // since we are using the debugging UART, the two pins can be used for testing RC inputs
     rc1->init();
@@ -189,6 +191,24 @@ void cli_execute(Cereal* cer, char* str)
         eeprom_print_all(cer);
         cer->write('\r');
         cer->write('\n');
+    }
+    else if (item_strcmp("whichinput", str))
+    {
+        cer->printf("\r\nInput Pin: P");
+        if (INPUT_PIN_PORT == GPIOA) {
+            cer->printf("A");
+        }
+        else if (INPUT_PIN_PORT == GPIOB) {
+            cer->printf("B");
+        }
+        else {
+            cer->printf("?");
+        }
+        for (int i = 0; i < 32; i++) {
+            if (INPUT_PIN == (1 << i)) {
+                cer->printf("%u\r\n", i);
+            }
+        }
     }
     else if (item_strcmp("hwdebug", str))
     {

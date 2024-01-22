@@ -1,5 +1,7 @@
 # Windows
 
+(for some reason that I can't figure out, builds on Windows seem to generate a smaller firmware binary than when built on Ubuntu with the same version of `arm-none-eabi-gcc`)
+
 ## Installing ARM Toolchain
 
 Download installer from https://developer.arm.com/downloads/-/gnu-rm
@@ -40,3 +42,5 @@ Compiler preprocessor defines that can be enabled or disabled to save memory:
  * `ENABLE_COMPILE_CLI` if the CLI is available, a ton of memory is used for `printf`
 
 I have fanagled around with a bunch of build options to minimize the final flash size. Also, I have removed all instances of `malloc` and `new`.
+
+The targets named `STM32F051DISCO` or `STM32G071NUCLEO` are meant for the official ST development boards with built-in debuggers. The firmware will instantiate a dedicated UART for debugging-printf and CLI. The AM32 bootloader is not required for the development boards.

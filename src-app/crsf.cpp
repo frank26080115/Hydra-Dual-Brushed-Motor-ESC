@@ -1,4 +1,5 @@
 #include "crsf.h"
+#include "userconfig.h"
 
 #define CRSF_CHAN_CNT 16
 #define CRSF_SYNC_BYTE 0xC8
@@ -136,7 +137,8 @@ int16_t CrsfChannel::read(void)
     if (x == CRSF_CHANNEL_VALUE_MID) {
         return 0;
     }
-    return fi_map(x, CRSF_CHANNEL_VALUE_1000, CRSF_CHANNEL_VALUE_2000, -THROTTLE_UNIT_RANGE, THROTTLE_UNIT_RANGE, true);
+    x = fi_map(x, CRSF_CHANNEL_VALUE_1000, CRSF_CHANNEL_VALUE_2000, cfg.rc_mid - cfg.rc_range, cfg.rc_mid + cfg.rc_range, false);
+    return rc_pulse_map(x);
 }
 
 bool CrsfChannel::is_alive(void)

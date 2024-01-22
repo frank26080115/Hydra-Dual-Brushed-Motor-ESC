@@ -70,10 +70,13 @@ void USART2_IRQHandler(void)
 Cereal_USART::Cereal_USART(uint8_t id)
 {
     _id = id;
-    if (id == 1 || _id == 3) {
+    if (id == 1) {
         _usart = USART1;
     }
     else if (id == 2) {
+        _usart = USART2;
+    }
+    else if (_id == 3) {
         _usart = USART2;
     }
 }
@@ -90,7 +93,7 @@ void Cereal_USART::init(uint32_t baud, bool invert, bool halfdup, bool swap)
         is_idle_1 = false;
         last_rx_time_1 = 0;
     }
-    else if (_id == 2) {
+    else if (_id == 2 || _id == 3) {
         fifo_init(&fifo_rx_2, cer_buff_1, CEREAL_BUFFER_SIZE);
         #ifdef ENABLE_CEREAL_TX
         fifo_init(&fifo_tx_2, cer_buff_2, CEREAL_BUFFER_SIZE);
@@ -153,10 +156,14 @@ void Cereal_USART::init(uint32_t baud, bool invert, bool halfdup, bool swap)
         GPIO_InitStruct.Alternate  = LL_GPIO_AF_1;
         LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
     }
-    #if defined(STM32F051DISCO)
+    #if defined(STM32F051DISCO) || defined(STM32G071NUCLEO)
     else if (_id == 3)
     {
+        #if defined(STM32F051DISCO)
         GPIO_InitStruct.Pin        = LL_GPIO_PIN_9 | LL_GPIO_PIN_10;
+        #elif defined(STM32G071NUCLEO)
+        GPIO_InitStruct.Pin        = LL_GPIO_PIN_2 | LL_GPIO_PIN_3;
+        #endif
         GPIO_InitStruct.Mode       = LL_GPIO_MODE_ALTERNATE;
         GPIO_InitStruct.Speed      = LL_GPIO_SPEED_FREQ_HIGH;
         GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
@@ -223,3 +230,39 @@ bool Cereal_USART::get_idle_flag(bool clr)
     __enable_irq();
     return x;
 }
+
+#if defined(DEBUG_PRINT)
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void debug_flush(void) {
+    while (fifo_available(&fifo_tx_2)) {
+        // do nothing but wait
+    }
+}
+
+void debug_writechar(char x) {
+    fifo_push(&fifo_tx_2, x);
+    if (LL_USART_IsActiveFlag_TXE(USART2)) {
+        uint8_t y = fifo_pop(&fifo_tx_2);
+        LL_USART_TransmitData8(USART2, y);
+    }
+    if (x == '\n') {
+        debug_flush();
+    }
+}
+
+int debug_writebuff(uint8_t* buf, int len) {
+    for (int i = 0; i < len; i++) {
+        debug_writechar(buf[i]);
+    }
+    return len;
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

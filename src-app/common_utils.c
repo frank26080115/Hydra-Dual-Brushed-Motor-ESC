@@ -4,6 +4,7 @@
 
 #include <math.h>
 
+// the map function, but with rounded division and an option to limit the output
 int32_t fi_map(int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max, bool limit)
 {
     int32_t a = x - in_min;
@@ -36,6 +37,7 @@ int32_t fi_map(int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32
     return y;
 }
 
+// implements division that's signed and rounded
 int fi_div_rounded(const int n, const int d)
 {
     return ((n < 0) ^ (d < 0)) ? ((n - (d / 2)) / d) : ((n + (d / 2)) / d);
@@ -53,6 +55,7 @@ int16_t rc_pulse_map(uint16_t x)
     return fi_map(x2, -nrange, nrange, -THROTTLE_UNIT_RANGE, THROTTLE_UNIT_RANGE, true);
 }
 
+// string comparison that ends at a space, also case-insensitive
 bool item_strcmp(const char* usr_inp, const char* table_item)
 {
     int slen = 16; //strlen(usr_inp);
@@ -61,15 +64,16 @@ bool item_strcmp(const char* usr_inp, const char* table_item)
     {
         char inpc = usr_inp[i];
         char x = table_item[i];
-        if (inpc <= ' ' || inpc >= '~') {
+        if (inpc <= ' ' || inpc >= '~' || inpc == '=' || inpc == ':') {
             inpc = 0;
         }
-        if (x <= ' ' || x >= '~') {
+        if (x <= ' ' || x >= '~' || x == '=' || x == ':') {
             x = 0;
         }
         if (inpc == 0 && x == 0) {
             return true;
         }
+        #if 1
         if (inpc >= 'A' && inpc <= 'Z') {
             inpc -= 'A';
             inpc += 'a';
@@ -78,6 +82,7 @@ bool item_strcmp(const char* usr_inp, const char* table_item)
             x -= 'A';
             x += 'a';
         }
+        #endif
         if (inpc != x) {
             return false;
         }

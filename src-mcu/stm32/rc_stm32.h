@@ -23,7 +23,7 @@
 #define GPIOEXTI_GPIO              GPIOB
 #define GPIOEXTI_IRQHandler        EXTI4_15_IRQHandler
 #define GPIOEXTI_IRQn              EXTI4_15_IRQn
-#define GPIOEXTI_Port              EXTI_EXTICR2_EXTI6
+#define GPIOEXTI_Port              LL_EXTI_CONFIG_PORTB
 #define GPIOEXTI_Line              LL_EXTI_LINE_6
 #define GPIOEXTI_SYSCFG_Line       LL_EXTI_CONFIG_LINE6
 #define GPIOEXTI_TIM_IRQHandler    TIM6_DAC_LPTIM1_IRQHandler
@@ -57,8 +57,8 @@ class RcPulse_InputCap : public RcChannel
 class RcPulse_GpioIsr : public RcChannel
 {
     public:
-        RcPulse_GpioIsr(TIM_TypeDef* TIMx, GPIO_TypeDef* GPIOx, uint32_t pin);
-        virtual void init(void);
+        RcPulse_GpioIsr(void);
+        virtual void init(TIM_TypeDef* TIMx, GPIO_TypeDef* GPIOx, uint32_t pin);
         virtual void task(void);
         virtual int16_t read(void);
         virtual bool is_alive(void);

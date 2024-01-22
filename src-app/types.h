@@ -20,8 +20,12 @@ enum
 
 enum
 {
-    INPUTMODE_RC = 0x01,
-    INPUTMODE_CRSF = 0x02,
+    INPUTMODE_RC,
+    INPUTMODE_CRSF,
+    INPUTMODE_RC_SWDIO,   // PA13
+    INPUTMODE_RC_SWCLK,   // PA14
+    INPUTMODE_CRSF_SWCLK, // PA14
+
     // TODO: support SBUS and IBUS
 };
 
@@ -44,6 +48,7 @@ typedef struct
     uint8_t version_eeprom;
 
     uint8_t voltage_split_mode;
+    bool load_balance;
     uint8_t input_mode;
     uint8_t phase_map;
     uint32_t baud;             // 0 means automatic, otherwise it will override CRSF baudrate
@@ -61,10 +66,9 @@ typedef struct
     // use 0 if not used
 
     // RC signal calibration, units are microseconds
-    uint16_t rc_mid;
-    uint16_t rc_range;
-    uint16_t rc_deadzone;
-    // these `rc_*` values do not apply to CRSF data
+    uint16_t rc_mid;       // do not apply to CRSF data
+    uint16_t rc_range;     // do not apply to CRSF data
+    uint16_t rc_deadzone;  // does apply to CRSF data
 
     // driver PWM options
     uint32_t pwm_reload;

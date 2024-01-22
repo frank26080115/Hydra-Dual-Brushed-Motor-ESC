@@ -3,6 +3,8 @@
 uint32_t arm_pulses_required;
 uint32_t disarm_timeout;
 
+// dummy empty functions so that the linker does not complain
+
 void RcChannel::init(void)
 {
 

@@ -8,26 +8,33 @@ extern "C" {
 uint8_t cer_buff_1[CEREAL_BUFFER_SIZE];
 uint8_t cer_buff_2[CEREAL_BUFFER_SIZE];
 
+#if defined(ENABLE_COMPILE_CLI) || defined(DEBUG_PRINT)
+uint8_t cer_buff_3[CEREAL_BUFFER_SIZE];
+#endif
+
 #ifdef __cplusplus
 }
 #endif
 
+
+
 #ifdef ENABLE_COMPILE_CLI
+
 size_t Cereal::printf(const char *format, ...)
 {
-    char loc_buf[64];
+    char* loc_buf = (char*)cer_buff_3;
     char * temp = loc_buf;
     va_list arg;
     va_list copy;
     va_start(arg, format);
     va_copy(copy, arg);
-    int len = vsnprintf(temp, sizeof(loc_buf), format, copy);
+    int len = vsnprintf(temp, CEREAL_BUFFER_SIZE, format, copy);
     va_end(copy);
     if (len < 0) {
         va_end(arg);
         return 0;
     }
-    if (len >= (int)sizeof(loc_buf)) {
+    if (len >= CEREAL_BUFFER_SIZE) {
         #if 0
         temp = (char*) malloc(len+1);
         if(temp == NULL) {

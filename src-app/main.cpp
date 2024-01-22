@@ -18,13 +18,13 @@
 RcChannel* rc1;
 RcChannel* rc2;
 
-#if defined(STM32F051DISCO) || defined(STM32G071NUCLEO)
+#if defined(DEVELOPMENT_BOARD)
 Cereal_USART dbg_cer(3);
 #endif
 
 #ifdef STMICRO
 RcPulse_InputCap rc_pulse_1(IC_TIMER_REGISTER, INPUT_PIN_PORT, INPUT_PIN, IC_TIMER_CHANNEL);
-RcPulse_GpioIsr  rc_pulse_2(GPIOEXTI_TIMx, GPIOEXTI_GPIO, GPIOEXTI_Pin);
+RcPulse_GpioIsr  rc_pulse_2;
 CrsfChannel      crsf_1;
 CrsfChannel      crsf_2;
 #if INPUT_PIN == LL_GPIO_PIN_2
@@ -55,8 +55,9 @@ int main(void)
 
     ENSURE_VERSION_DATA_IS_KEPT();
 
-    #if defined(STM32F051DISCO)
-    dbg_cer.begin(CLI_BAUD, false, true, false);
+    #if defined(DEVELOPMENT_BOARD)
+    dbg_cer.init(CLI_BAUD, false, true, false);
+    dbg_printf("hello hydra!\r\n");
     #endif
 
     led_init();
@@ -77,10 +78,19 @@ int main(void)
     ledblink_disarmed();
 
     // setup inputs
-    if (cfg.input_mode == INPUTMODE_RC)
+    if (cfg.input_mode == INPUTMODE_RC || cfg.input_mode == INPUTMODE_RC_SWCLK || cfg.input_mode == INPUTMODE_RC_SWDIO)
     {
         rc_pulse_1.init();
-        rc_pulse_2.init();
+        if (cfg.input_mode == INPUTMODE_RC) {
+            rc_pulse_2.init(GPIOEXTI_TIMx, GPIOEXTI_GPIO, GPIOEXTI_Pin);
+        }
+        else if (cfg.input_mode == INPUTMODE_RC_SWCLK) {
+            rc_pulse_2.init(GPIOEXTI_TIMx, GPIOA, LL_GPIO_PIN_14);
+        }
+        else if (cfg.input_mode == INPUTMODE_RC_SWDIO) {
+            rc_pulse_2.init(GPIOEXTI_TIMx, GPIOA, LL_GPIO_PIN_13);
+        }
+
         rc1 = &rc_pulse_1;
         rc2 = &rc_pulse_2;
     }
@@ -110,6 +120,8 @@ int main(void)
     complementary_pwm = true;
     arm_pulses_required = cfg.arm_duration;
     disarm_timeout = cfg.disarm_timeout;
+    pwm_set_remap(cfg.phase_map);
+    pwm_set_loadbalance(cfg.load_balance);
 
     while (true) // main forever loop
     {
@@ -185,7 +197,7 @@ int main(void)
             }
         }
 
-        uint32_t duty_mid = duty_max / 2; // this represents the center tap voltage if motors are going in opposite directions
+        uint32_t duty_mid = (duty_max + 1) / 2; // this represents the center tap voltage if motors are going in opposite directions
 
         // determine the voltage boosting mode, either using a stick/switch value or using the mode set in EEPROM
         uint8_t boost_mode = ((cfg.channel_mode > 0) ? 
@@ -283,9 +295,19 @@ void boot_decide_cli(void)
                 ledblink_boot2();
                 break;
             }
+            #if defined(DEVELOPMENT_BOARD)
+            if (dbg_cer.available() >= 3 && dbg_cer.peekTail() == '\n') {
+                cli_enter(); // this never returns
+            }
+            #endif
         }
         while (inp_read() == 0) {
             led_task();
+            #if defined(DEVELOPMENT_BOARD)
+            if (dbg_cer.available() >= 3 && dbg_cer.peekTail() == '\n') {
+                cli_enter(); // this never returns
+            }
+            #endif
         }
     }
 
@@ -326,9 +348,13 @@ void boot_decide_cli(void)
         }
         if ((millis() - t) >= CLI_ENTER_HIGH_CRITERIA) {
             // has been long enough
-            ledblink_cli();
             cli_enter(); // this never returns
         }
+        #if defined(DEVELOPMENT_BOARD)
+        if (dbg_cer.available() >= 3 && dbg_cer.peekTail() == '\n') {
+            cli_enter(); // this never returns
+        }
+        #endif
     }
 }
 #endif

@@ -3,7 +3,7 @@
 #include "ws2812.h"
 #endif
 
-static inline void led_init_gpio(GPIO_TypeDef *GPIOx, uint32_t Pin, bool opendrain)
+void led_init_gpio(GPIO_TypeDef *GPIOx, uint32_t Pin, bool opendrain)
 {
     LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
 

@@ -1,8 +1,9 @@
 #include "phaseout.h"
-
 #ifdef STMICRO
 #include "phaseout_stm32.h"
 #endif
+
+#include "userconfig.h"
 
 bool braking;
 
@@ -84,12 +85,59 @@ void pwm_set_all_duty(uint16_t a, uint16_t b, uint16_t c)
 #endif
 
 static uint8_t phase_remap = 0;
+static bool load_balance = false;
 
 void pwm_set_all_duty_remapped(uint16_t a, uint16_t b, uint16_t c)
 {
+    if (load_balance)
+    {
+        // tone down the power if one of the common-shared MOSFETs will take more power than what any of the other MOSFETs could possibly ever take
+
+        uint16_t max_duty = cfg.pwm_reload - cfg.pwm_headroom;
+        uint16_t mid_duty = (max_duty + 1) / 2;
+        int p1, p2;
+        if (b >= a && c >= a)
+        {
+            p1 = b - a;
+            p2 = c - a;
+        }
+        else if (b <= a && c <= a)
+        {
+            p1 = a - b;
+            p2 = a - c;
+        }
+        int total_power = p1 + p2;
+        int tries = 3;
+        while (total_power > mid_duty && tries--)
+        {
+            p1 = fi_map(p1, 0, total_power, 0, mid_duty, false);
+            p2 = fi_map(p2, 0, total_power, 0, mid_duty, false);
+            total_power = p1 + p2;
+        }
+        if (b >= a && c >= a)
+        {
+            b = a + p1;
+            c = a + p2;
+        }
+        else if (b <= a && c <= a)
+        {
+            b = a - p1;
+            c = a - p2;
+        }
+    }
+
+    if (braking && a == b && a == c)
+    {
+        // math calculated stop, so actually feed no voltage
+        a = 0;
+        b = 0;
+        c = 0;
+    }
+
     uint8_t map = phase_remap;
     map += HW_PHASES_REMAP;
     map %= 6;
+
     switch (map)
     {
         case 0: pwm_set_all_duty(a, b, c); break;
@@ -104,4 +152,9 @@ void pwm_set_all_duty_remapped(uint16_t a, uint16_t b, uint16_t c)
 void pwm_set_remap(uint8_t map)
 {
     phase_remap = map;
+}
+
+void pwm_set_loadbalance(bool x)
+{
+    load_balance = x;
 }

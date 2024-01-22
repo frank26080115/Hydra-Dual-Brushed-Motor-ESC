@@ -12,13 +12,15 @@ bool  sense_newData = false;
 uint16_t adc_raw_voltage = 0;
 uint16_t adc_raw_current = 0;
 uint16_t adc_raw_temperature = 0;
+uint16_t adc_raw_current_filtered = 0;
 
 pidloop_t current_pid = {
-    .Kp = 400,
-    .Ki = 0,
-    .Kd = 1000,
-    .integral_limit = 20000,
-    .output_limit = 100000
+    .Kp = 400,               // can be modified later through user configuration
+    .Ki = 0,                 // can be modified later through user configuration
+    .Kd = 1000,              // can be modified later through user configuration
+    .integral_limit = 20000, // cannot be modified later
+    .output_limit = 100000   // cannot be modified later
+    // values are large, but the output will be divided later
 };
 int16_t current_limit_val = 0;
 
@@ -48,8 +50,8 @@ bool sense_task(void)
         }
         sense_voltage = fi_lpf(sense_voltage, millivolts, filter_const);
 
-        uint16_t tempCurr = ((adc_raw_current * 3300 / 41) - (cfg.current_offset * 100)) / (cfg.current_scale);
-        sense_current = fi_lpf(sense_current, tempCurr, filter_const);
+        adc_raw_current_filtered = fi_lpf(adc_raw_current_filtered, adc_raw_current, filter_const);
+        sense_current = ((adc_raw_current_filtered * 3300 / 41) - (cfg.current_offset * 100)) / (cfg.current_scale);
 
         return true;
     }
@@ -63,6 +65,7 @@ void current_limit_task(void)
         current_limit_val = 0;
         return;
     }
+    // calculations needs to happen at 1 kHz intervals
     uint32_t now = millis();
     if (last_time == now) {
         return;

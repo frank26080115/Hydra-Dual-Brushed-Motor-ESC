@@ -6,6 +6,9 @@
 /*
 functions here must be implemented in HAL
 to manipulate the input pin
+
+these functions are only used to check if CLI needs to activate
+after that, the input pin either becomes a timer capture pin or a UART pin
 */
 
 #ifdef __cplusplus

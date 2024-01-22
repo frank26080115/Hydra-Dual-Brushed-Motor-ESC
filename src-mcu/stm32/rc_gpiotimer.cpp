@@ -1,9 +1,13 @@
 #include "rc.h"
 #include "rc_stm32.h"
+#include "gpio_to_exti.h"
 
 static GPIO_TypeDef* rc_gpio;
 static TIM_TypeDef*  rc_tim;
 static uint32_t      rc_pin;
+static uint32_t      rc_exti_line;
+static uint32_t      rc_exti_sysline;
+static uint32_t      rc_exti_port;
 
 static volatile uint8_t  overflow_cnt;
 static volatile uint16_t pulse_width;
@@ -27,16 +31,16 @@ void GPIOEXTI_IRQHandler(void)
 {
     uint32_t t = LL_TIM_GetCounter(rc_tim);
     #if defined(MCU_F051)
-    LL_EXTI_ClearFlag_0_31(GPIOEXTI_Line);
+    LL_EXTI_ClearFlag_0_31(rc_exti_line);
     #endif
     #if defined(MCU_F051)
     if (LL_GPIO_IsInputPinSet(rc_gpio, rc_pin) == 0)
     #elif defined(MCU_G071)
-    if (LL_EXTI_IsActiveFallingFlag_0_31(GPIOEXTI_Line))
+    if (LL_EXTI_IsActiveFallingFlag_0_31(rc_exti_line))
     #endif
     {
         #if defined(MCU_G071)
-        LL_EXTI_ClearFallingFlag_0_31(GPIOEXTI_Line);
+        LL_EXTI_ClearFallingFlag_0_31(rc_exti_line);
         #endif
         if (was_high)
         {
@@ -75,11 +79,11 @@ void GPIOEXTI_IRQHandler(void)
     #if defined(MCU_F051)
     else
     #elif defined(MCU_G071)
-    if (LL_EXTI_IsActiveRisingFlag_0_31(LL_EXTI_LINE_6))
+    if (LL_EXTI_IsActiveRisingFlag_0_31(rc_exti_line))
     #endif
     {
         #if defined(MCU_G071)
-        LL_EXTI_ClearRisingFlag_0_31(GPIOEXTI_Line);
+        LL_EXTI_ClearRisingFlag_0_31(rc_exti_line);
         #endif
         // reset counter on rising edge
         LL_TIM_SetCounter(rc_tim, 0);
@@ -106,18 +110,24 @@ void GPIOEXTI_TIM_IRQHandler(void)
 
 #endif
 
-RcPulse_GpioIsr::RcPulse_GpioIsr(TIM_TypeDef* TIMx, GPIO_TypeDef* GPIOx, uint32_t pin)
+RcPulse_GpioIsr::RcPulse_GpioIsr(void)
+{
+
+}
+
+void RcPulse_GpioIsr::init(TIM_TypeDef* TIMx, GPIO_TypeDef* GPIOx, uint32_t pin)
 {
     _tim  = TIMx;
     _gpio = GPIOx;
     _pin  = pin;
-}
 
-void RcPulse_GpioIsr::init(void)
-{
     rc_tim  = _tim;
     rc_gpio = _gpio;
     rc_pin  = _pin;
+
+    rc_exti_line    = gpio_to_exti_line    (rc_pin);
+    rc_exti_port    = gpio_to_exti_port    (rc_pin);
+    rc_exti_sysline = gpio_to_exti_sys_line(rc_pin);
 
     LL_TIM_InitTypeDef timcfg = {0};
     timcfg.Prescaler     = __LL_TIM_CALC_PSC(SystemCoreClock, 4000000);
@@ -140,17 +150,17 @@ void RcPulse_GpioIsr::init(void)
     LL_GPIO_Init(rc_gpio, &GPIO_InitStruct);
 
     #if defined(MCU_F051)
-    LL_SYSCFG_SetEXTISource(GPIOEXTI_Port, GPIOEXTI_SYSCFG_Line);
+    LL_SYSCFG_SetEXTISource(rc_exti_port, rc_exti_sysline);
     #elif defined(MCU_G071)
-    LL_EXTI_SetEXTISource(GPIOEXTI_Port, GPIOEXTI_SYSCFG_Line);
+    LL_EXTI_SetEXTISource(rc_exti_port, rc_exti_sysline);
     #endif
-    LL_EXTI_EnableRisingTrig_0_31(GPIOEXTI_Line);
-    LL_EXTI_EnableFallingTrig_0_31(GPIOEXTI_Line);
-    LL_EXTI_EnableEvent_0_31(GPIOEXTI_Line);
-    LL_EXTI_EnableIT_0_31(GPIOEXTI_Line);
+    LL_EXTI_EnableRisingTrig_0_31 (rc_exti_line);
+    LL_EXTI_EnableFallingTrig_0_31(rc_exti_line);
+    LL_EXTI_EnableEvent_0_31      (rc_exti_line);
+    LL_EXTI_EnableIT_0_31         (rc_exti_line);
 
     NVIC_SetPriority(GPIOEXTI_IRQn, 0);
-    NVIC_EnableIRQ(GPIOEXTI_IRQn);
+    NVIC_EnableIRQ  (GPIOEXTI_IRQn);
 
     was_high = LL_GPIO_IsInputPinSet(rc_gpio, rc_pin);
 
