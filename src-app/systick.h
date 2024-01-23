@@ -7,10 +7,12 @@
 extern "C" {
 #endif
 
+extern volatile uint32_t systick_cnt;
+
 void systick_init(void);
 
 #if defined(STMICRO)
-#define millis() SysTick->VAL
+#define millis() systick_cnt
 #else
 uint32_t millis(void);
 #endif

@@ -104,7 +104,7 @@ void ledhw_init(void)
     led_init_gpio(LED_GPIO_RED  , LED_PIN_RED  , LED_IS_OPENDRAIN);
     led_init_gpio(LED_GPIO_GREEN, LED_PIN_GREEN, LED_IS_OPENDRAIN);
     led_init_gpio(LED_GPIO_BLUE , LED_PIN_BLUE , LED_IS_OPENDRAIN);
-#elif defined(LED_GPIOx) && defined(LED_PIN)
+#elif defined(LED_GPIO) && defined(LED_PIN)
     led_init_gpio(LED_GPIO, LED_PIN, LED_IS_OPENDRAIN);
 #endif
 }

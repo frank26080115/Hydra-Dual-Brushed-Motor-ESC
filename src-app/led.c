@@ -18,7 +18,7 @@ uint8_t  blink_span = 0;                  // the time span of the current time f
 uint32_t blink_last_time = 0;             // the last time that the frame advanced
 #endif
 
-#if !defined(USE_RGB_LED) && defined(LED_GPIOx) && defined(LED_PIN)
+#if !defined(ENABLE_LED_BLINK) && !defined(USE_RGB_LED) && defined(LED_GPIO) && defined(LED_PIN)
 static uint8_t led_state = 0;
 #endif
 
@@ -28,7 +28,7 @@ void led_blink_set(uint8_t x)
     led_set(LED_GPIO_RED  , LED_PIN_RED  , BLINK_IS_RED(x)  , LED_IS_OPENDRAIN);
     led_set(LED_GPIO_GREEN, LED_PIN_GREEN, BLINK_IS_GREEN(x), LED_IS_OPENDRAIN);
     led_set(LED_GPIO_BLUE , LED_PIN_BLUE , BLINK_IS_BLUE(x) , LED_IS_OPENDRAIN);
-    #elif defined(LED_GPIOx) && defined(LED_PIN)
+    #elif defined(LED_GPIO) && defined(LED_PIN)
     led_set(LED_GPIO, LED_PIN, BLINK_IS_ON(x), LED_IS_OPENDRAIN);
     #endif
     #ifdef USE_LED_STRIP
@@ -37,6 +37,11 @@ void led_blink_set(uint8_t x)
     #ifdef ENABLE_LED_BLINK
     blink_span = BLINK_GET_TIME(x);
     #endif
+}
+
+void led_state_set(bool x)
+{
+    led_blink_set(x ? 0xE0 : 0);
 }
 
 void led_task(void)
@@ -79,7 +84,7 @@ void led_task(void)
         led_blink_set(x);
     }
     #else
-    #if !defined(USE_RGB_LED) && defined(LED_GPIOx) && defined(LED_PIN)
+    #if !defined(USE_RGB_LED) && defined(LED_GPIO) && defined(LED_PIN)
     if (led_state == 0) {
         led_set(LED_GPIO, LED_PIN, false, LED_IS_OPENDRAIN);
     }
@@ -156,7 +161,7 @@ void ledblink_boot(void) {
     led_set(LED_GPIO_RED  , LED_PIN_RED  , false, LED_IS_OPENDRAIN);
     led_set(LED_GPIO_GREEN, LED_PIN_GREEN, false, LED_IS_OPENDRAIN);
     led_set(LED_GPIO_BLUE , LED_PIN_BLUE , true , LED_IS_OPENDRAIN);
-    #elif defined(LED_GPIOx) && defined(LED_PIN)
+    #elif defined(LED_GPIO) && defined(LED_PIN)
     led_state = 1;
     #endif
     #ifdef USE_LED_STRIP
@@ -169,7 +174,7 @@ void ledblink_boot2(void) {
     led_set(LED_GPIO_RED  , LED_PIN_RED  , true , LED_IS_OPENDRAIN);
     led_set(LED_GPIO_GREEN, LED_PIN_GREEN, false, LED_IS_OPENDRAIN);
     led_set(LED_GPIO_BLUE , LED_PIN_BLUE , true , LED_IS_OPENDRAIN);
-    #elif defined(LED_GPIOx) && defined(LED_PIN)
+    #elif defined(LED_GPIO) && defined(LED_PIN)
     led_state = 1;
     #endif
     #ifdef USE_LED_STRIP
@@ -182,7 +187,7 @@ void ledblink_cli(void) {
     led_set(LED_GPIO_RED  , LED_PIN_RED  , true , LED_IS_OPENDRAIN);
     led_set(LED_GPIO_GREEN, LED_PIN_GREEN, true , LED_IS_OPENDRAIN);
     led_set(LED_GPIO_BLUE , LED_PIN_BLUE , true , LED_IS_OPENDRAIN);
-    #elif defined(LED_GPIOx) && defined(LED_PIN)
+    #elif defined(LED_GPIO) && defined(LED_PIN)
     led_state = 1;
     #endif
     #ifdef USE_LED_STRIP
@@ -195,7 +200,7 @@ void ledblink_disarmed(void) {
     led_set(LED_GPIO_RED  , LED_PIN_RED  , true  , LED_IS_OPENDRAIN);
     led_set(LED_GPIO_GREEN, LED_PIN_GREEN, false , LED_IS_OPENDRAIN);
     led_set(LED_GPIO_BLUE , LED_PIN_BLUE , false , LED_IS_OPENDRAIN);
-    #elif defined(LED_GPIOx) && defined(LED_PIN)
+    #elif defined(LED_GPIO) && defined(LED_PIN)
     led_state = 1;
     #endif
     #ifdef USE_LED_STRIP
@@ -208,7 +213,7 @@ void ledblink_armed_stopped(void) {
     led_set(LED_GPIO_RED  , LED_PIN_RED  , true  , LED_IS_OPENDRAIN);
     led_set(LED_GPIO_GREEN, LED_PIN_GREEN, true  , LED_IS_OPENDRAIN);
     led_set(LED_GPIO_BLUE , LED_PIN_BLUE , false , LED_IS_OPENDRAIN);
-    #elif defined(LED_GPIOx) && defined(LED_PIN)
+    #elif defined(LED_GPIO) && defined(LED_PIN)
     led_state = 2;
     #endif
     #ifdef USE_LED_STRIP
@@ -221,7 +226,7 @@ void ledblink_moving(void) {
     led_set(LED_GPIO_RED  , LED_PIN_RED  , false , LED_IS_OPENDRAIN);
     led_set(LED_GPIO_GREEN, LED_PIN_GREEN, true  , LED_IS_OPENDRAIN);
     led_set(LED_GPIO_BLUE , LED_PIN_BLUE , false , LED_IS_OPENDRAIN);
-    #elif defined(LED_GPIOx) && defined(LED_PIN)
+    #elif defined(LED_GPIO) && defined(LED_PIN)
     led_state = 3;
     #endif
     #ifdef USE_LED_STRIP

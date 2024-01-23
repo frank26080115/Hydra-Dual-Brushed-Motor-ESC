@@ -57,17 +57,14 @@ int main(void)
     ENSURE_VERSION_DATA_IS_KEPT();
 
     led_init();
-    led_blink_set(true);
-    while (true) {
-
-    }
+    led_state_set(true);
 
     #if defined(DEVELOPMENT_BOARD)
-    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, true, false);
+    //dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, true, false);
     {
         uint32_t _t = millis();
         while (true) {
-            led_blink_set((millis() % 1000) < 200);
+            led_state_set((millis() % 1000) < 200);
             if ((millis() - _t) >= 500) {
                 //dbg_printf("hello hydra!\r\n");
                 _t = millis();

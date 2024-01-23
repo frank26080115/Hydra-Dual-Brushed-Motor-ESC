@@ -25,6 +25,7 @@ extern void ledhw_init(void); // MCU specific implementation
 extern void led_set(LED_PORT_TYPE* GPIOx, uint32_t Pin, bool ison, bool opendrain);
 
 void led_blink_set(uint8_t x);
+void led_state_set(bool x);
 
 void ledblink_boot(void);
 void ledblink_boot2(void);
