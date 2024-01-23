@@ -2,9 +2,14 @@
 
 #include <stdio.h>
 #include <stdarg.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <stddef.h>
 
 #include "conf.h"
 #include "defs.h"
+
+#include "mcu.h"
 
 #define DEBUG_BAUD 115200
 
@@ -14,8 +19,12 @@ extern "C" {
 
 #ifdef DEBUG_PRINT
 int dbg_printf(const char* fmt, ...);
+void dbg_button_wait(void);
+bool dbg_read_btn(void);
 #else
-#define dbg_printf(...)    // nothing
+#define dbg_printf(...)
+#define dbg_button_wait(...)
+#define dbg_read_btn(...)
 #endif
 
 enum

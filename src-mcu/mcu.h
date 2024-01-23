@@ -5,6 +5,10 @@
 #include "types.h"
 #include "targets.h"
 
+#include <stdint.h>
+#include <stdbool.h>
+#include <stddef.h>
+
 #ifdef STMICRO
 #include "stm32.h"
 #endif

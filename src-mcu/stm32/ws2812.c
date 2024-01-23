@@ -14,7 +14,7 @@
 #define WS2812_LED_BUFF_LEN 28
 
 static volatile bool dma_busy = false;
-static uint16_t led_Buffer[WS2812_LED_BUFF_LEN] = {
+static uint16_t led_buffer[WS2812_LED_BUFF_LEN] = {
      0,  0,
     20, 20, 20, 20, 20, 20, 20, 20,
     60, 60, 60, 60, 60, 60, 60, 60,
@@ -90,7 +90,7 @@ void WS2812_sendDMA(void)
 {
     dma_busy = true;
     WS2812_TIMx->CNT = 0;
-    LL_DMA_ConfigAddresses (WS2812_DMAx, LL_DMA_CHANNEL_6, (uint32_t)&led_Buffer, (uint32_t)&TIM16->CCR1, LL_DMA_GetDataTransferDirection(DMA1, LL_DMA_CHANNEL_6));
+    LL_DMA_ConfigAddresses (WS2812_DMAx, LL_DMA_CHANNEL_6, (uint32_t)&led_buffer, (uint32_t)&TIM16->CCR1, LL_DMA_GetDataTransferDirection(DMA1, LL_DMA_CHANNEL_6));
     LL_DMA_SetDataLength   (WS2812_DMAx, LL_DMA_CHANNEL_6, WS2812_LED_BUFF_LEN);
     LL_DMA_EnableIT_TC     (WS2812_DMAx, LL_DMA_CHANNEL_6);
     LL_DMA_EnableIT_TE     (WS2812_DMAx, LL_DMA_CHANNEL_6);
@@ -114,13 +114,15 @@ void WS2812_task(void)
         uint32_t twenty_four_bit_color_number = (uint32_t)*((uint32_t*)rgb_pending);
 
         for (int i = 0; i < 24 ; i ++) {
-            led_Buffer[i + 2] = (((twenty_four_bit_color_number >> (23 - i)) & 1) * 40) + 20;
+            led_buffer[i + 2] = (((twenty_four_bit_color_number >> (23 - i)) & 1) * 40) + 20;
         }
         WS2812_sendDMA();
         new_pending = false;
     }
 }
 
+// NVIC is not called to enable this particular handler, so it is never called
+#if 0
 void TIM16_IRQHandler(void)
 {
     if (LL_TIM_IsActiveFlag_CC1(TIM16) == 1) {
@@ -130,7 +132,9 @@ void TIM16_IRQHandler(void)
         LL_TIM_ClearFlag_UPDATE(TIM16);
     }
 }
+#endif
 
+// this interrupt is actually enabled
 void DMA1_Ch4_7_DMAMUX1_OVR_IRQHandler(void)
 {
     if (LL_DMA_IsActiveFlag_HT6(DMA1)) {

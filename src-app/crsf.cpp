@@ -77,7 +77,7 @@ void CrsfChannel::task(void)
                 bad_pulse_cnt = 0;
                 last_good_time = millis();
                 new_flag = true;
-                has_new = true;
+                _has_new = true;
                 cereal->consume(hdr->len + 2); // pop the buffer
                 if (arm_pulses_required > 0)
                 {
@@ -164,7 +164,7 @@ bool CrsfChannel::is_alive(void)
         }
     }
     new_flag = false;
-    has_new = false;
+    _has_new = false;
     return false;
 }
 
@@ -174,10 +174,10 @@ bool CrsfChannel::has_new(bool clr)
         return false;
     }
 
-    bool x = new_flag || has_new;
+    bool x = new_flag || _has_new;
     if (clr) {
         new_flag = false;
-        has_new = false;
+        _has_new = false;
     }
     return x;
 }

@@ -43,6 +43,29 @@ int dbg_printf(const char* fmt, ...)
     return len;
 }
 
+void dbg_button_wait(void)
+{
+    #if defined(MCU_F051)
+    #define DBG_BUTTON_PIN   LL_GPIO_PIN_0
+    #define DBG_BUTTON_PORT  GPIOA
+    #elif defined(MCU_G071)
+    #define DBG_BUTTON_PIN   LL_GPIO_PIN_13
+    #define DBG_BUTTON_PORT  GPIOC
+    #endif
+    LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
+    GPIO_InitStruct.Pin = DBG_BUTTON_PIN;
+    GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
+    GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
+    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+    GPIO_InitStruct.Pull = LL_GPIO_PULL_UP;
+    LL_GPIO_Init(DBG_BUTTON_PORT, &GPIO_InitStruct);
+}
+
+bool dbg_read_btn(void)
+{
+    return LL_GPIO_IsInputPinSet(DBG_BUTTON_PORT, DBG_BUTTON_PIN) == 0;
+}
+
 #endif
 
 #if defined(DEBUG_EVENTCNT)

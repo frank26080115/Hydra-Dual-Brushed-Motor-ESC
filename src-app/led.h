@@ -24,6 +24,8 @@ void led_task(void); // call continously to perform blinking
 extern void ledhw_init(void); // MCU specific implementation
 extern void led_set(LED_PORT_TYPE* GPIOx, uint32_t Pin, bool ison, bool opendrain);
 
+void led_blink_set(uint8_t x);
+
 void ledblink_boot(void);
 void ledblink_boot2(void);
 void ledblink_disarmed(void);

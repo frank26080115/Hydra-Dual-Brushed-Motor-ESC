@@ -1,6 +1,6 @@
 #include "swd_pins.h"
 
-void swd_init(uint32_t pull)
+void swdpins_init(uint32_t pull)
 {
     if (LL_GPIO_GetPinMode(GPIOA, GPIO_PIN_SWDIO) != LL_GPIO_MODE_INPUT || LL_GPIO_GetPinMode(GPIOA, GPIO_PIN_SWCLK) != LL_GPIO_MODE_INPUT || LL_GPIO_GetPinPull(GPIOA, GPIO_PIN_SWDIO) != pull || LL_GPIO_GetPinPull(GPIOA, GPIO_PIN_SWCLK) != pull)
     {

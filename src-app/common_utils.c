@@ -1,8 +1,19 @@
 #include "funcs.h"
 #include "main.h"
+#include "systick.h"
 #include "userconfig.h"
 
 #include <math.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+void delay_ms(uint32_t x) {
+    uint32_t t = millis();
+    while ((millis() - t) < x) {
+        // do nothing;
+    }
+}
 
 // the map function, but with rounded division and an option to limit the output
 int32_t fi_map(int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max, bool limit)

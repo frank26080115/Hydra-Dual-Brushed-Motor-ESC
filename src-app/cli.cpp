@@ -80,7 +80,7 @@ void cli_enter(void)
     rc2->init();
     #elif INPUT_PIN == LL_GPIO_PIN_2
     Cereal_USART* cer = &main_cer;
-    cer->init(CEREAL_ID_USART_2, CLI_BAUD, false, true, false);
+    cer->init(CEREAL_ID_USART2, CLI_BAUD, false, true, false);
     #elif INPUT_PIN == LL_GPIO_PIN_4
     Cereal_TimerBitbang* cer = &cli_cer;
     cer->init(CLI_BAUD);
@@ -355,7 +355,7 @@ void cli_reportSensors(Cereal* cer)
         cer->printf("?, ");
     }
     #endif
-    #if STMICRO
+    #ifdef STMICRO
     // for ESCs without a telemetry pad, enable the reading of the SWD pins
     // these will be pulled-up, and the user can short them to ground to see which pad responds
     cer->printf("SWDIO=%d, SWCLK=%d, ", swdio_read() ? 1 : 0, swclk_read() ? 1 : 0);

@@ -189,9 +189,9 @@ void eeprom_mark_dirty(void)
 #ifdef ENABLE_COMPILE_CLI
 uint32_t eeprom_idx_of_item(char* str)
 {
-    uint16_t ret[2] = {0, 0}; // default return no result
+    uint32_t ret32 = 0;
+    uint16_t* ret16 = (uint16_t*)&ret32;
     int i;
-    char* arg;
 
     for (i = 0; ; i++)
     {
@@ -204,12 +204,12 @@ uint32_t eeprom_idx_of_item(char* str)
             uint32_t ptrstart = (uint32_t)&cfge;
             uint32_t itmidx = desc->ptr - ptrstart;
             // every item's offset is stored as an absolute address, the offset from the start gives it a relative address (byte index)
-            ret[0] = itmidx;
-            ret[1] = desc->size;
+            ret16[0] = itmidx;
+            ret16[1] = desc->size;
             break; // found, return after exiting loop
         }
     }
-    return *((uint32_t*)ret);
+    return ret32;
 }
 
 bool eeprom_user_edit(char* str, int32_t* retv)
@@ -226,7 +226,7 @@ bool eeprom_user_edit(char* str, int32_t* retv)
     int32_t v = parse_integer((const char*)arg);
     uint16_t itmidx = idxret16[0];
     uint8_t* ptr8 = (uint8_t*)&cfg; // retarget to the struct in RAM that's actually writable
-    memcpy(&(ptr8[itmidx]), &v, desc->size); // variable word size write
+    memcpy(&(ptr8[itmidx]), &v, idxret16[1]); // variable word size write
     eeprom_mark_dirty();
     if (retv != NULL) {
         *retv = v;

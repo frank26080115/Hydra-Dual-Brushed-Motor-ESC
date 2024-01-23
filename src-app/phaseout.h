@@ -38,6 +38,12 @@ void pwm_set_all_duty(uint16_t a, uint16_t b, uint16_t c);          // directly 
 void pwm_set_all_duty_remapped(uint16_t a, uint16_t b, uint16_t c); // accounts for remapping set by pwm_set_remap
 // note: in this project, I'm using phase A as the common-shared phase between the two motors, b is channel 1, c is channel 2
 
+#ifdef DEBUG_PRINT
+void pwm_debug_report(void);
+#else
+#define pwm_debug_report(...)
+#endif
+
 void pwm_set_remap(uint8_t);    // set from application
 void pwm_set_loadbalance(bool); // set from application
 

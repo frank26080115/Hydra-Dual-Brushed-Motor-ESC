@@ -13,13 +13,14 @@
 #include "rc_stm32.h"
 #include "cereal_timer.h"
 #include "cereal_usart.h"
+#include "swd_pins.h"
 #endif
 
 RcChannel* rc1;
 RcChannel* rc2;
 
 #if defined(DEVELOPMENT_BOARD)
-Cereal_USART dbg_cer(3);
+Cereal_USART dbg_cer;
 #endif
 
 #ifdef STMICRO
@@ -55,12 +56,29 @@ int main(void)
 
     ENSURE_VERSION_DATA_IS_KEPT();
 
+    led_init();
+    led_blink_set(true);
+    while (true) {
+
+    }
+
     #if defined(DEVELOPMENT_BOARD)
     dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, true, false);
-    dbg_printf("hello hydra!\r\n");
+    {
+        uint32_t _t = millis();
+        while (true) {
+            led_blink_set((millis() % 1000) < 200);
+            if ((millis() - _t) >= 500) {
+                //dbg_printf("hello hydra!\r\n");
+                _t = millis();
+            }
+            //if (dbg_cer.available() > 0 || dbg_read_btn()) {
+            //    break;
+            //}
+        }
+        //dbg_printf("!!!\r\n");
+    }
     #endif
-
-    led_init();
 
     #ifdef DEBUG_PINTOGGLE
     dbg_pintoggle_init();
@@ -85,7 +103,7 @@ int main(void)
     ledblink_disarmed();
 
     // setup inputs
-    if (cfg.input_mode == INPUTMODE_RC || cfg.input_mode == INPUTMODE_RC_SWCLK || cfg.input_mode == INPUTMODE_RC_SWDIO)
+    if (cfg.input_mode == INPUTMODE_RC || cfg.input_mode == INPUTMODE_RC_SWD)
     {
         rc_pulse_1.init();
         if (cfg.input_mode == INPUTMODE_RC) {
@@ -110,11 +128,11 @@ int main(void)
         if (cfg.input_mode == INPUTMODE_CRSF)
         {
             #if INPUT_PIN == LL_GPIO_PIN_2
-            usart_id = CEREAL_ID_USART_2;
+            usart_id = CEREAL_ID_USART2;
             #elif INPUT_PIN == LL_GPIO_PIN_4
-            usart_id = CEREAL_ID_USART_1;
+            usart_id = CEREAL_ID_USART1;
             #else
-            usart_id = CEREAL_ID_USART_2;
+            usart_id = CEREAL_ID_USART2;
             #endif
         }
         else if (cfg.input_mode == INPUTMODE_CRSF_SWCLK)
@@ -163,6 +181,16 @@ int main(void)
         rc1->task();
         rc2->task();
 
+        bool need_debug_print = false;
+        #ifdef DEBUG_PRINT
+        static uint32_t last_debug_time = 0;
+        if ((millis() - last_debug_time) >= 250)
+        {
+            need_debug_print = true;
+            last_debug_time = millis();
+        }
+        #endif
+
         bool armed1, armed2;
         int v1, v2;
 
@@ -192,6 +220,9 @@ int main(void)
         if (armed1 == false && armed2 == false) {
             ledblink_disarmed();
             pwm_all_flt();
+            if (need_debug_print) {
+                dbg_printf("[%u] disarmed, v=%lu   c=%u\r\n", millis(), sense_voltage, sense_current);
+            }
             continue; // do not execute the rest of the logic
         }
         else if (v1 == 0 && v2 == 0) {

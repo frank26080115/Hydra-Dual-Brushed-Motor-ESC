@@ -44,6 +44,8 @@ void SystemClock_Config(void)
 
 void STM32_Sys_Init()
 {
-    SCB->VTOR = 0x08001000;
+    #ifndef DEVELOPMENT_BOARD
+    SCB->VTOR = APPLICATION_ADDRESS;
+    #endif
     __enable_irq();
 }

@@ -86,6 +86,9 @@ void pwm_set_all_duty(uint16_t a, uint16_t b, uint16_t c)
 
 static uint8_t phase_remap = 0;
 static bool load_balance = false;
+#ifdef DEBUG_PRINT
+static uint16_t phase_vals[3];
+#endif
 
 void pwm_set_all_duty_remapped(uint16_t a, uint16_t b, uint16_t c)
 {
@@ -134,6 +137,12 @@ void pwm_set_all_duty_remapped(uint16_t a, uint16_t b, uint16_t c)
         c = 0;
     }
 
+    #ifdef DEBUG_PRINT
+    phase_vals[0] = a;
+    phase_vals[1] = b;
+    phase_vals[2] = c;
+    #endif
+
     switch (phase_remap)
     {
         case 0: pwm_set_all_duty(a, b, c); break;
@@ -158,3 +167,11 @@ void pwm_set_loadbalance(bool x)
 {
     load_balance = x;
 }
+
+#ifdef DEBUG_PRINT
+
+void pwm_debug_report(void) {
+    dbg_printf("%u, %u, %u, ", phase_vals[0], phase_vals[1], phase_vals[2]);
+}
+
+#endif
