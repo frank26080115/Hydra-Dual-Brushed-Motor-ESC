@@ -51,7 +51,7 @@ Other models potentially will work if they meet the following criteria:
  * Has enough exposed signal pads to support the desired input mode
  * Has the microcontroller STM32F051 or STM32G071
 
-To install, update, and configure Hydra firmware, you must use a USB-linker meant for communicating with ESCs. See this [wiki page](wiki/USB-Linker) for a list of linkers you can use.
+To install, update, and configure Hydra firmware, you must use a USB-linker meant for communicating with ESCs. See this [wiki page](../../wiki/USB-Linker) for a list of linkers you can use.
 
 # Instructions
 
