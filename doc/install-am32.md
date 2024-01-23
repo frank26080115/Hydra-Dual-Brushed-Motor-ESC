@@ -9,6 +9,6 @@ It is much easier to just purchase ESCs that already have AM32 installed:
 | Just Cuz Robotics Pariah 70A AM32 | 70A | 30A | 15A | 6S | https://justcuzrobotics.com/products/pariah-70a-am32-weapon-esc |
 | SEQURE 70A with AM32 | 70A | 30A | 15A | 6S | https://www.amazon.com/SEQURE-Brushless-Electric-Controller-Airplanes/dp/B0CN6NB8CB/ |
 
-(this list does not cover all the options on the market, just the ones I'm aware of)
+This list does not cover all the options on the market, just the ones I'm aware of. This repo's [wiki has a page with a list](../../../wiki/ESCs-with-AM32-already-installed).
 
 If you want to install AM32 on your own, follow the instructions from https://github.com/AlkaMotors/AM32-MultiRotor-ESC-firmware/wiki/Hacking-Guide
