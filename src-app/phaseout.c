@@ -134,24 +134,24 @@ void pwm_set_all_duty_remapped(uint16_t a, uint16_t b, uint16_t c)
         c = 0;
     }
 
-    uint8_t map = phase_remap;
-    map += HW_PHASES_REMAP;
-    map %= 6;
-
-    switch (map)
+    switch (phase_remap)
     {
         case 0: pwm_set_all_duty(a, b, c); break;
-        case 1: pwm_set_all_duty(a, c, b); break;
-        case 2: pwm_set_all_duty(b, a, c); break;
-        case 3: pwm_set_all_duty(b, c, a); break;
-        case 4: pwm_set_all_duty(c, a, b); break;
-        case 5: pwm_set_all_duty(c, b, a); break;
+        case 1: pwm_set_all_duty(b, a, c); break;
+        case 2: pwm_set_all_duty(c, a, b); break;
+        // the cases below can also be handled by swapping the channels, so they are useless
+        // case 3: pwm_set_all_duty(a, c, b); break;
+        // case 4: pwm_set_all_duty(b, c, a); break;
+        // case 5: pwm_set_all_duty(c, b, a); break;
     }
 }
 
 void pwm_set_remap(uint8_t map)
 {
-    phase_remap = map;
+    // recalculate to 0 index
+    phase_remap = map - ((map >= 1) ? 1 : 0);
+    map += HW_PHASES_REMAP; // change the mapping by compile time definition
+    phase_remap %= 3;
 }
 
 void pwm_set_loadbalance(bool x)

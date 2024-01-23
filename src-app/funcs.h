@@ -19,6 +19,7 @@ bool item_strcmp(const char* usr_inp, const char* table_item);
 int32_t pid_calc(pidloop_t* pidnow, int actual, int target);
 uint8_t crsf_crc8(const uint8_t *ptr, int len);
 int32_t fi_lpf(int32_t oldval, int32_t newval, int32_t fltconst);
+int32_t parse_integer(const char* str);
 
 #ifdef __cplusplus
 }

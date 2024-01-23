@@ -22,6 +22,9 @@ static uint16_t led_Buffer[WS2812_LED_BUFF_LEN] = {
      0,  0,
 };
 
+static uint8_t rgb_pending[3] = {0};
+static bool    new_pending = false;
+
 void WS2812_init(void)
 {
     NVIC_SetPriority(DMA1_Ch4_7_DMAMUX1_OVR_IRQn, 3);
@@ -100,13 +103,21 @@ void WS2812_sendDMA(void)
 
 void WS2812_setRGB(uint8_t red, uint8_t green, uint8_t blue)
 {
-    if (!dma_busy) {
-        uint32_t twenty_four_bit_color_number = green << 16 | red << 8 | blue;
+    rgb_pending[1] = red; rgb_pending[2] = green; rgb_pending[0] = blue;
+    new_pending = true;
+}
+
+void WS2812_task(void)
+{
+    if (new_pending && !dma_busy)
+    {
+        uint32_t twenty_four_bit_color_number = (uint32_t)*((uint32_t*)rgb_pending);
 
         for (int i = 0; i < 24 ; i ++) {
             led_Buffer[i + 2] = (((twenty_four_bit_color_number >> (23 - i)) & 1) * 40) + 20;
         }
-       WS2812_sendDMA();
+        WS2812_sendDMA();
+        new_pending = false;
     }
 }
 

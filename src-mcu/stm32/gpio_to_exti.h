@@ -1,6 +1,8 @@
 #pragma once
 #include "mcu.h"
 
+// TODO: add more items here for wider support
+
 static inline uint32_t gpio_to_exti_line(uint32_t x)
 {
     switch (x)

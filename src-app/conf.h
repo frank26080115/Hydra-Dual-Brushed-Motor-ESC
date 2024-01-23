@@ -15,15 +15,15 @@
 #define CLI_BUFF_SIZE 64
 #define CLI_ECHO      false // most of the one-wire USB-links already echo, so do not echo ourselves
 
-#define PWM_DEFAULT_HEADROOM     50
+#define PWM_DEFAULT_HEADROOM     50 // for the high-MOSFET's charge pump
 
-#define ADC_FILTER_DEFAULT  100 // 0 to 1000, 100 meaning 10% of new-value and 90% of old-value
+#define ADC_FILTER_DEFAULT  100     // 0 to 1000, 100 meaning 10% of new-value and 90% of old-value
 
-#define RC_INPUT_TIMEOUT    200
-#define RC_INPUT_VALID_MIN  800
-#define RC_INPUT_VALID_MAX  2200
+#define RC_INPUT_TIMEOUT    200     // this isn't really actually used much
+#define RC_INPUT_VALID_MIN  800     // criteria for a valid pulse
+#define RC_INPUT_VALID_MAX  2200    // criteria for a valid pulse
 #define RC_DISARM_TIMEOUT   3000    // this can be adjusted in EEPROM
 #define RC_ARMING_CNT_REQ   10      // this can be adjusted in EEPROM
 
-#define TEMPERATURE_OVER    20
-#define UNDERVOLTAGE        100
+#define TEMPERATURE_OVER    20      // if the thermal limit is set at 80, then 80 is when the power starts to drop, and 100 is when power is completly off
+#define UNDERVOLTAGE        100     // if the voltage limit is set at 3000, then 3000 is when the power starts to drop, and 2900 is when power is completly off

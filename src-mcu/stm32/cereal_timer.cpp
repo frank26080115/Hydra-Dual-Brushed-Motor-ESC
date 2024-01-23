@@ -24,6 +24,7 @@ extern "C" {
 
 void CerealBitbang_IRQHandler(void)
 {
+    dbg_evntcnt_add(DBGEVNTID_BITBANG);
     static int n = 0, b;
     if (LL_TIM_IsActiveFlag_UPDATE(RC_IC_TIMx))
     {

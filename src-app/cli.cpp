@@ -14,6 +14,7 @@
 #include "rc_stm32.h"
 #include "cereal_timer.h"
 #include "cereal_usart.h"
+#include "swd_pins.h"
 #endif
 
 #include "led.h"
@@ -37,15 +38,17 @@ extern RcChannel* rc2;
 #endif
 
 #ifdef STMICRO
+extern Cereal_USART main_cer;
+
 #if INPUT_PIN == LL_GPIO_PIN_2
-extern Cereal_USART main_cer;
+//
 #elif INPUT_PIN == LL_GPIO_PIN_4
-extern Cereal_USART main_cer;
+
 #ifdef ENABLE_COMPILE_CLI
 extern Cereal_TimerBitbang cli_cer;
 #endif
 #else
-extern Cereal_USART main_cer;
+
 #ifdef ENABLE_COMPILE_CLI
 extern Cereal_TimerBitbang cli_cer;
 #endif
@@ -67,15 +70,17 @@ extern const EEPROM_data_t cfge;
 void cli_enter(void)
 {
     ledblink_cli();
+    dbg_printf("CLI entered at %u\r\n", millis());
 
     #if defined(DEVELOPMENT_BOARD)
     Cereal_USART* cer = &dbg_cer;
+    // init already called on dbg_cer
     // since we are using the debugging UART, the two pins can be used for testing RC inputs
     rc1->init();
     rc2->init();
     #elif INPUT_PIN == LL_GPIO_PIN_2
     Cereal_USART* cer = &main_cer;
-    cer->init(CLI_BAUD, false, true, false);
+    cer->init(CEREAL_ID_USART_2, CLI_BAUD, false, true, false);
     #elif INPUT_PIN == LL_GPIO_PIN_4
     Cereal_TimerBitbang* cer = &cli_cer;
     cer->init(CLI_BAUD);
@@ -214,10 +219,17 @@ void cli_execute(Cereal* cer, char* str)
     {
         argc = cmd_parseArgs(str);
         if (argc <= 0) {
+            // no arguments means toggle
             cli_hwdebug ^= true;
         }
         else {
+            // 0 means false
             cli_hwdebug = cmd_args[0] != 0;
+        }
+        if (cli_hwdebug) {
+            #ifdef STMICRO
+            swdpins_init(LL_GPIO_PULL_UP);
+            #endif
         }
         cer->printf("\r\nhardware debug: %u\r\n", cli_hwdebug);
         // cli_hwdebug will cause periodic printout of analog sensor values
@@ -241,7 +253,7 @@ void cli_execute(Cereal* cer, char* str)
             return;
         }
 
-        pwm_set_remap(cli_phaseremap);
+        pwm_set_remap(cli_phaseremap); // set by command "testremap"
 
         int phase = (cmd_args[0] - 1) % 3;
         switch (phase)
@@ -295,8 +307,7 @@ void cli_execute(Cereal* cer, char* str)
     else
     {
         // none of the commands match, loop through the potential settings to see if it's something to save
-        int32_t x;
-        bool res = eeprom_user_edit(str, &x);
+        bool res = eeprom_user_edit(str, NULL);
         if (res) {
             cer->printf("\r\nOK");
             return;
@@ -308,7 +319,7 @@ void cli_execute(Cereal* cer, char* str)
     }
 }
 
-int cmd_parseArgs(char* str)
+int cmd_parseArgs(char* str) // parse a list of integers delimited by space
 {
     int i = 0;
     char * token = strtok(str, " ");
@@ -316,15 +327,7 @@ int cmd_parseArgs(char* str)
     {
         if (i != 0)
         {
-            int32_t x;
-            if (token[0] == '0' && (token[1] == 'x' || token[1] == 'X'))
-            {
-                x = strtol(token, NULL, 16);
-            }
-            else
-            {
-                x = atoi(token);
-            }
+            int32_t x = parse_integer((const char*)token);
             cmd_args[i-1] = x;
         }
         token = strtok(NULL, " ");
@@ -337,12 +340,14 @@ void cli_reportSensors(Cereal* cer)
 {
     cer->printf("[%lu]: ", millis());
     #if defined(STM32F051DISCO)
+    cer->printf("RC1=");
     if (rc1->is_alive()) {
         cer->printf("%d, ", rc1->read());
     }
     else {
         cer->printf("?, ");
     }
+    cer->printf("RC2=");
     if (rc2->is_alive()) {
         cer->printf("%d, ", rc2->read());
     }
@@ -350,12 +355,16 @@ void cli_reportSensors(Cereal* cer)
         cer->printf("?, ");
     }
     #endif
-    cer->printf("%ld, %ld, %ld, %d, \r\n", sense_temperatureC, sense_voltage, sense_current, current_limit_val);
+    #if STMICRO
+    // for ESCs without a telemetry pad, enable the reading of the SWD pins
+    // these will be pulled-up, and the user can short them to ground to see which pad responds
+    cer->printf("SWDIO=%d, SWCLK=%d, ", swdio_read() ? 1 : 0, swclk_read() ? 1 : 0);
+    #endif
+    cer->printf("T=%ld, V=%ld, C=%ld, Currlim=%d, \r\n", sense_temperatureC, sense_voltage, sense_current, current_limit_val);
 }
 
 void eeprom_print_all(Cereal* cer)
 {
-    char buff[128];
     int i;
     for (i = 0; ; i++)
     {
@@ -369,8 +378,7 @@ void eeprom_print_all(Cereal* cer)
         uint8_t* ptr8 = (uint8_t*)&cfg;
         int32_t v = 0;
         memcpy(&v, &(ptr8[itmidx]), desc->size);
-        int len = sprintf(buff, "%s %li\r\n", desc->name, v);
-        cer->write((uint8_t*)buff, len);
+        cer->printf("%s %li\r\n", desc->name, v);
     }
 }
 

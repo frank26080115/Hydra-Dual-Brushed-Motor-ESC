@@ -27,15 +27,15 @@ RcPulse_InputCap rc_pulse_1(IC_TIMER_REGISTER, INPUT_PIN_PORT, INPUT_PIN, IC_TIM
 RcPulse_GpioIsr  rc_pulse_2;
 CrsfChannel      crsf_1;
 CrsfChannel      crsf_2;
+Cereal_USART main_cer;
 #if INPUT_PIN == LL_GPIO_PIN_2
-Cereal_USART main_cer(2);
+//
 #elif INPUT_PIN == LL_GPIO_PIN_4
-Cereal_USART main_cer(1);
 #ifdef ENABLE_COMPILE_CLI
 Cereal_TimerBitbang cli_cer(0);
 #endif
 #else
-Cereal_USART main_cer(1);
+//
 #ifdef ENABLE_COMPILE_CLI
 Cereal_TimerBitbang cli_cer(0);
 #endif
@@ -56,15 +56,22 @@ int main(void)
     ENSURE_VERSION_DATA_IS_KEPT();
 
     #if defined(DEVELOPMENT_BOARD)
-    dbg_cer.init(CLI_BAUD, false, true, false);
+    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, true, false);
     dbg_printf("hello hydra!\r\n");
     #endif
 
     led_init();
+
+    #ifdef DEBUG_PINTOGGLE
+    dbg_pintoggle_init();
+    // this happens after LED init because I'm borrowing the green and blue LED pins
+    #endif
+
     inp_init();
     pwm_init();
     pwm_all_flt();
     sense_init();
+    dbg_printf("low level init done at %u\r\n", millis());
 
     eeprom_load_or_default();
     current_pid.Kp = cfg.currlim_kp;
@@ -84,26 +91,49 @@ int main(void)
         if (cfg.input_mode == INPUTMODE_RC) {
             rc_pulse_2.init(GPIOEXTI_TIMx, GPIOEXTI_GPIO, GPIOEXTI_Pin);
         }
-        else if (cfg.input_mode == INPUTMODE_RC_SWCLK) {
-            rc_pulse_2.init(GPIOEXTI_TIMx, GPIOA, LL_GPIO_PIN_14);
-        }
-        else if (cfg.input_mode == INPUTMODE_RC_SWDIO) {
-            rc_pulse_2.init(GPIOEXTI_TIMx, GPIOA, LL_GPIO_PIN_13);
+        else if (cfg.input_mode == INPUTMODE_RC_SWD) {
+            #ifdef STMICRO
+            swdpins_init(LL_GPIO_PULL_NO);
+            #endif
+            rc_pulse_2.init(GPIOEXTI_TIMx, GPIOA, GPIO_PIN_SWCLK);
         }
 
         rc1 = &rc_pulse_1;
         rc2 = &rc_pulse_2;
+
+        dbg_printf("input mode [%u] RC\r\n", cfg.input_mode);
     }
-    else if (cfg.input_mode == INPUTMODE_CRSF)
+    else if (cfg.input_mode == INPUTMODE_CRSF || cfg.input_mode == INPUTMODE_CRSF_SWCLK)
     {
-        main_cer.init(cfg.baud == 0? CRSF_BAUDRATE : cfg.baud, false, true, false);
+        uint8_t usart_id;
+
+        if (cfg.input_mode == INPUTMODE_CRSF)
+        {
+            #if INPUT_PIN == LL_GPIO_PIN_2
+            usart_id = CEREAL_ID_USART_2;
+            #elif INPUT_PIN == LL_GPIO_PIN_4
+            usart_id = CEREAL_ID_USART_1;
+            #else
+            usart_id = CEREAL_ID_USART_2;
+            #endif
+        }
+        else if (cfg.input_mode == INPUTMODE_CRSF_SWCLK)
+        {
+            usart_id = CEREAL_ID_USART_SWCLK;
+        }
+
+        main_cer.init(usart_id, cfg.baud == 0? CRSF_BAUDRATE : cfg.baud, false, true, false);
         crsf_1.init(&main_cer, cfg.channel_1);
         crsf_2.init(&main_cer, cfg.channel_2);
         rc1 = &crsf_1;
         rc2 = &crsf_2;
+
+        dbg_printf("input mode [%u] CRSF\r\n", cfg.input_mode);
     }
     else
     {
+        dbg_printf("input mode [%u] ERROR UNKNOWN\r\n", cfg.input_mode);
+
         #ifdef ENABLE_COMPILE_CLI
         ledblink_cli();
         cli_enter(); // this never returns
@@ -122,6 +152,8 @@ int main(void)
     disarm_timeout = cfg.disarm_timeout;
     pwm_set_remap(cfg.phase_map);
     pwm_set_loadbalance(cfg.load_balance);
+
+    dbg_printf("init finished at %u\r\n", millis());
 
     while (true) // main forever loop
     {
@@ -154,8 +186,8 @@ int main(void)
         if (cfg.chan_swap) {
             int v3 = v1; v1 = v2; v2 = v3;
         }
-        v1 = cfg.flip_1 ? -v1 : v1;
-        v2 = cfg.flip_2 ? -v2 : v2;
+        v1 *= cfg.flip_1 ? -1 : 1;
+        v2 *= cfg.flip_2 ? -1 : 1;
 
         if (armed1 == false && armed2 == false) {
             ledblink_disarmed();

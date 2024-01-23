@@ -22,8 +22,7 @@ enum
 {
     INPUTMODE_RC,
     INPUTMODE_CRSF,
-    INPUTMODE_RC_SWDIO,   // PA13
-    INPUTMODE_RC_SWCLK,   // PA14
+    INPUTMODE_RC_SWD,     // PA13 or PA14
     INPUTMODE_CRSF_SWCLK, // PA14
 
     // TODO: support SBUS and IBUS
@@ -50,7 +49,7 @@ typedef struct
     uint8_t voltage_split_mode;
     bool load_balance;
     uint8_t input_mode;
-    uint8_t phase_map;
+    uint8_t phase_map;         // 1 to 3, which phase is the common-shared phase, 0 means 1, overflow is handled by modulo
     uint32_t baud;             // 0 means automatic, otherwise it will override CRSF baudrate
 
     // hardware ADC calibration
@@ -93,6 +92,8 @@ typedef struct
 } __attribute__((packed))
 EEPROM_data_t;
 
+// to keep the code simple, all EEPROM elements that need to be signed must also be 32 bits
+
 typedef struct
 {
     char     name[32];
@@ -113,15 +114,6 @@ typedef struct {
     int32_t integral_limit;
     int32_t output_limit;
 } pidloop_t;
-
-typedef struct
-{
-    uint8_t sync;
-    uint8_t len;
-    uint8_t type;
-}
-__attribute__((packed))
-crsf_header_t;
 
 typedef struct
 {

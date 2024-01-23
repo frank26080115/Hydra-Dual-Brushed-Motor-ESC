@@ -102,6 +102,7 @@ void RcPulse_IQRHandler(void)
     if (ictimer_modeIsPulse)
     #endif
     {
+        dbg_evntcnt_add(DBGEVNTID_ICTIMER);
         uint32_t p = RC_IC_TIMx->CCR1;   // Pulse period
         uint32_t w = RC_IC_TIMx->CCR2;   // Pulse width
         if (p < RC_INPUT_VALID_MAX || w < RC_INPUT_VALID_MIN || w > RC_INPUT_VALID_MAX)
@@ -152,9 +153,9 @@ void RcPulse_IQRHandler(void)
 
 RcPulse_InputCap::RcPulse_InputCap(TIM_TypeDef* TIMx, GPIO_TypeDef* GPIOx, uint32_t pin, uint32_t chan)
 {
-    _tim = TIMx;
+    _tim  = TIMx;
     _gpio = GPIOx;
-    _pin = pin;
+    _pin  = pin;
     _chan = chan;
 }
 

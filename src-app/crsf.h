@@ -27,6 +27,7 @@ class CrsfChannel : public RcChannel
         uint8_t _idx;
         uint8_t arming_cnt = 0;
         bool armed = false;
+        bool has_new = false;
 };
 
 uint16_t crsf_readChan(uint8_t i);

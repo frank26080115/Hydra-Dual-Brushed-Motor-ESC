@@ -39,6 +39,7 @@ void GPIOEXTI_IRQHandler(void)
     if (LL_EXTI_IsActiveFallingFlag_0_31(rc_exti_line))
     #endif
     {
+        dbg_evntcnt_add(DBGEVNTID_GPIOTMR_FALL);
         #if defined(MCU_G071)
         LL_EXTI_ClearFallingFlag_0_31(rc_exti_line);
         #endif
@@ -82,6 +83,7 @@ void GPIOEXTI_IRQHandler(void)
     if (LL_EXTI_IsActiveRisingFlag_0_31(rc_exti_line))
     #endif
     {
+        dbg_evntcnt_add(DBGEVNTID_GPIOTMR_RISE);
         #if defined(MCU_G071)
         LL_EXTI_ClearRisingFlag_0_31(rc_exti_line);
         #endif
@@ -92,10 +94,13 @@ void GPIOEXTI_IRQHandler(void)
     }
 }
 
+// note: the overflow occurs every 16 milliseconds, which means it does occur at least once during one period of RC signaling
 void GPIOEXTI_TIM_IRQHandler(void)
 {
+    dbg_evntcnt_add(DBGEVNTID_GPIOTMR_OVERFLOW);
     if (LL_TIM_IsActiveFlag_UPDATE(rc_tim))
     {
+        dbg_evntcnt_add(DBGEVNTID_GPIOTMR_OVERFLOW);
         LL_TIM_ClearFlag_UPDATE(rc_tim);
         if (overflow_cnt < 8) {
             overflow_cnt++;

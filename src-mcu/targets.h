@@ -154,6 +154,13 @@
     #define HAS_TELEMETRY_PIN
 #endif
 
+#ifdef EMAXFORMULA_F051
+    #define FIRMWARE_NAME           "EMAX FORMULA"
+    #define DEAD_TIME               45
+    #define HARDWARE_GROUP_F0_A
+    #define TARGET_VOLTAGE_DIVIDER  65
+#endif
+
 #ifdef IFLIGHT_F051
     #define FIRMWARE_NAME           "IFlight_50A "
     #define DEAD_TIME               45
@@ -250,14 +257,14 @@
     #define HAS_TELEMETRY_PIN
 #endif
 
-#ifdef  AIKONSINGLE_F051
+#ifdef AIKONSINGLE_F051
     #define FIRMWARE_NAME           "Aikon AK32  "
     #define DEAD_TIME               40
     #define HARDWARE_GROUP_F0_B
     #define HAS_TELEMETRY_PIN
 #endif
 
-#ifdef  CRTEENSY_HILARIESC_F051
+#ifdef CRTEENSY_HILARIESC_F051
     #define FIRMWARE_NAME           "CR HILARIESC"
     #define DEAD_TIME               40
     #define HARDWARE_GROUP_F0_G
@@ -273,6 +280,25 @@
     #define VOLTAGE_ADC_PIN         LL_GPIO_PIN_6
     #define CURRENT_ADC_CHANNEL     LL_ADC_CHANNEL_3
     #define CURRENT_ADC_PIN         LL_GPIO_PIN_3
+#endif
+
+#ifdef ARIA70A_F051
+    #define FIRMWARE_NAME           "ARIA70A"
+    #define DEAD_TIME               45
+    #define HARDWARE_GROUP_F0_A
+    #define HAS_TELEMETRY_PIN
+    #define VOLTAGE_ADC_CHANNEL     LL_ADC_CHANNEL_6
+    #define VOLTAGE_ADC_PIN         LL_GPIO_PIN_6
+    #define CURRENT_ADC_CHANNEL     LL_ADC_CHANNEL_3
+    #define CURRENT_ADC_PIN         LL_GPIO_PIN_3
+    #define USE_RGB_LED
+    #define LED_GPIO_RED            GPIOA
+    #define LED_PIN_RED             LL_GPIO_PIN_15
+    #define LED_GPIO_GREEN          GPIOB
+    #define LED_PIN_GREEN           LL_GPIO_PIN_3
+    #define LED_GPIO_BLUE           GPIOB
+    #define LED_PIN_BLUE            LL_GPIO_PIN_4
+    #define LED_IS_OPENDRAIN        true
 #endif
 
 #ifdef HVFLYCOLOR_F051
@@ -310,7 +336,7 @@
     #define USE_RGB_LED
 #endif
 
-#ifdef  AM32REF_F051
+#ifdef AM32REF_F051
     #define FIRMWARE_NAME           "AM32 Ref-ESC"
     #define DEAD_TIME               45
     #define HARDWARE_GROUP_F0_B
@@ -325,7 +351,7 @@
     #define TARGET_STALL_PROTECTION_INTERVAL 9000
 #endif
 
-#ifdef  RHINO80A_F051
+#ifdef RHINO80A_F051
     #define FIRMWARE_NAME           "RHINO80A_F0 "
     #define DEAD_TIME               20
     #define MILLIVOLT_PER_AMP       34

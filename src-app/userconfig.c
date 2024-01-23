@@ -24,7 +24,7 @@ const EEPROM_data_t default_eeprom = {
     .voltage_split_mode = VSPLITMODE_BOOST_ALWAYS,
     .load_balance       = false,
     .input_mode         = INPUTMODE_RC,
-    .phase_map          = 0,
+    .phase_map          = 1,
     .baud               = 416666,
 
     .voltage_divider    = TARGET_VOLTAGE_DIVIDER,
@@ -109,9 +109,10 @@ const EEPROM_item_t cfg_items[] = {
 
 #endif
 
-EEPROM_chksum_t checksum_fletcher16(uint8_t* data, int len)
+EEPROM_chksum_t eeprom_checksum(uint8_t* data, int len)
 {
     #if 0
+    // fletcher 16 https://en.wikipedia.org/wiki/Fletcher%27s_checksum
     uint16_t sum1 = 0;
     uint16_t sum2 = 0;
     int index;
@@ -132,7 +133,7 @@ bool eeprom_verify_checksum(uint8_t* ptr8)
     EEPROM_data_t* ptre = (EEPROM_data_t*)ptr8;
     uint8_t* start_addr = (uint8_t*)(&(ptre->magic));
     uint8_t* end_addr   = (uint8_t*)(&(ptre->chksum));
-    EEPROM_chksum_t calculated_chksum = checksum_fletcher16(start_addr, (int)(((uint32_t)end_addr) - ((uint32_t)start_addr)));
+    EEPROM_chksum_t calculated_chksum = eeprom_checksum(start_addr, (int)(((uint32_t)end_addr) - ((uint32_t)start_addr)));
     return calculated_chksum == ptre->chksum;
 }
 
@@ -163,7 +164,7 @@ void eeprom_save(void)
     uint8_t* start_addr = (uint8_t*)(&(ptre->magic));
     uint8_t* end_addr   = (uint8_t*)(&(ptre->chksum));
     uint32_t head_len   = ((uint32_t)start_addr) - ((uint32_t)ptre);
-    EEPROM_chksum_t calculated_chksum = checksum_fletcher16(start_addr, (int)(((uint32_t)end_addr) - ((uint32_t)start_addr)));
+    EEPROM_chksum_t calculated_chksum = eeprom_checksum(start_addr, (int)(((uint32_t)end_addr) - ((uint32_t)start_addr)));
     ptre->chksum = calculated_chksum;
     memcpy(&cfg, &default_eeprom, head_len);                       // ensures header is written
     eeprom_write((uint8_t*)&cfg, sizeof(EEPROM_data_t), cfg_addr); // commit to flash
@@ -186,8 +187,9 @@ void eeprom_mark_dirty(void)
 }
 
 #ifdef ENABLE_COMPILE_CLI
-bool eeprom_user_edit(char* str, int32_t* vptr)
+uint32_t eeprom_idx_of_item(char* str)
 {
+    uint16_t ret[2] = {0, 0}; // default return no result
     int i;
     char* arg;
 
@@ -195,33 +197,40 @@ bool eeprom_user_edit(char* str, int32_t* vptr)
     {
         EEPROM_item_t* desc = (EEPROM_item_t*)&(cfg_items[i]);
         if (desc->ptr == 0) {
-            return false;
+            break; // end of list, return
         }
         if (item_strcmp(str, (const char*)desc->name))
         {
-            strtok(str, " ");
-            arg = strtok(NULL, " ");
-            int32_t v;
-            if (arg[0] == '0' && (arg[1] == 'x' || arg[1] == 'X')) {
-                v = strtol(&arg[2], NULL, 16);
-            }
-            else {
-                v = atoi(arg);
-            }
             uint32_t ptrstart = (uint32_t)&cfge;
             uint32_t itmidx = desc->ptr - ptrstart;
-            itmidx += (uint32_t)&cfg;
-            uint8_t* ptr8 = (uint8_t*)&cfg;
-
-            memcpy(&(ptr8[itmidx]), &v, desc->size);
-            if (vptr != NULL) {
-                *vptr = 0;
-                memcpy(vptr, &v, desc->size);
-            }
-            eeprom_mark_dirty();
-            return true;
+            // every item's offset is stored as an absolute address, the offset from the start gives it a relative address (byte index)
+            ret[0] = itmidx;
+            ret[1] = desc->size;
+            break; // found, return after exiting loop
         }
     }
-    return false;
+    return *((uint32_t*)ret);
+}
+
+bool eeprom_user_edit(char* str, int32_t* retv)
+{
+    uint32_t idxret = eeprom_idx_of_item(str);
+    uint16_t* idxret16 = (uint16_t*)idxret;
+    if (idxret16[1] <= 0) {
+        return false;
+    }
+
+    char* arg;
+    strtok(str, " "); // skip first string
+    arg = strtok(NULL, " ");
+    int32_t v = parse_integer((const char*)arg);
+    uint16_t itmidx = idxret16[0];
+    uint8_t* ptr8 = (uint8_t*)&cfg; // retarget to the struct in RAM that's actually writable
+    memcpy(&(ptr8[itmidx]), &v, desc->size); // variable word size write
+    eeprom_mark_dirty();
+    if (retv != NULL) {
+        *retv = v;
+    }
+    return true;
 }
 #endif

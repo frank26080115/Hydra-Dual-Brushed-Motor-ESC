@@ -12,4 +12,4 @@
 
 #include "funcs.h"
 
-#include "debug_print.h"
+#include "debug_tools.h"

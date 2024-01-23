@@ -41,6 +41,10 @@ void led_blink_set(uint8_t x)
 
 void led_task(void)
 {
+    #ifdef USE_LED_STRIP
+    WS2812_task(); // this sets the next color if DMA is not busy
+    #endif
+
     #ifdef ENABLE_LED_BLINK
     // only execute this every 100ms
     static uint32_t last_time = 0;

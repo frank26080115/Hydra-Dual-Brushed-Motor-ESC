@@ -5,6 +5,15 @@
 #define CRSF_SYNC_BYTE 0xC8
 #define CRSF_FRAMETYPE_RC_CHANNELS_PACKED 0x16
 
+typedef struct
+{
+    uint8_t sync;
+    uint8_t len;
+    uint8_t type;
+}
+__attribute__((packed))
+crsf_header_t;
+
 uint8_t crsf_crc8(const uint8_t *ptr, uint8_t len);
 
 static Cereal* cereal;
@@ -68,6 +77,7 @@ void CrsfChannel::task(void)
                 bad_pulse_cnt = 0;
                 last_good_time = millis();
                 new_flag = true;
+                has_new = true;
                 cereal->consume(hdr->len + 2); // pop the buffer
                 if (arm_pulses_required > 0)
                 {
@@ -154,6 +164,7 @@ bool CrsfChannel::is_alive(void)
         }
     }
     new_flag = false;
+    has_new = false;
     return false;
 }
 
@@ -163,9 +174,10 @@ bool CrsfChannel::has_new(bool clr)
         return false;
     }
 
-    bool x = new_flag;
+    bool x = new_flag || has_new;
     if (clr) {
         new_flag = false;
+        has_new = false;
     }
     return x;
 }

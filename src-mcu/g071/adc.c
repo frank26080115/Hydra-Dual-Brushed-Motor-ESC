@@ -109,6 +109,7 @@ bool adc_task()
     if (LL_DMA_IsActiveFlag_TC2(ADC_DMAx))
     {
         LL_DMA_ClearFlag_TC2(ADC_DMAx);
+        dbg_evntcnt_add(DBGEVNTID_ADC);
         start_again = true;
 
         adc_raw_temperature = adc_buff[2];

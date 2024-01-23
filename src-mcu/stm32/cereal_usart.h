@@ -2,12 +2,21 @@
 
 #include "cereal.h"
 #include "stm32.h"
+#include "debug_tools.h"
+
+enum
+{
+    CEREAL_ID_USART1,
+    CEREAL_ID_USART2,
+    CEREAL_ID_USART_DEBUG,
+    CEREAL_ID_USART_SWCLK,
+};
 
 class Cereal_USART : public Cereal
 {
     public:
-        Cereal_USART(uint8_t id);
-        virtual void init(uint32_t baud, bool invert, bool halfdup, bool swap);
+        Cereal_USART(void);
+        virtual void init(uint8_t id, uint32_t baud, bool invert, bool halfdup, bool swap);
         #ifdef ENABLE_CEREAL_TX
         virtual void write(uint8_t x);
         virtual void flush(void);

@@ -2,6 +2,7 @@
 
 #include "rc.h"
 #include "mcu.h"
+#include "debug_tools.h"
 
 #if defined(MCU_F051)
 // PB6 is telemetry pin

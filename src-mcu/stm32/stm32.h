@@ -38,6 +38,9 @@
 #include "stm32g0xx_ll_rcc.h"
 #endif
 
+#define GPIO_PIN_SWDIO LL_GPIO_PIN_13
+#define GPIO_PIN_SWCLK LL_GPIO_PIN_14
+
 #define is_in_isr()    ((SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk) != 0)
 
 #define CLK_CNT(rate) ((SystemCoreClock + ((rate) >> 1)) / (rate))

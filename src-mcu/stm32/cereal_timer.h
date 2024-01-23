@@ -2,6 +2,7 @@
 
 #include "cereal.h"
 #include "stm32.h"
+#include "debug_tools.h"
 
 #ifdef ENABLE_COMPILE_CLI
 

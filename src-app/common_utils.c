@@ -90,6 +90,18 @@ bool item_strcmp(const char* usr_inp, const char* table_item)
     return true;
 }
 
+int32_t parse_integer(const char* str)
+{
+    int32_t v;
+    if (str[0] == '0' && (str[1] == 'x' || str[1] == 'X')) {
+        v = strtol(&str[2], NULL, 16);
+    }
+    else {
+        v = atoi(str);
+    }
+    return v;
+}
+
 int32_t pid_calc(pidloop_t* pidnow, int actual, int target)
 {
     // this is expected to run at 1 kHz loop time
