@@ -131,3 +131,13 @@ uint8_t* Cereal::get_buffer(void)
 {
     return fifo_rx->buf;
 }
+
+uint32_t Cereal::get_last_time(void)
+{
+    return 0;
+}
+
+bool Cereal::get_idle_flag(bool clr)
+{
+    return false;
+}

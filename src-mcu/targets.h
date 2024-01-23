@@ -1120,7 +1120,6 @@
 
 #ifdef HARDWARE_GROUP_G0_N
 
-    #define USE_LED_STRIP
     #define MCU_G071
     #define USE_TIMER_3_CHANNEL_1
     #define INPUT_PIN                      LL_GPIO_PIN_4

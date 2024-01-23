@@ -30,12 +30,12 @@ bool RcChannel::has_new(bool clr)
     return false;
 }
 
-bool is_armed(void)
+bool RcChannel::is_armed(void)
 {
     return false;
 }
 
-void disarm(void)
+void RcChannel::disarm(void)
 {
 
 }

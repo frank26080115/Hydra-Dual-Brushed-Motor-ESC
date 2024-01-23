@@ -25,7 +25,7 @@ VERSION_EEPROM = 1
 IDENTIFIER = HYDRA
 
 CFLAGS_COMMON  := -DVERSION_MAJOR=$(VERSION_MAJOR) -DVERSION_EEPROM=$(VERSION_EEPROM)
-CFLAGS_COMMON  += -I$(SRC_APP_DIR) -I$(SRC_HAL_DIR) -Os -Wall -ffunction-sections -fdata-sections -fno-exceptions -ffreestanding -flto
+CFLAGS_COMMON  += -I$(SRC_APP_DIR) -I$(SRC_HAL_DIR) -Wall -ffunction-sections -fdata-sections -fno-exceptions -ffreestanding -flto
 CFLAGS_COMMON  += -D$(TARGET)
 
 SRC_COMMON_C   := $(foreach dir, $(SRC_APP_DIR), $(wildcard $(dir)/*.c))
@@ -58,7 +58,7 @@ cleanobjs:
 	rm -rf $(OBJ_DIR)/*
 
 binary : $(TARGET_BASENAME).bin
-	@$(ECHO) All done
+	@$(ECHO) $@ $< done
 
 $(TARGETS_F051) :
 	@$(MAKE) -s MCU_TYPE=F051 TARGET=$@ cleanobjs binary
