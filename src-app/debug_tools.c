@@ -43,7 +43,7 @@ int dbg_printf(const char* fmt, ...)
     return len;
 }
 
-void dbg_button_wait(void)
+void dbg_button_init(void)
 {
     #if defined(MCU_F051)
     #define DBG_BUTTON_PIN   LL_GPIO_PIN_0

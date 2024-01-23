@@ -10,18 +10,26 @@ static volatile uint32_t last_rx_time_1;
 static volatile uint32_t last_rx_time_2;
 static volatile bool is_idle_1;
 static volatile bool is_idle_2;
+static volatile bool had_first_byte_1 = false;
+static volatile bool had_first_byte_2 = false;
 
 void USARTx_IRQHandler(USART_TypeDef* usart, fifo_t* fifo_rx,
 #ifdef ENABLE_CEREAL_TX
 fifo_t* fifo_tx,
 #endif
-volatile bool* is_idle, volatile uint32_t* timestamp)
+volatile bool* is_idle, volatile uint32_t* timestamp, volatile bool* had_1st)
 {
     if (LL_USART_IsActiveFlag_RXNE(usart))
     {
         dbg_evntcnt_add(DBGEVNTID_USART_RX);
-        uint8_t x = LL_USART_ReceiveData8(usart);
-        fifo_push(fifo_rx, x);
+        volatile uint8_t x;
+        while (LL_USART_IsActiveFlag_RXNE(usart)) {
+            x = LL_USART_ReceiveData8(usart);
+        }
+        if (x != 0xFF || (*had_1st) != false) {
+            fifo_push(fifo_rx, x);
+            *had_1st = true;
+        }
         *timestamp = millis();
     }
     #ifdef ENABLE_CEREAL_TX
@@ -54,7 +62,7 @@ void USART1_IRQHandler(void)
     #ifdef ENABLE_CEREAL_TX
     &fifo_tx_1,
     #endif
-    (volatile bool*)&is_idle_1, (volatile uint32_t*)&last_rx_time_1);
+    (volatile bool*)&is_idle_1, (volatile uint32_t*)&last_rx_time_1, (volatile bool*)&had_first_byte_1);
 }
 
 void USART2_IRQHandler(void)
@@ -63,7 +71,7 @@ void USART2_IRQHandler(void)
     #ifdef ENABLE_CEREAL_TX
     &fifo_tx_2,
     #endif
-    (volatile bool*)&is_idle_2, (volatile uint32_t*)&last_rx_time_2);
+    (volatile bool*)&is_idle_2, (volatile uint32_t*)&last_rx_time_2, (volatile bool*)&had_first_byte_2);
 }
 
 #ifdef __cplusplus
@@ -93,6 +101,7 @@ void Cereal_USART::init(uint8_t id, uint32_t baud, bool invert, bool halfdup, bo
 
     if (_id == CEREAL_ID_USART1) {
         fifo_init(&fifo_rx_1, cer_buff_1, CEREAL_BUFFER_SIZE);
+        fifo_rx = &fifo_rx_1;
         #ifdef ENABLE_CEREAL_TX
         fifo_init(&fifo_tx_1, cer_buff_2, CEREAL_BUFFER_SIZE);
         fifo_tx = &fifo_tx_1;
@@ -102,6 +111,7 @@ void Cereal_USART::init(uint8_t id, uint32_t baud, bool invert, bool halfdup, bo
     }
     else if (_id == CEREAL_ID_USART2 || _id == CEREAL_ID_USART_DEBUG || _id == CEREAL_ID_USART_SWCLK) {
         fifo_init(&fifo_rx_2, cer_buff_1, CEREAL_BUFFER_SIZE);
+        fifo_rx = &fifo_rx_2;
         #ifdef ENABLE_CEREAL_TX
         fifo_init(&fifo_tx_2, cer_buff_2, CEREAL_BUFFER_SIZE);
         fifo_tx = &fifo_tx_2;
@@ -193,7 +203,7 @@ void Cereal_USART::init(uint8_t id, uint32_t baud, bool invert, bool halfdup, bo
         GPIO_InitStruct.Mode       = LL_GPIO_MODE_ALTERNATE;
         GPIO_InitStruct.Speed      = LL_GPIO_SPEED_FREQ_HIGH;
         GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-        GPIO_InitStruct.Pull       = LL_GPIO_PULL_NO;
+        GPIO_InitStruct.Pull       = LL_GPIO_PULL_UP;
         GPIO_InitStruct.Alternate  = LL_GPIO_AF_1;
         LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
     }

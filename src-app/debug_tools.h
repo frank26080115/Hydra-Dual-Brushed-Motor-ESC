@@ -19,11 +19,11 @@ extern "C" {
 
 #ifdef DEBUG_PRINT
 int dbg_printf(const char* fmt, ...);
-void dbg_button_wait(void);
+void dbg_button_init(void);
 bool dbg_read_btn(void);
 #else
 #define dbg_printf(...)
-#define dbg_button_wait(...)
+#define dbg_button_init(...)
 #define dbg_read_btn(...)
 #endif
 
