@@ -43,4 +43,14 @@ Compiler preprocessor defines that can be enabled or disabled to save memory:
 
 I have fanagled around with a bunch of build options to minimize the final flash size. Also, I have removed all instances of `malloc` and `new`.
 
-The targets named `STM32F051DISCO` or `STM32G071NUCLEO` are meant for the official ST development boards with built-in debuggers. The firmware will instantiate a dedicated UART for debugging-printf and CLI. The AM32 bootloader is not required for the development boards.
+The targets named `STM32F051DISCO` or `STM32G071NUCLEO` are meant for the official ST development boards with built-in debuggers. The firmware will instantiate a dedicated UART for debugging-printf and CLI. The AM32 bootloader is not required for the development boards as the linker script has a different flash starting address.
+
+Helpful debugging constants:
+
+ * `DEBUG_PRINT` will activate `dbg_printf` statements throughout the code
+ * `DEBUG_EVENTCNT` will activate code that tracks how many times a particular event has occured. Get these counts using `uint32_t dbg_evntcnt_get(uint8_t id)` where `id` is one of the `DBGEVNTID_` enum items. See `debug_tools.h` for a list
+ * `DEBUG_PINTOGGLE` will cause some pins to change state on certain events, useful for debugging timing using a logic analyzer attached to those pins.
+
+# Using IDE
+
+There is a `.cproject` file available to build the development board firmwares, this can be opened with STM32CubeIDE. This is useful for using the ST-Link debugger to debug the code. It is not meant for building actual ESC firmware.
