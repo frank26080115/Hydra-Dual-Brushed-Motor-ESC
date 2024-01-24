@@ -16,7 +16,7 @@ SRC_DIR_F051 += \
 	$(HAL_FOLDER_F051) \
 	$(HAL_FOLDER_F051)/Drivers/STM32F0xx_HAL_Driver/Src
 
-CFLAGS_F051 := -O3 \
+CFLAGS_F051 := -Os \
 	-I$(SRC_HAL_DIR)/stm32 \
 	-I$(HAL_FOLDER_F051) \
 	-I$(HAL_FOLDER_F051)/Drivers/STM32F0xx_HAL_Driver/Inc \

@@ -19,7 +19,7 @@ extern "C" {
 #endif
 
 void led_init(void); // call to initialize IO and state machine
-void led_task(void); // call continously to perform blinking
+void led_task(bool); // call continously to perform blinking
 
 extern void ledhw_init(void); // MCU specific implementation
 extern void led_set(LED_PORT_TYPE* GPIOx, uint32_t Pin, bool ison, bool opendrain);

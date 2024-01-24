@@ -18,13 +18,13 @@ extern "C" {
 #endif
 
 #ifdef DEBUG_PRINT
-int dbg_printf(const char* fmt, ...);
+void dbg_printf(const char* fmt, ...);
 void dbg_button_init(void);
 bool dbg_read_btn(void);
 #else
 #define dbg_printf(...)
 #define dbg_button_init(...)
-#define dbg_read_btn(...)
+#define dbg_read_btn(...)      false
 #endif
 
 enum
@@ -53,6 +53,7 @@ void dbg_pintoggle_init(void);
 void dbg_pinset(uint8_t p, bool high);
 void dbg_pintoggle(uint8_t p);
 #else
+#define dbg_pintoggle_init(...)
 #define dbg_pinset(...)
 #define dbg_pintoggle(...)
 #endif

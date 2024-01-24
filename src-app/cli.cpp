@@ -97,7 +97,7 @@ void cli_enter(void)
 
     while (true)
     {
-        led_task();
+        led_task(false);
 
         int16_t c = cer->read();
         if (c >= 0) // data available
@@ -267,7 +267,7 @@ void cli_execute(Cereal* cer, char* str)
         uint32_t t = 0;
         do
         {
-            led_task();
+            led_task(false);
             // check sensors and perform current limit calculations
             if (sense_task()) {
                 current_limit_task();

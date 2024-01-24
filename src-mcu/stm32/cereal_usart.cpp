@@ -13,6 +13,10 @@ static volatile bool is_idle_2;
 static volatile bool had_first_byte_1 = false;
 static volatile bool had_first_byte_2 = false;
 
+#if defined(DEBUG_PRINT)
+static Cereal_USART* dbg_cer_tgt = NULL;
+#endif
+
 void USARTx_IRQHandler(USART_TypeDef* usart, fifo_t* fifo_rx,
 #ifdef ENABLE_CEREAL_TX
 fifo_t* fifo_tx,
@@ -26,7 +30,7 @@ volatile bool* is_idle, volatile uint32_t* timestamp, volatile bool* had_1st)
         while (LL_USART_IsActiveFlag_RXNE(usart)) {
             x = LL_USART_ReceiveData8(usart);
         }
-        if ((x != 0xFF && x != 0x00) || (*had_1st) != false) {
+        if ((x < 0x80 && x != 0x00) || (*had_1st) != false) { // this prevents the first junk character from entering the FIFO
             fifo_push(fifo_rx, x);
             *had_1st = true;
         }
@@ -63,6 +67,9 @@ void USART1_IRQHandler(void)
     &fifo_tx_1,
     #endif
     (volatile bool*)&is_idle_1, (volatile uint32_t*)&last_rx_time_1, (volatile bool*)&had_first_byte_1);
+    #ifdef MCU_F051
+    NVIC_ClearPendingIRQ(USART1_IRQn);
+    #endif
 }
 
 void USART2_IRQHandler(void)
@@ -72,6 +79,9 @@ void USART2_IRQHandler(void)
     &fifo_tx_2,
     #endif
     (volatile bool*)&is_idle_2, (volatile uint32_t*)&last_rx_time_2, (volatile bool*)&had_first_byte_2);
+    #ifdef MCU_F051
+    NVIC_ClearPendingIRQ(USART2_IRQn);
+    #endif
 }
 
 #ifdef __cplusplus
@@ -93,13 +103,21 @@ void Cereal_USART::init(uint8_t id, uint32_t baud, bool invert, bool halfdup, bo
         _usart = USART2;
     }
     else if (_id == CEREAL_ID_USART_DEBUG) {
+        #if defined(STM32F051DISCO)
+        _usart = USART1;
+        #elif defined(STM32G071NUCLEO)
         _usart = USART2;
+        #endif
     }
     else if (_id == CEREAL_ID_USART_SWCLK) {
         _usart = USART2;
     }
 
-    if (_id == CEREAL_ID_USART1) {
+    if (_id == CEREAL_ID_USART1
+        #if defined(STM32F051DISCO)
+            || _id == CEREAL_ID_USART_DEBUG
+        #endif
+    ) {
         fifo_init(&fifo_rx_1, cer_buff_1, CEREAL_BUFFER_SIZE);
         fifo_rx = &fifo_rx_1;
         #ifdef ENABLE_CEREAL_TX
@@ -109,7 +127,11 @@ void Cereal_USART::init(uint8_t id, uint32_t baud, bool invert, bool halfdup, bo
         is_idle_1 = false;
         last_rx_time_1 = 0;
     }
-    else if (_id == CEREAL_ID_USART2 || _id == CEREAL_ID_USART_DEBUG || _id == CEREAL_ID_USART_SWCLK) {
+    else if (_id == CEREAL_ID_USART2 || _id == CEREAL_ID_USART_SWCLK
+        #if defined(STM32G071NUCLEO)
+            || _id == CEREAL_ID_USART_DEBUG
+        #endif
+    ) {
         fifo_init(&fifo_rx_2, cer_buff_1, CEREAL_BUFFER_SIZE);
         fifo_rx = &fifo_rx_2;
         #ifdef ENABLE_CEREAL_TX
@@ -206,6 +228,7 @@ void Cereal_USART::init(uint8_t id, uint32_t baud, bool invert, bool halfdup, bo
         GPIO_InitStruct.Pull       = LL_GPIO_PULL_UP;
         GPIO_InitStruct.Alternate  = LL_GPIO_AF_1;
         LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+        dbg_cer_tgt = this;
     }
     #endif
 
@@ -230,9 +253,27 @@ void Cereal_USART::write(uint8_t x)
 
 void Cereal_USART::flush(void)
 {
+    #if 0
+    uint32_t t = millis();
+    uint32_t avail, prev_avail = 0;
+    while ((avail = fifo_available(fifo_tx)) > 0) {
+        if (avail == prev_avail) {
+            if ((millis() - t) >= 10) { // timeout waiting for transmission
+                char x = fifo_pop(fifo_tx);
+                LL_USART_TransmitData8(_usart, x);
+                t = millis();
+            }
+        }
+        else {
+            t = millis();
+        }
+        prev_avail = avail;
+    }
+    #else
     while (fifo_available(fifo_tx)) {
         // do nothing but wait
     }
+    #endif
 }
 #endif
 
@@ -269,30 +310,24 @@ bool Cereal_USART::get_idle_flag(bool clr)
 
 #if defined(DEBUG_PRINT)
 
+void debug_writechar_cpp(char x)
+{
+    if (dbg_cer_tgt != NULL) {
+        dbg_cer_tgt->write(x);
+    }
+}
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void debug_flush(void) {
-    while (fifo_available(&fifo_tx_2)) {
-        // do nothing but wait
-    }
-}
-
 void debug_writechar(char x) {
-    fifo_push(&fifo_tx_2, x);
-    if (LL_USART_IsActiveFlag_TXE(USART2)) {
-        uint8_t y = fifo_pop(&fifo_tx_2);
-        LL_USART_TransmitData8(USART2, y);
-    }
-    if (x == '\n') {
-        debug_flush();
-    }
+    debug_writechar_cpp(x);
 }
 
 int debug_writebuff(uint8_t* buf, int len) {
     for (int i = 0; i < len; i++) {
-        debug_writechar(buf[i]);
+        debug_writechar_cpp(buf[i]);
     }
     return len;
 }

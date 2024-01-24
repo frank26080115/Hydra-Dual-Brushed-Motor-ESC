@@ -141,10 +141,12 @@ bool eeprom_load_or_default(void)
 {
     bool x = eeprom_verify_checksum((uint8_t*)cfg_addr);
     if (x) {
+        dbg_printf("EEPROM is valid\r\n");
         memcpy(&cfg, (void*)cfg_addr, sizeof(EEPROM_data_t));
         return true;
     }
     else {
+        dbg_printf("EEPROM is invalid\r\n");
         eeprom_factory_reset();
         return false;
     }
@@ -152,6 +154,7 @@ bool eeprom_load_or_default(void)
 
 void eeprom_factory_reset(void)
 {
+    dbg_printf("EEPROM factory resetting\r\n");
     memcpy(&cfg, &default_eeprom, sizeof(EEPROM_data_t));
     eeprom_save();
 }
@@ -169,6 +172,7 @@ void eeprom_save(void)
     memcpy(&cfg, &default_eeprom, head_len);                       // ensures header is written
     eeprom_write((uint8_t*)&cfg, sizeof(EEPROM_data_t), cfg_addr); // commit to flash
     eeprom_save_time = 0; // remove dirty flag
+    dbg_printf("EEPROM saved\r\n");
 }
 
 void eeprom_save_if_needed(void)

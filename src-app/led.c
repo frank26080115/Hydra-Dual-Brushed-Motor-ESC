@@ -44,7 +44,7 @@ void led_state_set(bool x)
     led_blink_set(x ? 0xE0 : 0);
 }
 
-void led_task(void)
+void led_task(bool halt)
 {
     #ifdef USE_LED_STRIP
     WS2812_task(); // this sets the next color if DMA is not busy
@@ -72,6 +72,10 @@ void led_task(void)
         uint8_t x = active_pattern[blink_idx];
         if (x == BLINK_STOP)
         {
+            if (halt) {
+                return;
+            }
+
             // loop around
             blink_idx = 0;
             if (blink_secondary_pattern != NULL) // we are in the secondary pattern, so stop the pattern and switch back to primary pattern

@@ -63,16 +63,16 @@ int main(void)
     dbg_button_init();
     dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false, false);
     {
+        char c = 0;
         uint32_t _t = millis();
         while (true) {
             led_state_set((millis() % 1000) < 200);
             if ((millis() - _t) >= 500) {
-                dbg_printf("hello hydra! %u\r\n", millis());
+                dbg_printf("hello hydra! %u 0x%02X\r\n", millis(), c);
                 _t = millis();
             }
-#if 1
             if (dbg_cer.available() > 0) {
-                char c = dbg_cer.read();
+                c = dbg_cer.read();
                 dbg_printf(">0x%02X %c !!!\r\n", c, c);
                 break;
             }
@@ -80,18 +80,12 @@ int main(void)
                 dbg_printf("B!!!\r\n");
                 break;
             }
-#endif
         }
     }
-    while(true) {
-
-    }
     #endif
 
-    #ifdef DEBUG_PINTOGGLE
     dbg_pintoggle_init();
     // this happens after LED init because I'm borrowing the green and blue LED pins
-    #endif
 
     inp_init();
     pwm_init();
@@ -167,7 +161,7 @@ int main(void)
         while (true)
         {
             // do nothing forever due to unconfigured input
-            led_task();
+            led_task(false);
         }
         #endif
     }
@@ -183,7 +177,7 @@ int main(void)
 
     while (true) // main forever loop
     {
-        led_task();
+        led_task(false);
         sense_task();
         current_limit_task();
         rc1->task();
@@ -348,6 +342,12 @@ int main(void)
                 fi_map(v1, -THROTTLE_UNIT_RANGE, THROTTLE_UNIT_RANGE, 0, duty_max, true),
                 fi_map(v2, -THROTTLE_UNIT_RANGE, THROTTLE_UNIT_RANGE, 0, duty_max, true));
         }
+
+        if (need_debug_print) {
+            dbg_printf("[%u], v=%lu   c=%u , ", millis(), sense_voltage, sense_current);
+            pwm_debug_report();
+            dbg_printf("\r\n");
+        }
     }
 
     return 0;
@@ -359,23 +359,27 @@ void boot_decide_cli(void)
     ledblink_boot();
 
     if (inp_read() == 0) {
+        dbg_printf("CLI await, pin is low\r\n");
         while (inp_read() == 0) {
-            led_task();
+            led_task(false);
             if (millis() >= CLI_ENTER_LOW_CRITERIA) {
                 inp_pullUp();
                 ledblink_boot2();
+                dbg_printf("CLI confirmation stage\r\n");
                 break;
             }
             #if defined(DEVELOPMENT_BOARD)
             if (dbg_cer.available() >= 3 && dbg_cer.peekTail() == '\n') {
+                dbg_printf("CLI enter from key\r\n");
                 cli_enter(); // this never returns
             }
             #endif
         }
         while (inp_read() == 0) {
-            led_task();
+            led_task(false);
             #if defined(DEVELOPMENT_BOARD)
             if (dbg_cer.available() >= 3 && dbg_cer.peekTail() == '\n') {
+                dbg_printf("CLI enter from key\r\n");
                 cli_enter(); // this never returns
             }
             #endif
@@ -385,6 +389,16 @@ void boot_decide_cli(void)
     if (millis() < CLI_ENTER_LOW_CRITERIA) {
         // did not remain unplugged long enough
         // do not enter CLI
+
+        uint32_t t = millis();
+        while (inp_read() != 0)
+        {
+            led_task(true);
+            if ((millis() - t) >= 3000) {
+                NVIC_SystemReset(); // to back to bootloader
+            }
+        }
+
         return;
     }
 
@@ -393,13 +407,13 @@ void boot_decide_cli(void)
     uint32_t t = millis();
     uint8_t low_pulse_cnt = 0;
     while (true) {
-        led_task();
+        led_task(false);
         // debounce low pulses from hot-plug
         if (inp_read() == 0) {
             // measure the low pulse
             uint32_t t2 = millis();
             while (inp_read() == 0) {
-                led_task();
+                led_task(false);
             }
             uint32_t t3 = millis();
             if ((t3 - t2 >= 5)) {
@@ -419,10 +433,12 @@ void boot_decide_cli(void)
         }
         if ((millis() - t) >= CLI_ENTER_HIGH_CRITERIA) {
             // has been long enough
+            dbg_printf("CLI entering from insertion\r\n");
             cli_enter(); // this never returns
         }
         #if defined(DEVELOPMENT_BOARD)
         if (dbg_cer.available() >= 3 && dbg_cer.peekTail() == '\n') {
+            dbg_printf("CLI enter from key\r\n");
             cli_enter(); // this never returns
         }
         #endif

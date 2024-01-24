@@ -13,7 +13,7 @@ SRC_DIR_G071 := \
 	$(HAL_FOLDER_G071) \
 	$(HAL_FOLDER_G071)/Drivers/STM32G0xx_HAL_Driver/Src
 
-CFLAGS_G071 := -O3 \
+CFLAGS_G071 := -Os \
 	-I$(SRC_HAL_DIR)/stm32 \
 	-I$(HAL_FOLDER_G071) \
 	-I$(HAL_FOLDER_G071)/Drivers/STM32G0xx_HAL_Driver/Inc \
