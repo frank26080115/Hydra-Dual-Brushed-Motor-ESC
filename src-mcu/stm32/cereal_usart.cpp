@@ -26,7 +26,7 @@ volatile bool* is_idle, volatile uint32_t* timestamp, volatile bool* had_1st)
         while (LL_USART_IsActiveFlag_RXNE(usart)) {
             x = LL_USART_ReceiveData8(usart);
         }
-        if (x != 0xFF || (*had_1st) != false) {
+        if ((x != 0xFF && x != 0x00) || (*had_1st) != false) {
             fifo_push(fifo_rx, x);
             *had_1st = true;
         }
@@ -144,7 +144,7 @@ void Cereal_USART::init(uint8_t id, uint32_t baud, bool invert, bool halfdup, bo
     }
     _usart->CR2 = cr2;
 
-    _usart->CR1 = USART_CR1_UE | USART_CR1_TE | USART_CR1_RE | USART_CR1_TCIE | 
+    _usart->CR1 = USART_CR1_UE | USART_CR1_TE | USART_CR1_RE | USART_CR1_TCIE |
         #if defined(MCU_F051)
             USART_CR1_RXNEIE
         #elif defined(MCU_G071)
