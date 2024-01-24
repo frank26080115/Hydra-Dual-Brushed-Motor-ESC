@@ -192,7 +192,7 @@ void Cereal_USART::init(uint8_t id, uint32_t baud, bool invert, bool halfdup, bo
         GPIO_InitStruct.Alternate  = 0;
         LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
     }
-    #if defined(STM32F051DISCO) || defined(STM32G071NUCLEO)
+    #if defined(DEVELOPMENT_BOARD)
     else if (_id == CEREAL_ID_USART_DEBUG)
     {
         #if defined(STM32F051DISCO)

@@ -70,6 +70,7 @@ int main(void)
                 dbg_printf("hello hydra! %u\r\n", millis());
                 _t = millis();
             }
+#if 1
             if (dbg_cer.available() > 0) {
                 char c = dbg_cer.read();
                 dbg_printf(">0x%02X %c !!!\r\n", c, c);
@@ -79,10 +80,11 @@ int main(void)
                 dbg_printf("B!!!\r\n");
                 break;
             }
+#endif
         }
     }
     while(true) {
-        
+
     }
     #endif
 
@@ -269,7 +271,7 @@ int main(void)
         uint32_t duty_mid = (duty_max + 1) / 2; // this represents the center tap voltage if motors are going in opposite directions
 
         // determine the voltage boosting mode, either using a stick/switch value or using the mode set in EEPROM
-        uint8_t boost_mode = ((cfg.channel_mode > 0) ? 
+        uint8_t boost_mode = ((cfg.channel_mode > 0) ?
                 fi_map(crsf_readChan(cfg.channel_mode), CRSF_CHANNEL_VALUE_1000, CRSF_CHANNEL_VALUE_2000, 0, 29, true) / 10
                 :
                 cfg.voltage_split_mode

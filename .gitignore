@@ -35,3 +35,4 @@ bin/*
 *.app
 
 *.log
+.settings

@@ -45,13 +45,16 @@ void SystemClock_Config(void)
 
 void STM32_Sys_Init(void)
 {
-    #ifndef DEVELOPMENT_BOARD
     volatile uint32_t* VectorTable = (volatile uint32_t*)0x20000000;
     uint32_t vector_index = 0;
     for (vector_index  = 0; vector_index  < 48; vector_index++) {
-        VectorTable[vector_index ] = *(__IO uint32_t*)(APPLICATION_ADDRESS + (vector_index << 2));        // no VTOR on cortex-MO so need to copy vector table
+        VectorTable[vector_index ] = *(__IO uint32_t*)((
+            APPLICATION_ADDRESS
+            #ifdef DEVELOPMENT_BOARD
+                & 0xFF000000
+            #endif
+            ) + (vector_index << 2));        // no VTOR on cortex-MO so need to copy vector table
     }
-    #endif
 
     /* Enable the SYSCFG peripheral clock*/
     do {
