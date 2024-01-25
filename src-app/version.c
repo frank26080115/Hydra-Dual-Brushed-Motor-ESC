@@ -41,38 +41,6 @@ const firmware_info_s firmware_info = {
             14
         #elif INPUT_PIN == LL_GPIO_PIN_15
             15
-        #elif INPUT_PIN == LL_GPIO_PIN_16
-            16
-        #elif INPUT_PIN == LL_GPIO_PIN_17
-            17
-        #elif INPUT_PIN == LL_GPIO_PIN_18
-            18
-        #elif INPUT_PIN == LL_GPIO_PIN_19
-            19
-        #elif INPUT_PIN == LL_GPIO_PIN_20
-            20
-        #elif INPUT_PIN == LL_GPIO_PIN_21
-            21
-        #elif INPUT_PIN == LL_GPIO_PIN_22
-            22
-        #elif INPUT_PIN == LL_GPIO_PIN_23
-            23
-        #elif INPUT_PIN == LL_GPIO_PIN_24
-            24
-        #elif INPUT_PIN == LL_GPIO_PIN_25
-            25
-        #elif INPUT_PIN == LL_GPIO_PIN_26
-            26
-        #elif INPUT_PIN == LL_GPIO_PIN_27
-            27
-        #elif INPUT_PIN == LL_GPIO_PIN_28
-            28
-        #elif INPUT_PIN == LL_GPIO_PIN_29
-            29
-        #elif INPUT_PIN == LL_GPIO_PIN_30
-            30
-        #elif INPUT_PIN == LL_GPIO_PIN_31
-            31
         #else
             #error
         #endif
