@@ -43,6 +43,7 @@ class RcPulse_InputCap : public RcChannel
         virtual void init(void);
         virtual void task(void);
         virtual int16_t read(void);
+        virtual int16_t readRaw(void);
         virtual bool is_alive(void);
         virtual bool has_new(bool clr);
         virtual bool is_armed(void);
@@ -62,6 +63,7 @@ class RcPulse_GpioIsr : public RcChannel
         virtual void init(TIM_TypeDef* TIMx, GPIO_TypeDef* GPIOx, uint32_t pin);
         virtual void task(void);
         virtual int16_t read(void);
+        virtual int16_t readRaw(void);
         virtual bool is_alive(void);
         virtual bool has_new(bool clr);
         virtual bool is_armed(void);

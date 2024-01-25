@@ -42,6 +42,7 @@ void dbg_printf(const char* fmt, ...)
     #endif
     return;
 }
+#endif
 
 void dbg_button_init(void)
 {
@@ -75,8 +76,6 @@ bool dbg_read_btn(void)
     return LL_GPIO_IsInputPinSet(DBG_BUTTON_PORT, DBG_BUTTON_PIN) != 0;
     #endif
 }
-
-#endif
 
 #if defined(DEBUG_EVENTCNT)
 
@@ -127,4 +126,22 @@ void dbg_pintoggle(uint8_t p)
     dbg_pinset(p, was_high[p] == false);
 }
 
+#endif
+
+#if defined(STM32F051DISCO)
+void dbg_switch_to_pwm(void)
+{
+    LL_GPIO_SetPinMode   (GPIOA, LL_GPIO_PIN_9 , LL_GPIO_MODE_ALTERNATE);
+    LL_GPIO_SetPinMode   (GPIOA, LL_GPIO_PIN_10, LL_GPIO_MODE_ALTERNATE);
+    LL_GPIO_SetAFPin_8_15(GPIOA, LL_GPIO_PIN_9 , LL_GPIO_AF_2);
+    LL_GPIO_SetAFPin_8_15(GPIOA, LL_GPIO_PIN_10, LL_GPIO_AF_2);
+}
+
+void dbg_switch_to_cereal(void)
+{
+    LL_GPIO_SetPinMode   (GPIOA, LL_GPIO_PIN_9 , LL_GPIO_MODE_ALTERNATE);
+    LL_GPIO_SetPinMode   (GPIOA, LL_GPIO_PIN_10, LL_GPIO_MODE_ALTERNATE);
+    LL_GPIO_SetAFPin_8_15(GPIOA, LL_GPIO_PIN_9 , LL_GPIO_AF_1);
+    LL_GPIO_SetAFPin_8_15(GPIOA, LL_GPIO_PIN_10, LL_GPIO_AF_1);
+}
 #endif

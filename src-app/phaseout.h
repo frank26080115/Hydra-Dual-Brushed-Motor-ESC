@@ -9,10 +9,8 @@
 extern "C" {
 #endif
 
-extern bool complementary_pwm; // this project will always have this true
-extern bool braking;           // set by user
-
 extern void pwm_init();        // implemented in HAL
+extern void pwm_set_reload(uint32_t x); // used to set frequency from user config
 
 // implemented in HAL
 extern void pwm_setPWM_A();
@@ -46,6 +44,7 @@ void pwm_debug_report(void);
 
 void pwm_set_remap(uint8_t);    // set from application
 void pwm_set_loadbalance(bool); // set from application
+void pwm_set_braking(bool);     // set from application
 
 #ifdef __cplusplus
 }

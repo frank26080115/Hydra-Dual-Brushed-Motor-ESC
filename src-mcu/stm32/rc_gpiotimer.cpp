@@ -194,6 +194,11 @@ int16_t RcPulse_GpioIsr::read(void)
     return rc_pulse_map((pulse_width + GPIO_RC_PULSE_OFFSET) / 4);
 }
 
+int16_t RcPulse_GpioIsr::readRaw(void)
+{
+    return pulse_width;
+}
+
 bool RcPulse_GpioIsr::is_alive(void)
 {
     if ((millis() - last_good_time) < RC_INPUT_TIMEOUT)

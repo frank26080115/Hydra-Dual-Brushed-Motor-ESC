@@ -5,7 +5,9 @@
 
 #include "userconfig.h"
 
-bool braking;
+#ifndef HW_PHASES_REMAP
+#define HW_PHASES_REMAP 0
+#endif
 
 enum
 {
@@ -13,6 +15,14 @@ enum
     PWMPINSTATE_PWM,
     PWMPINSTATE_FLT,
 };
+
+bool braking;
+extern bool complementary_pwm;
+static uint8_t phase_remap = 0;
+static bool load_balance = false;
+#ifdef DEBUG_PRINT
+static uint16_t phase_vals[3];
+#endif
 
 static uint8_t all_pin_states;
 
@@ -22,7 +32,7 @@ void pwm_all_flt()
     pwm_setFlt_B();
     pwm_setFlt_C();
     all_pin_states = PWMPINSTATE_FLT;
-    pwm_set_all_duty(0, 0, 0);
+    pwm_setDuty_A(0); pwm_setDuty_B(0); pwm_setDuty_C(0);
 }
 
 void pwm_all_low()
@@ -31,7 +41,7 @@ void pwm_all_low()
     pwm_setLow_B();
     pwm_setLow_C();
     all_pin_states = PWMPINSTATE_LOW;
-    pwm_set_all_duty(0, 0, 0);
+    pwm_setDuty_A(0); pwm_setDuty_B(0); pwm_setDuty_C(0);
 }
 
 void pwm_all_pwm()
@@ -44,13 +54,13 @@ void pwm_all_pwm()
 
 void pwm_full_brake()
 {
-    braking = true;
+    pwm_set_braking(true);
     pwm_all_low();
 }
 
 void pwm_full_coast()
 {
-    braking = false;
+    pwm_set_braking(false);
     pwm_all_flt();
 }
 
@@ -79,16 +89,6 @@ void pwm_set_all_duty(uint16_t a, uint16_t b, uint16_t c)
     pwm_setDuty_B(b);
     pwm_setDuty_C(c);
 }
-
-#ifndef HW_PHASES_REMAP
-#define HW_PHASES_REMAP 0
-#endif
-
-static uint8_t phase_remap = 0;
-static bool load_balance = false;
-#ifdef DEBUG_PRINT
-static uint16_t phase_vals[3];
-#endif
 
 void pwm_set_all_duty_remapped(uint16_t a, uint16_t b, uint16_t c)
 {
@@ -166,6 +166,12 @@ void pwm_set_remap(uint8_t map)
 void pwm_set_loadbalance(bool x)
 {
     load_balance = x;
+}
+
+void pwm_set_braking(bool x)
+{
+    braking = x;
+    complementary_pwm = x;
 }
 
 #ifdef DEBUG_PRINT

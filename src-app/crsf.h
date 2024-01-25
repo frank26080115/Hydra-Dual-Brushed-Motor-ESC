@@ -19,6 +19,7 @@ class CrsfChannel : public RcChannel
         virtual void init(Cereal* cer, uint8_t idx);
         virtual void task(void);
         virtual int16_t read(void);
+        virtual int16_t readRaw(void);
         virtual bool is_alive(void);
         virtual bool has_new(bool clr);
         virtual bool is_armed(void);

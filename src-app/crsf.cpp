@@ -151,6 +151,15 @@ int16_t CrsfChannel::read(void)
     return rc_pulse_map(x);
 }
 
+int16_t CrsfChannel::readRaw(void)
+{
+    if (_idx <= 0) {
+        return 0;
+    }
+
+    return crsf_channels[_idx - 1];
+}
+
 bool CrsfChannel::is_alive(void)
 {
     if (_idx <= 0) {

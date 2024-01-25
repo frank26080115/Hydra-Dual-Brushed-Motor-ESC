@@ -2,12 +2,6 @@
 
 #define RC_IC_TIMx IC_TIMER_REGISTER
 
-#if INPUT_PIN == LL_GPIO_PIN_4 || INPUT_PIN == LL_GPIO_PIN_6
-#define RcPulse_IQRHandler TIM3_IRQHandler
-#elif INPUT_PIN == LL_GPIO_PIN_2
-#define RcPulse_IQRHandler TIM15_IRQHandler
-#endif
-
 static volatile uint16_t pulse_width;
 static volatile bool     new_flag       = false;
 static volatile uint32_t last_good_time = 0;
@@ -54,11 +48,11 @@ void rc_ic_tim_init(void)
         TIM_DIER_CC4IE
     #endif
         ;
-    RC_IC_TIMx->PSC   = (SystemCoreClock / 1000000) - 1; // 1us resolution
-    RC_IC_TIMx->ARR   = -1;
-    RC_IC_TIMx->CR1   = TIM_CR1_URS;
-    RC_IC_TIMx->EGR   = TIM_EGR_UG;
-    RC_IC_TIMx->CR1   = TIM_CR1_CEN | TIM_CR1_ARPE | TIM_CR1_URS;
+    RC_IC_TIMx->PSC = (SystemCoreClock / 1000000) - 1; // 1us resolution
+    RC_IC_TIMx->ARR = -1;
+    RC_IC_TIMx->CR1 = TIM_CR1_URS;
+    RC_IC_TIMx->EGR = TIM_EGR_UG;
+    RC_IC_TIMx->CR1 = TIM_CR1_ARPE | TIM_CR1_URS;
 }
 
 void rc_ic_tim_init_2(void)
@@ -82,6 +76,8 @@ void rc_ic_tim_init_2(void)
     NVIC_SetPriority(TIM15_IRQn, 0);
     NVIC_EnableIRQ(TIM15_IRQn);
     #endif
+
+    RC_IC_TIMx->CR1 |= TIM_CR1_CEN; // enable timer
 }
 
 #ifdef ENABLE_COMPILE_CLI
@@ -90,6 +86,12 @@ bool ictimer_modeIsPulse;
 
 #ifdef __cplusplus
 extern "C" {
+#endif
+
+#if INPUT_PIN == LL_GPIO_PIN_4 || INPUT_PIN == LL_GPIO_PIN_6
+#define RcPulse_IQRHandler TIM3_IRQHandler
+#elif INPUT_PIN == LL_GPIO_PIN_2
+#define RcPulse_IQRHandler TIM15_IRQHandler
 #endif
 
 #ifdef ENABLE_COMPILE_CLI
@@ -103,8 +105,12 @@ void RcPulse_IQRHandler(void)
     #endif
     {
         dbg_evntcnt_add(DBGEVNTID_ICTIMER);
+
         uint32_t p = RC_IC_TIMx->CCR1;   // Pulse period
         uint32_t w = RC_IC_TIMx->CCR2;   // Pulse width
+
+        // reading the registers should automatically clear the interrupt flags
+
         if (p < RC_INPUT_VALID_MAX || w < RC_INPUT_VALID_MIN || w > RC_INPUT_VALID_MAX)
         {
             arm_pulse_cnt = 0;
@@ -162,6 +168,9 @@ RcPulse_InputCap::RcPulse_InputCap(TIM_TypeDef* TIMx, GPIO_TypeDef* GPIOx, uint3
 void RcPulse_InputCap::init(void)
 {
     rc_ic_tim_init();
+
+    // STM32F051 tech ref. manual Appendix A.9.5 has example code
+
     RC_IC_TIMx->CCMR1 = 
     #if LL_TIM_CHANNEL_CH1 == IC_TIMER_CHANNEL || LL_TIM_CHANNEL_CH2 == IC_TIMER_CHANNEL
         TIM_CCMR1_CC1S_IN_TI1 | TIM_CCMR1_IC1F_DTF_DIV_8_N_8 | TIM_CCMR1_CC2S_IN_TI1 | TIM_CCMR1_IC2F_DTF_DIV_8_N_8;
@@ -169,8 +178,8 @@ void RcPulse_InputCap::init(void)
         #error not implemented
     #endif
     RC_IC_TIMx->CCER  = TIM_CCER_CC1E | TIM_CCER_CC2E | TIM_CCER_CC2P; // IC1 on rising edge on TI1, IC2 on falling edge on TI1
-    RC_IC_TIMx->SR    = ~TIM_SR_CC2IF;
-    RC_IC_TIMx->DIER  = TIM_DIER_CC2IE;
+    RC_IC_TIMx->SR    = ~TIM_SR_CC2IF;  // clear pending interrupt
+    RC_IC_TIMx->DIER  = TIM_DIER_CC2IE; // enable interrupt
 
     #ifdef ENABLE_COMPILE_CLI
     ictimer_modeIsPulse = true;
@@ -178,6 +187,7 @@ void RcPulse_InputCap::init(void)
 
     rc_ic_tim_init_2();
 
+    #if 0
     uint16_t test_arming_val = 0;
     int last_v = -THROTTLE_UNIT_RANGE;
     for (test_arming_val = 1250; test_arming_val < 1750; test_arming_val++) {
@@ -191,6 +201,10 @@ void RcPulse_InputCap::init(void)
         }
         last_v = v;
     }
+    #else
+    arming_val_min = 1450;
+    arming_val_max = 1550;
+    #endif
 }
 
 void RcPulse_InputCap::task(void)
@@ -201,6 +215,11 @@ void RcPulse_InputCap::task(void)
 int16_t RcPulse_InputCap::read(void)
 {
     return rc_pulse_map(pulse_width);
+}
+
+int16_t RcPulse_InputCap::readRaw(void)
+{
+    return pulse_width;
 }
 
 bool RcPulse_InputCap::is_alive(void)

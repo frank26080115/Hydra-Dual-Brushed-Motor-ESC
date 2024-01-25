@@ -7,12 +7,13 @@
 // only one instance of this cereal port is allowed
 // so we use global static variables that can be access through ISRs
 
-static uint32_t      cereal_baud;
+static uint32_t cereal_baud;
 #ifdef ENABLE_CEREAL_TX
-static fifo_t        cereal_fifo_tx;
+static fifo_t cereal_fifo_tx;
 #endif
-static fifo_t        cereal_fifo_rx;
-static volatile uint32_t last_rx_time;
+static fifo_t cereal_fifo_rx;
+static volatile uint32_t last_rx_time = 0;
+static bool idle_flag_cleared = false;
 
 extern void rc_ic_tim_init(void);
 extern void rc_ic_tim_init_2(void);
@@ -77,6 +78,7 @@ void CerealBitbang_IRQHandler(void)
         n = 0;
 
         fifo_push(&cereal_fifo_rx, b);
+        idle_flag_cleared = false;
 
         RC_IC_TIMx->SMCR = 0;
         RC_IC_TIMx->CCR1 = 0; // Preload high level
@@ -165,9 +167,17 @@ uint32_t Cereal_TimerBitbang::get_last_time(void)
 
 bool Cereal_TimerBitbang::get_idle_flag(bool clr)
 {
+    // this implementation is never used, only data packet parsers use it
+    // and those parsers always use USART, not bit-bang
     bool x = false;
     __disable_irq();
     x = (millis() - last_rx_time) > 100;
+    if (x && idle_flag_cleared) {
+        x = false;
+    }
+    if (clr) {
+        idle_flag_cleared = true;
+    }
     __enable_irq();
     return x;
 }

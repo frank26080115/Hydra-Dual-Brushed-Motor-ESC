@@ -8,10 +8,10 @@ extern "C" {
 #endif
 
 void sense_init(void);
-void adc_init(void);
+extern void adc_init(void);
 
 bool sense_task(void);
-bool adc_task(void);
+extern bool adc_task(void);
 
 extern uint32_t sense_current;      // TODO calibrate
 extern uint32_t sense_voltage;      // millivolts

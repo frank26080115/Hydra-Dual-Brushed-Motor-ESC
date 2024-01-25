@@ -31,9 +31,9 @@ void pwm_init()
     TIM_InitStruct.RepetitionCounter = 0;
     LL_TIM_Init(PWMOUTTIMx, &TIM_InitStruct);
     LL_TIM_EnableARRPreload(PWMOUTTIMx);
-    #ifdef MCU_F051
+#ifdef MCU_F051
     LL_TIM_SetClockSource(PWMOUTTIMx, LL_TIM_CLOCKSOURCE_INTERNAL);
-    #endif
+#endif
     LL_TIM_OC_EnablePreload(PWMOUTTIMx, LL_TIM_CHANNEL_CH1);
 #ifdef USE_SWAPPED_OUPUT
     TIM_OC_InitStruct.OCMode = LL_TIM_OCMODE_PWM2;
@@ -199,6 +199,23 @@ void pwm_init()
     NVIC_SetPriority(TIM1_BRK_UP_TRG_COM_IRQn, 2);
     NVIC_EnableIRQ(TIM1_BRK_UP_TRG_COM_IRQn);
 #endif
+
+    LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH1);
+    LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH2);
+    LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH3);
+    LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH1N);
+    LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH2N);
+    LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH3N);
+
+    LL_TIM_EnableCounter(TIM1);
+    LL_TIM_EnableAllOutputs(TIM1);
+
+    LL_TIM_GenerateEvent_UPDATE(TIM1);
+}
+
+void pwm_set_reload(uint32_t x)
+{
+    LL_TIM_SetAutoReload(PWMOUTTIMx, x);
 }
 
 #ifdef PWM_NEED_IRQ
@@ -321,8 +338,6 @@ void pwm_setLow_A()
 }
 
 #else
-
-
 
 void pwm_setPWM_B()
 {

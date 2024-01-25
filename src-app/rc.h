@@ -9,6 +9,7 @@ class RcChannel
         virtual void init(void);
         virtual void task(void);           // called periodically for house keeping
         virtual int16_t read(void);        // outputs normalized signed value, already accounting for deadzone
+        virtual int16_t readRaw(void);     // reads raw value for debugging
         virtual bool is_alive(void);       // used to check if wire is unplugged or receiver is off
         virtual bool has_new(bool clr);
         virtual bool is_armed(void);

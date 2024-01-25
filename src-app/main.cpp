@@ -21,6 +21,7 @@ RcChannel* rc2;
 
 #if defined(DEVELOPMENT_BOARD)
 Cereal_USART dbg_cer;
+#include "hw_tests.h"
 #endif
 
 #ifdef STMICRO
@@ -53,6 +54,8 @@ void cli_enter(void);
 int main(void)
 {
     mcu_init();
+
+    hw_test();
 
     ENSURE_VERSION_DATA_IS_KEPT();
 
@@ -89,7 +92,7 @@ int main(void)
 
     inp_init();
     pwm_init();
-    pwm_all_flt();
+    pwm_full_coast();
     sense_init();
     dbg_printf("low level init done at %u\r\n", millis());
 
@@ -166,10 +169,10 @@ int main(void)
         #endif
     }
 
-    braking = cfg.braking;
-    complementary_pwm = true;
     arm_pulses_required = cfg.arm_duration;
     disarm_timeout = cfg.disarm_timeout;
+    pwm_set_braking(cfg.braking);
+    pwm_set_reload(cfg.pwm_reload);
     pwm_set_remap(cfg.phase_map);
     pwm_set_loadbalance(cfg.load_balance);
 

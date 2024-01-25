@@ -20,6 +20,11 @@ int16_t RcChannel::read(void)
     return 0;
 }
 
+int16_t RcChannel::readRaw(void)
+{
+    return 0;
+}
+
 bool RcChannel::is_alive(void)
 {
     return false;

@@ -19,13 +19,14 @@ extern "C" {
 
 #ifdef DEBUG_PRINT
 void dbg_printf(const char* fmt, ...);
-void dbg_button_init(void);
-bool dbg_read_btn(void);
 #else
 #define dbg_printf(...)
-#define dbg_button_init(...)
-#define dbg_read_btn(...)      false
+//#define dbg_button_init(...)
+//#define dbg_read_btn(...)      false
 #endif
+
+void dbg_button_init(void);
+bool dbg_read_btn(void);
 
 enum
 {
@@ -56,6 +57,14 @@ void dbg_pintoggle(uint8_t p);
 #define dbg_pintoggle_init(...)
 #define dbg_pinset(...)
 #define dbg_pintoggle(...)
+#endif
+
+#if defined(STM32F051DISCO)
+void dbg_switch_to_pwm(void);
+void dbg_switch_to_cereal(void);
+#else
+#define dbg_switch_to_pwm(...)
+#define dbg_switch_to_cereal(...)
 #endif
 
 #ifdef __cplusplus
