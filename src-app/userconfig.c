@@ -69,6 +69,8 @@ uint32_t cfg_addr = (uint32_t)(&cfge);
 // this stores the config in RAM
 EEPROM_data_t cfg;
 
+bool eeprom_has_loaded = false;
+
 #ifdef ENABLE_COMPILE_CLI
 
 #define DCLR_ITM(__a, __b)        { .name = __a, .ptr = (uint32_t)&(cfge.__b ), .size = sizeof(cfge.__b ), }
@@ -134,6 +136,9 @@ bool eeprom_verify_checksum(uint8_t* ptr8)
     uint8_t* start_addr = (uint8_t*)(&(ptre->magic));
     uint8_t* end_addr   = (uint8_t*)(&(ptre->chksum));
     EEPROM_chksum_t calculated_chksum = eeprom_checksum(start_addr, (int)(((uint32_t)end_addr) - ((uint32_t)start_addr)));
+    if (calculated_chksum != ptre->chksum) {
+        dbg_printf("ERR: EEPROM checksum does not match (0x%02X != 0x%02X)\r\n", calculated_chksum, ptre->chksum);
+    }
     return calculated_chksum == ptre->chksum;
 }
 
@@ -141,8 +146,19 @@ bool eeprom_load_or_default(void)
 {
     bool x = eeprom_verify_checksum((uint8_t*)cfg_addr);
     if (x) {
-        dbg_printf("EEPROM is valid\r\n");
         memcpy(&cfg, (void*)cfg_addr, sizeof(EEPROM_data_t));
+        if (cfg.magic != EEPROM_MAGIC) {
+            x = false;
+            dbg_printf("ERR: EEPROM magic does not match (0x%08X)\r\n", cfg.magic);
+        }
+        if (cfg.version_eeprom != VERSION_EEPROM) {
+            x = false;
+            dbg_printf("ERR: EEPROM version does not match (%u != %u)\r\n", cfg.version_eeprom, VERSION_EEPROM);
+        }
+    }
+    if (x) {
+        dbg_printf("EEPROM is valid\r\n");
+        eeprom_has_loaded = true;
         return true;
     }
     else {
@@ -156,6 +172,7 @@ void eeprom_factory_reset(void)
 {
     dbg_printf("EEPROM factory resetting\r\n");
     memcpy(&cfg, &default_eeprom, sizeof(EEPROM_data_t));
+    eeprom_has_loaded = true;
     eeprom_save();
 }
 
@@ -163,6 +180,9 @@ uint32_t eeprom_save_time;
 
 void eeprom_save(void)
 {
+    cfg.magic           = EEPROM_MAGIC;
+    cfg.version_major   = VERSION_MAJOR;
+    cfg.version_eeprom  = VERSION_EEPROM;
     EEPROM_data_t* ptre = (EEPROM_data_t*)&cfg;
     uint8_t* start_addr = (uint8_t*)(&(ptre->magic));
     uint8_t* end_addr   = (uint8_t*)(&(ptre->chksum));

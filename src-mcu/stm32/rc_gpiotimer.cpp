@@ -21,6 +21,11 @@ static uint16_t arming_val_min = 0, arming_val_max = 0;
 
 static volatile bool was_high;
 
+#ifdef RC_LOG_JITTER
+static volatile uint16_t pulse_width_prev = 0;
+static volatile uint32_t jitter = 0;
+#endif
+
 #ifdef GPIOEXTI_IRQHandler
 
 #ifdef __cplusplus
@@ -48,31 +53,20 @@ void GPIOEXTI_IRQHandler(void)
             if (overflow_cnt == 0 && t >= (RC_INPUT_VALID_MIN * 4) && t <= (RC_INPUT_VALID_MAX * 4))
             {
                 pulse_width = t;
-                last_good_time = millis();
-                if (good_pulse_cnt < 64) {
-                    good_pulse_cnt++;
-                }
-                bad_pulse_cnt = 0;
-                new_flag = true;
-                if (t >= arming_val_min && t <= arming_val_max) {
-                    arm_pulse_cnt++;
-                    if (arm_pulse_cnt >= arm_pulses_required) {
-                        armed = true;
-                    }
-                }
-                else {
-                    arm_pulse_cnt = 0;
-                }
+
+                RCPULSE_LOGJITTER();
+
+                rc_register_good_pulse(
+                    pulse_width
+                    , arming_val_min, arming_val_max
+                    , (uint32_t*)&last_good_time
+                    , (uint8_t*)&good_pulse_cnt, (uint8_t*)&bad_pulse_cnt, (uint32_t*)&arm_pulse_cnt
+                    , (bool*)&new_flag, (bool*)&armed
+                );
             }
             else
             {
-                if (bad_pulse_cnt < 3) {
-                    bad_pulse_cnt++;
-                }
-                else {
-                    good_pulse_cnt = 0;
-                }
-                arm_pulse_cnt = 0;
+                rc_register_bad_pulse((uint8_t*)&good_pulse_cnt, (uint8_t*)&bad_pulse_cnt, (uint32_t*)&arm_pulse_cnt);
             }
         }
         was_high = false;
@@ -169,19 +163,7 @@ void RcPulse_GpioIsr::init(TIM_TypeDef* TIMx, GPIO_TypeDef* GPIOx, uint32_t pin)
 
     was_high = LL_GPIO_IsInputPinSet(rc_gpio, rc_pin);
 
-    uint16_t test_arming_val = 0;
-    int last_v = -THROTTLE_UNIT_RANGE;
-    for (test_arming_val = 1250 * 4; test_arming_val < 1750 * 4; test_arming_val++) {
-        int v = rc_pulse_map((test_arming_val + GPIO_RC_PULSE_OFFSET) / 4);
-        if (v == 0 && last_v < 0 && arming_val_min == 0) {
-            arming_val_min = test_arming_val - 1;
-        }
-        if (v == 0 && last_v > 0 && arming_val_max == 0) {
-            arming_val_max = test_arming_val;
-            break;
-        }
-        last_v = v;
-    }
+    rc_find_arming_vals(4, GPIO_RC_PULSE_OFFSET, (uint16_t*)&arming_val_min, (uint16_t*)&arming_val_max);
 }
 
 void RcPulse_GpioIsr::task(void)
@@ -237,3 +219,7 @@ void RcPulse_GpioIsr::disarm(void)
     armed = false;
     arm_pulse_cnt = 0;
 }
+
+#ifdef RC_LOG_JITTER
+RCPULSE_READJITTER(RcPulse_GpioIsr);
+#endif

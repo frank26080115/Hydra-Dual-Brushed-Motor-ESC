@@ -88,6 +88,8 @@ typedef struct
     int32_t currlim_ki;
     int32_t currlim_kd;
 
+    uint32_t useless; // just a test pattern that can be written and used to change the chksum
+
     EEPROM_chksum_t chksum;
 } __attribute__((packed))
 EEPROM_data_t;

@@ -24,9 +24,12 @@ class CrsfChannel : public RcChannel
         virtual bool has_new(bool clr);
         virtual bool is_armed(void);
         virtual void disarm(void);
+        #ifdef RC_LOG_JITTER
+        virtual uint32_t readJitter(void); // reads 0 for CRSF, any noise can be measured from the transmitter
+        #endif
     protected:
         uint8_t _idx;
-        uint8_t arming_cnt = 0;
+        uint32_t arming_cnt = 0;
         bool armed = false;
         bool _has_new = false;
 };

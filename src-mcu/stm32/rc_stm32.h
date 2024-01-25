@@ -48,6 +48,9 @@ class RcPulse_InputCap : public RcChannel
         virtual bool has_new(bool clr);
         virtual bool is_armed(void);
         virtual void disarm(void);
+        #ifdef RC_LOG_JITTER
+        virtual uint32_t readJitter(void);
+        #endif
 
     protected:
         TIM_TypeDef* _tim;
@@ -68,6 +71,9 @@ class RcPulse_GpioIsr : public RcChannel
         virtual bool has_new(bool clr);
         virtual bool is_armed(void);
         virtual void disarm(void);
+        #ifdef RC_LOG_JITTER
+        virtual uint32_t readJitter(void);
+        #endif
 
     protected:
         TIM_TypeDef* _tim;

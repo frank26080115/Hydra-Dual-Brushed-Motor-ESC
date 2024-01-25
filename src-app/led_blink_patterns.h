@@ -75,35 +75,11 @@ const uint8_t blinkpattern_currentlimited[] = {
     BLINK_RGB_TIME(1, 0, 1, 3),
     BLINK_OFF_TIME(1),
     BLINK_RGB_TIME(1, 0, 1, 1),
-    BLINK_OFF_TIME(5),
+    BLINK_OFF_TIME(1),
     BLINK_RGB_TIME(1, 0, 1, 3),
     BLINK_OFF_TIME(1),
     BLINK_RGB_TIME(1, 0, 1, 1),
     BLINK_OFF_TIME(5),
-    BLINK_STOP,
-};
-
-const uint8_t blinkpattern_stalled[] = {
-    BLINK_RGB_TIME(0, 0, 1, 3),
-    BLINK_OFF_TIME(1),
-    BLINK_RGB_TIME(1, 0, 1, 1),
-    BLINK_OFF_TIME(5),
-    BLINK_RGB_TIME(0, 0, 1, 3),
-    BLINK_OFF_TIME(1),
-    BLINK_RGB_TIME(1, 0, 1, 1),
-    BLINK_OFF_TIME(5),
-    BLINK_STOP,
-};
-
-const uint8_t blinkpattern_desync[] = {
-    BLINK_RGB_TIME(0, 1, 0, 1),
-    BLINK_OFF_TIME(1),
-    BLINK_RGB_TIME(0, 1, 0, 1),
-    BLINK_OFF_TIME(1),
-    BLINK_RGB_TIME(1, 0, 0, 1),
-    BLINK_OFF_TIME(1),
-    BLINK_RGB_TIME(0, 0, 1, 1),
-    BLINK_OFF_TIME(1),
     BLINK_STOP,
 };
 
@@ -173,28 +149,10 @@ const uint8_t blinkpattern_currentlimited[] = {
     BLINK_STOP,
 };
 
-const uint8_t blinkpattern_stalled[] = {
-    BLINK_ON_TIME(3),
-    BLINK_OFF_TIME(1),
-    BLINK_ON_TIME(3),
-    BLINK_OFF_TIME(5),
-    BLINK_STOP,
-};
-
-const uint8_t blinkpattern_desync[] = {
-    BLINK_ON_TIME(1),
-    BLINK_OFF_TIME(1),
-    BLINK_ON_TIME(1),
-    BLINK_OFF_TIME(1),
-    BLINK_ON_TIME(1),
-    BLINK_OFF_TIME(5),
-    BLINK_STOP,
-};
-
 const uint8_t blinkpattern_lowbatt[] = {
-    BLINK_RGB_TIME(1, 0, 0, 2),
+    BLINK_ON_TIME(3),
     BLINK_OFF_TIME(5),
-    BLINK_RGB_TIME(0, 0, 1, 2),
+    BLINK_ON_TIME(1),
     BLINK_OFF_TIME(5),
     BLINK_STOP,
 };

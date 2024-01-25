@@ -3,6 +3,9 @@
 #include "debug_tools.h"
 #include "phaseout.h"
 #include "sense.h"
+#include "led.h"
+#include "crsf.h"
+#include "userconfig.h"
 
 #ifdef STMICRO
 #include "rc_stm32.h"
@@ -18,6 +21,9 @@ extern Cereal_USART dbg_cer;
 #ifdef STMICRO
 extern RcPulse_InputCap rc_pulse_1;
 extern RcPulse_GpioIsr  rc_pulse_2;
+extern CrsfChannel      crsf_1;
+extern CrsfChannel      crsf_2;
+extern Cereal_USART     main_cer;
 #endif
 
 #ifdef ENABLE_COMPILE_CLI
@@ -30,9 +36,22 @@ void hw_test(void)
     //hwtest_adc();
     //hwtest_pwm();
     //hwtest_rc1();
-    hwtest_bbcer();
+    //hwtest_rc2();
+    //hwtest_rc_crsf();
+    //hwtest_bbcer();
+    //hwtest_eeprom();
 }
 #endif
+
+void hwtest_led(void)
+{
+    led_init();
+    ledblink_boot();
+    while (true)
+    {
+        led_task(false);
+    }
+}
 
 void hwtest_pwm(void)
 {
@@ -76,27 +95,16 @@ void hwtest_adc(void)
     }
 }
 
+void hwtest_rcx(RcChannel* rcx, uint8_t idx);
+void hwtest_rcx_print(RcChannel* rcx, uint8_t idx);
+
 void hwtest_rc1(void)
 {
     #ifdef DEVELOPMENT_BOARD
     dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false, false);
     #endif
     rc_pulse_1.init();
-    uint32_t t = millis();
-    while (true)
-    {
-        rc_pulse_1.task();
-        if ((millis() - t) >= 200)
-        {
-            t = millis();
-            if (rc_pulse_1.is_alive()) {
-                dbg_printf("[%u]  RC1 = %u\r\n", t, rc_pulse_1.readRaw());
-            }
-            else {
-                dbg_printf("[%u]  RC1 = ?\r\n", t);
-            }
-        }
-    }
+    hwtest_rcx(&rc_pulse_1, 1);
 }
 
 void hwtest_rc2(void)
@@ -105,19 +113,70 @@ void hwtest_rc2(void)
     dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false, false);
     #endif
     rc_pulse_2.init(GPIOEXTI_TIMx, GPIOEXTI_GPIO, GPIOEXTI_Pin);
+    hwtest_rcx(&rc_pulse_2, 2);
+}
+
+void hwtest_rc_crsf(void)
+{
+    #ifdef DEVELOPMENT_BOARD
+    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false, false);
+    #endif
+    uint8_t usart_id;
+    #if INPUT_PIN == LL_GPIO_PIN_2
+    usart_id = CEREAL_ID_USART2;
+    #elif INPUT_PIN == LL_GPIO_PIN_4
+    usart_id = CEREAL_ID_USART1;
+    #else
+    usart_id = CEREAL_ID_USART2;
+    #endif
+    main_cer.init(usart_id, CRSF_BAUDRATE, false, true, false);
+    crsf_1.init(&main_cer, 1);
+    crsf_2.init(&main_cer, 2);
     uint32_t t = millis();
     while (true)
     {
-        rc_pulse_2.task();
+        crsf_1.task();
+        crsf_2.task();
         if ((millis() - t) >= 200)
         {
             t = millis();
-            if (rc_pulse_2.is_alive()) {
-                dbg_printf("[%u]  RC2 = %u\r\n", t, rc_pulse_1.readRaw());
-            }
-            else {
-                dbg_printf("[%u]  RC2 = ?\r\n", t);
-            }
+            dbg_printf("[%u] ", millis());
+            hwtest_rcx_print(&crsf_1, 1);
+            dbg_printf("  ;  ");
+            hwtest_rcx_print(&crsf_2, 2);
+            dbg_printf("\r\n");
+        }
+    }
+}
+
+void hwtest_rcx_print(RcChannel* rcx, uint8_t idx)
+{
+    dbg_printf("%c%c%u = %u"
+        #ifdef RC_LOG_JITTER
+        "  (j %u)"
+        #endif
+        , rcx->is_alive() ? 'R' : 'r'
+        , rcx->is_armed() ? 'C' : 'c'
+        , idx
+        , rcx->readRaw()
+        #ifdef RC_LOG_JITTER
+        , rcx->readJitter()
+        #endif
+            );
+}
+
+void hwtest_rcx(RcChannel* rcx, uint8_t idx)
+{
+    uint32_t t = millis();
+    while (true)
+    {
+        rcx->task();
+        if ((millis() - t) >= 200)
+        {
+            t = millis();
+            dbg_printf("[%u] ", millis());
+            hwtest_rcx_print(rcx, idx);
+            dbg_printf("\r\n");
         }
     }
 }
@@ -136,8 +195,9 @@ void hwtest_bbcer(void)
         {
             t = millis();
             cli_cer.printf("\r\n> %lu\r\n", t);
-            dbg_cer.printf("\r\n< %lu\r\n", t);
+            dbg_printf("\r\n< %lu\r\n", t);
         }
+        #ifdef DEVELOPMENT_BOARD
         int16_t c;
         c = dbg_cer.read();
         if (c >= 0) {
@@ -147,6 +207,64 @@ void hwtest_bbcer(void)
         if (c >= 0) {
             dbg_cer.write((uint8_t)c);
         }
+        #endif
     }
 }
 #endif
+
+void hwtest_eeprom(void)
+{
+    #ifdef DEVELOPMENT_BOARD
+    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false, false);
+    dbg_button_init();
+    uint32_t t = millis();
+    uint32_t i, j;
+    while (true)
+    {
+        if (dbg_read_btn())
+        {
+            dbg_printf("EEPROM addr 0x%08X\r\n", cfg_addr);
+            cfg.useless = 0x12345678;
+            eeprom_factory_reset();
+            dbg_printf("checksum after factory reset: 0x%08X\r\n", cfg.chksum);
+            dbg_printf("dump after factory reset:");
+            for (i = 0, j = cfg_addr; i < sizeof(EEPROM_data_t); i++, j++)
+            {
+                if ((i % 16) == 0) {
+                    dbg_printf("\r\n");
+                }
+                uint8_t* bptr = (uint8_t*)j;
+                dbg_printf("%02X ", *bptr);
+            }
+            dbg_printf("\r\n");
+            cfg.useless = 0xDEADBEEF;
+            eeprom_save();
+            dbg_printf("checksum after save: 0x%08X\r\n", cfg.chksum);
+            dbg_printf("test pattern after save: 0x%08X\r\n", cfg.useless);
+            dbg_printf("dump after save:");
+            for (i = 0, j = cfg_addr; i < sizeof(EEPROM_data_t); i++, j++)
+            {
+                if ((i % 16) == 0) {
+                    dbg_printf("\r\n");
+                }
+                uint8_t* bptr = (uint8_t*)j;
+                dbg_printf("%02X ", *bptr);
+            }
+            dbg_printf("\r\n");
+            cfg.useless = 0; // load should restore this back to 0xDEADBEEF
+            eeprom_load_or_default();
+            dbg_printf("checksum after load: 0x%08X\r\n", cfg.chksum);
+            dbg_printf("test pattern after load: 0x%08X\r\n", cfg.useless);
+            while (true) {
+                // do nothing
+            }
+        }
+        else {
+            if ((millis() - t) >= 1000) {
+                t = millis();
+                dbg_printf("[%u] press button to test EEPROM\r\n", t);
+            }
+        }
+    }
+    #endif
+}

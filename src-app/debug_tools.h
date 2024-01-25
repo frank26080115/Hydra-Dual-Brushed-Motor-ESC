@@ -8,8 +8,10 @@
 
 #include "conf.h"
 #include "defs.h"
+#include "types.h"
 
 #include "mcu.h"
+#include "funcs.h"
 
 #define DEBUG_BAUD 115200
 
@@ -67,6 +69,21 @@ void dbg_switch_to_cereal(void);
 #define dbg_switch_to_cereal(...)
 #endif
 
+#ifdef RC_LOG_JITTER
+#define RCPULSE_LOGJITTER()        do {               \
+    uint32_t diff = (pulse_width_prev != 0) ? ((pulse_width >= pulse_width_prev) ? (pulse_width - pulse_width_prev) : (pulse_width_prev - pulse_width)) : 0; \
+    jitter = fi_lpf(jitter, diff * 1000, 100);        \
+    pulse_width_prev = pulse_width;                   \
+} while (0)                                           \
+
+
+#define RCPULSE_READJITTER(cn)    uint32_t cn::readJitter(void) { return (jitter + 500) / 1000; }
+#else
+#define RCPULSE_LOGJITTER(...)
+#endif
+
 #ifdef __cplusplus
 }
 #endif
+
+extern void dbg_wait_user(void);

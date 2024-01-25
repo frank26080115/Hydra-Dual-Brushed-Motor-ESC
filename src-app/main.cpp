@@ -7,6 +7,7 @@
 #include "rc.h"
 #include "led.h"
 #include "crsf.h"
+#include "hw_tests.h"
 #include <math.h>
 
 #ifdef STMICRO
@@ -21,7 +22,6 @@ RcChannel* rc2;
 
 #if defined(DEVELOPMENT_BOARD)
 Cereal_USART dbg_cer;
-#include "hw_tests.h"
 #endif
 
 #ifdef STMICRO
@@ -29,7 +29,7 @@ RcPulse_InputCap rc_pulse_1(IC_TIMER_REGISTER, INPUT_PIN_PORT, INPUT_PIN, IC_TIM
 RcPulse_GpioIsr  rc_pulse_2;
 CrsfChannel      crsf_1;
 CrsfChannel      crsf_2;
-Cereal_USART main_cer;
+Cereal_USART     main_cer;
 #if INPUT_PIN == LL_GPIO_PIN_2
 //
 #elif INPUT_PIN == LL_GPIO_PIN_4
@@ -62,29 +62,7 @@ int main(void)
     led_init();
 
     #if defined(DEVELOPMENT_BOARD)
-    led_state_set(true);
-    dbg_button_init();
-    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false, false);
-    {
-        char c = 0;
-        uint32_t _t = millis();
-        while (true) {
-            led_state_set((millis() % 1000) < 200);
-            if ((millis() - _t) >= 500) {
-                dbg_printf("hello hydra! %u 0x%02X\r\n", millis(), c);
-                _t = millis();
-            }
-            if (dbg_cer.available() > 0) {
-                c = dbg_cer.read();
-                dbg_printf(">0x%02X %c !!!\r\n", c, c);
-                break;
-            }
-            if (dbg_read_btn()) {
-                dbg_printf("B!!!\r\n");
-                break;
-            }
-        }
-    }
+    dbg_wait_user();
     #endif
 
     dbg_pintoggle_init();
@@ -145,7 +123,7 @@ int main(void)
             usart_id = CEREAL_ID_USART_SWCLK;
         }
 
-        main_cer.init(usart_id, cfg.baud == 0? CRSF_BAUDRATE : cfg.baud, false, true, false);
+        main_cer.init(usart_id, cfg.baud == 0 ? CRSF_BAUDRATE : cfg.baud, false, true, false);
         crsf_1.init(&main_cer, cfg.channel_1);
         crsf_2.init(&main_cer, cfg.channel_2);
         rc1 = &crsf_1;
@@ -238,10 +216,12 @@ int main(void)
         }
 
         int32_t duty_max;
+        bool limit_reached = false;
 
         // impose temperature limiting if desired
         if (cfg.temperature_limit > 0 && sense_temperatureC > cfg.temperature_limit) {
             duty_max = fi_map(sense_temperatureC, cfg.temperature_limit, cfg.temperature_limit + TEMPERATURE_OVER, cfg.pwm_reload / 2, 1, true);
+            limit_reached = true;
         }
         else {
             duty_max = cfg.pwm_reload - cfg.pwm_headroom;
@@ -255,6 +235,7 @@ int main(void)
             }
             if (duty_max > current_limit_val) {
                 duty_max = current_limit_val;
+                limit_reached = true;
             }
         }
 
@@ -262,7 +243,12 @@ int main(void)
         if (cfg.voltage_limit > 0) {
             if (sense_voltage < cfg.voltage_limit) {
                 duty_max -= fi_map(sense_voltage, cfg.voltage_limit, cfg.voltage_limit - UNDERVOLTAGE, 0, duty_max, true);
+                limit_reached = true;
             }
+        }
+
+        if (limit_reached) {
+
         }
 
         uint32_t duty_mid = (duty_max + 1) / 2; // this represents the center tap voltage if motors are going in opposite directions
@@ -445,6 +431,35 @@ void boot_decide_cli(void)
             cli_enter(); // this never returns
         }
         #endif
+    }
+}
+#endif
+
+#ifdef DEVELOPMENT_BOARD
+void dbg_wait_user(void)
+{
+    led_state_set(true);
+    dbg_button_init();
+    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false, false);
+    {
+        char c = 0;
+        uint32_t _t = millis();
+        while (true) {
+            led_state_set((millis() % 1000) < 200);
+            if ((millis() - _t) >= 500) {
+                dbg_printf("hello hydra! %u 0x%02X\r\n", millis(), c);
+                _t = millis();
+            }
+            if (dbg_cer.available() > 0) {
+                c = dbg_cer.read();
+                dbg_printf(">0x%02X %c !!!\r\n", c, c);
+                break;
+            }
+            if (dbg_read_btn()) {
+                dbg_printf("B!!!\r\n");
+                break;
+            }
+        }
     }
 }
 #endif

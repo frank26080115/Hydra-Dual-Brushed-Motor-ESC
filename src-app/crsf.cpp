@@ -18,10 +18,10 @@ uint8_t crsf_crc8(const uint8_t *ptr, uint8_t len);
 
 static Cereal* cereal;
 static uint16_t crsf_channels[CRSF_CHAN_CNT] = {0};
-static volatile bool     new_flag       = false;
-static volatile uint32_t last_good_time = 0;
-static volatile uint8_t  good_pulse_cnt = 0;
-static volatile uint8_t  bad_pulse_cnt  = 0;
+static bool     new_flag       = false;
+static uint32_t last_good_time = 0;
+static uint8_t  good_pulse_cnt = 0;
+static uint8_t  bad_pulse_cnt  = 0;
 
 CrsfChannel::CrsfChannel(void)
 {
@@ -73,10 +73,14 @@ void CrsfChannel::task(void)
                     crsf_channels[15] = ((buff[23] >> 5 | buff[24] << 3) & 0x07FF);
                 }
 
-                good_pulse_cnt++;
-                bad_pulse_cnt = 0;
-                last_good_time = millis();
-                new_flag = true;
+                rc_register_good_pulse(
+                    0
+                    , 0, 0
+                    , &last_good_time
+                    , &good_pulse_cnt, &bad_pulse_cnt, NULL
+                    , (bool*)&new_flag, NULL
+                );
+
                 _has_new = true;
                 cereal->consume(hdr->len + 2); // pop the buffer
                 if (arm_pulses_required > 0)
@@ -97,13 +101,7 @@ void CrsfChannel::task(void)
             }
             else
             {
-                if (bad_pulse_cnt < 3) {
-                    bad_pulse_cnt++;
-                }
-                else {
-                    good_pulse_cnt = 0;
-                }
-                arming_cnt = 0;
+                rc_register_bad_pulse(&good_pulse_cnt, &bad_pulse_cnt, &arming_cnt);
             }
 
             cereal->reset_buffer();
@@ -206,3 +204,7 @@ uint16_t crsf_readChan(uint8_t i)
 {
     return crsf_channels[i - 1];
 }
+
+#ifdef RC_LOG_JITTER
+uint32_t CrsfChannel::readJitter(void) { return 0; } // reads 0 for CRSF, any noise can be measured from the transmitter
+#endif

@@ -170,8 +170,12 @@ void pwm_set_loadbalance(bool x)
 
 void pwm_set_braking(bool x)
 {
+    bool set = (x != complementary_pwm && all_pin_states == PWMPINSTATE_PWM);
     braking = x;
     complementary_pwm = x;
+    if (set) {
+        pwm_all_pwm();
+    }
 }
 
 #ifdef DEBUG_PRINT

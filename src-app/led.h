@@ -33,6 +33,8 @@ void ledblink_disarmed(void);
 void ledblink_armed_stopped(void);
 void ledblink_moving(void);
 void ledblink_cli(void);
+void ledblink_currentlimit(void);
+void ledblink_lowbatt(void);
 
 #ifdef __cplusplus
 }

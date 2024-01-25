@@ -11,6 +11,11 @@ static volatile uint32_t arm_pulse_cnt  = 0;
 static volatile bool     armed          = false;
 static uint16_t arming_val_min = 0, arming_val_max = 0;
 
+#ifdef RC_LOG_JITTER
+static volatile uint16_t pulse_width_prev = 0;
+static volatile uint32_t jitter = 0;
+#endif
+
 void rc_ic_tim_init(void)
 {
     RC_IC_TIMx->BDTR  = TIM_BDTR_MOE;
@@ -67,13 +72,13 @@ void rc_ic_tim_init_2(void)
     GPIO_InitStruct.Pin = INPUT_PIN;
     GPIO_InitStruct.Alternate = LL_GPIO_AF_1;
     LL_GPIO_Init(INPUT_PIN_PORT, &GPIO_InitStruct); // GPIOB
-    NVIC_SetPriority(TIM3_IRQn, 0);
+    NVIC_SetPriority(TIM3_IRQn, 1);
     NVIC_EnableIRQ(TIM3_IRQn);
     #elif INPUT_PIN == LL_GPIO_PIN_2
     GPIO_InitStruct.Pin = INPUT_PIN;
     GPIO_InitStruct.Alternate = LL_GPIO_AF_0;
     LL_GPIO_Init(INPUT_PIN_PORT, &GPIO_InitStruct); // GPIOA
-    NVIC_SetPriority(TIM15_IRQn, 0);
+    NVIC_SetPriority(TIM15_IRQn, 1);
     NVIC_EnableIRQ(TIM15_IRQn);
     #endif
 
@@ -111,38 +116,23 @@ void RcPulse_IQRHandler(void)
 
         // reading the registers should automatically clear the interrupt flags
 
-        if (p < RC_INPUT_VALID_MAX || w < RC_INPUT_VALID_MIN || w > RC_INPUT_VALID_MAX)
+        if (p < RC_INPUT_VALID_MAX || w < RC_INPUT_VALID_MIN || w > RC_INPUT_VALID_MAX) // out of range
         {
-            arm_pulse_cnt = 0;
-            if (bad_pulse_cnt < 3) {
-                bad_pulse_cnt++;
-            }
-            else {
-                good_pulse_cnt = 0;
-            }
+            rc_register_bad_pulse((uint8_t*)&good_pulse_cnt, (uint8_t*)&bad_pulse_cnt, (uint32_t*)&arm_pulse_cnt);
         }
         else
         {
             pulse_width = w;
-            last_good_time = millis();
-            good_pulse_cnt++;
-            bad_pulse_cnt = 0;
-            new_flag = true;
-            if (arm_pulses_required > 0)
-            {
-                if (w >= arming_val_min && w <= arming_val_max) {
-                    arm_pulse_cnt++;
-                    if (arm_pulse_cnt >= arm_pulses_required) {
-                        armed = true;
-                    }
-                }
-                else {
-                    arm_pulse_cnt = 0;
-                }
-            }
-            else {
-                armed = true;
-            }
+
+            RCPULSE_LOGJITTER();
+
+            rc_register_good_pulse(
+                pulse_width
+                , arming_val_min, arming_val_max
+                , (uint32_t*)&last_good_time
+                , (uint8_t*)&good_pulse_cnt, (uint8_t*)&bad_pulse_cnt, (uint32_t*)&arm_pulse_cnt
+                , (bool*)&new_flag, (bool*)&armed
+            );
         }
     }
     #ifdef ENABLE_COMPILE_CLI
@@ -187,24 +177,7 @@ void RcPulse_InputCap::init(void)
 
     rc_ic_tim_init_2();
 
-    #if 0
-    uint16_t test_arming_val = 0;
-    int last_v = -THROTTLE_UNIT_RANGE;
-    for (test_arming_val = 1250; test_arming_val < 1750; test_arming_val++) {
-        int v = rc_pulse_map(test_arming_val);
-        if (v == 0 && last_v < 0 && arming_val_min == 0) {
-            arming_val_min = test_arming_val - 1;
-        }
-        if (v == 0 && last_v > 0 && arming_val_max == 0) {
-            arming_val_max = test_arming_val;
-            break;
-        }
-        last_v = v;
-    }
-    #else
-    arming_val_min = 1450;
-    arming_val_max = 1550;
-    #endif
+    rc_find_arming_vals(1, 0, (uint16_t*)&arming_val_min, (uint16_t*)&arming_val_max);
 }
 
 void RcPulse_InputCap::task(void)
@@ -260,3 +233,7 @@ void RcPulse_InputCap::disarm(void)
     armed = false;
     arm_pulse_cnt = 0;
 }
+
+#ifdef RC_LOG_JITTER
+RCPULSE_READJITTER(RcPulse_InputCap);
+#endif
