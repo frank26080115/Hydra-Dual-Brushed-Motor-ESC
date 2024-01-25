@@ -66,13 +66,13 @@ void rc_ic_tim_init_2(void)
     #if INPUT_PIN == LL_GPIO_PIN_4 || INPUT_PIN == LL_GPIO_PIN_6
     GPIO_InitStruct.Pin = INPUT_PIN;
     GPIO_InitStruct.Alternate = LL_GPIO_AF_1;
-    LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    LL_GPIO_Init(INPUT_PIN_PORT, &GPIO_InitStruct); // GPIOB
     NVIC_SetPriority(TIM3_IRQn, 0);
     NVIC_EnableIRQ(TIM3_IRQn);
     #elif INPUT_PIN == LL_GPIO_PIN_2
     GPIO_InitStruct.Pin = INPUT_PIN;
     GPIO_InitStruct.Alternate = LL_GPIO_AF_0;
-    LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    LL_GPIO_Init(INPUT_PIN_PORT, &GPIO_InitStruct); // GPIOA
     NVIC_SetPriority(TIM15_IRQn, 0);
     NVIC_EnableIRQ(TIM15_IRQn);
     #endif

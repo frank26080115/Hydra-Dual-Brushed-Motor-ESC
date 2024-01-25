@@ -13,7 +13,8 @@ static fifo_t cereal_fifo_tx;
 #endif
 static fifo_t cereal_fifo_rx;
 static volatile uint32_t last_rx_time = 0;
-static bool idle_flag_cleared = false;
+static volatile bool tx_is_busy = false;
+static volatile bool idle_flag_cleared = false;
 
 extern void rc_ic_tim_init(void);
 extern void rc_ic_tim_init_2(void);
@@ -23,22 +24,44 @@ extern bool ictimer_modeIsPulse;
 extern "C" {
 #endif
 
+static void rx_mode(void)
+{
+    LL_GPIO_SetPinMode(INPUT_PIN_PORT, INPUT_PIN, LL_GPIO_MODE_ALTERNATE);
+    RC_IC_TIMx->SMCR = TIM_SMCR_SMS_RM | LL_TIM_TS_TI1F_ED; // Reset on any edge on TI1
+    RC_IC_TIMx->CCER = TIM_CCER_CC2E | TIM_CCER_CC2P;       // IC2 on falling edge on TI1
+    RC_IC_TIMx->SR   = ~TIM_SR_CC2IF;                       // Clear flag
+    RC_IC_TIMx->DIER = TIM_DIER_CC2IE;                      // Enable capture/compare 2 interrupt
+    RC_IC_TIMx->CCR1 = CLK_CNT(cereal_baud * 2);            // Half-bit time
+    RC_IC_TIMx->EGR  = TIM_EGR_UG;                          // Reinitialize the counter and generates an update of the registers
+}
+
 void CerealBitbang_IRQHandler(void)
 {
     dbg_evntcnt_add(DBGEVNTID_BITBANG);
-    static int n = 0, b;
-    if (LL_TIM_IsActiveFlag_UPDATE(RC_IC_TIMx))
+
+    static volatile uint8_t n = 0, b;
+    if (LL_TIM_IsActiveFlag_UPDATE(RC_IC_TIMx) && LL_TIM_IsEnabledIT_UPDATE(RC_IC_TIMx)) // each period is one bit width
     {
+        // the TX function has already launched the start bit, this event happens after the start bit has been sent
         LL_TIM_ClearFlag_UPDATE(RC_IC_TIMx);
-        if (fifo_available(&cereal_fifo_tx) > 0) {
+        if (tx_is_busy) {
             int p = -1;
             if (n == 0) { // Start bit
-                b = fifo_pop(&cereal_fifo_tx);
-                n++;
+                if (fifo_available(&cereal_fifo_tx) > 0) {
+                    b = fifo_pop(&cereal_fifo_tx);
+                    tx_is_busy = true;
+                    n++;
+                }
+                else {
+                    tx_is_busy = false;
+                }
             }
-            else if (n < 10) { // Data bits
-                if (b & 1) p = 0;
+            else if (n < 9) { // Data bits
+                if (b & 1) {
+                    p = 0;
+                }
                 b >>= 1;
+                n++;
             } else { // Stop bit
                 n = 0;
                 p = 0;
@@ -47,49 +70,45 @@ void CerealBitbang_IRQHandler(void)
             return;
         }
 
-        // Go into receive mode if no more data needs to be sent
-        RC_IC_TIMx->SMCR = TIM_SMCR_SMS_RM | LL_TIM_TS_TI1F_ED; // Reset on any edge on TI1
-        RC_IC_TIMx->CCER = TIM_CCER_CC2E | TIM_CCER_CC2P;       // IC2 on falling edge on TI1
-        RC_IC_TIMx->SR   = ~TIM_SR_CC2IF;                       // Clear flag
-        RC_IC_TIMx->DIER = TIM_DIER_CC2IE;                      // Enable capture/compare 2 interrupt
-        RC_IC_TIMx->CCR1 = CLK_CNT(cereal_baud * 2);            // Half-bit time
-        RC_IC_TIMx->EGR  = TIM_EGR_UG;
+        rx_mode();
     }
-    else if (LL_TIM_IsActiveFlag_CC1(RC_IC_TIMx))
+    else if (LL_TIM_IsActiveFlag_CC1(RC_IC_TIMx) && LL_TIM_IsEnabledIT_CC1(RC_IC_TIMx)) // each period is one bit width
     {
+        // the first occurrence of this event happens in the middle of the first start bit
         LL_TIM_ClearFlag_CC1(RC_IC_TIMx);
         int p = LL_GPIO_IsInputPinSet(INPUT_PIN_PORT, INPUT_PIN); // Signal level
         if (n == 0) { // Start bit
             n++;
-            //if (p) WWDG_CR = WWDG_CR_WDGA; // Data error
             b = 0;
             return;
         }
-        if (n < 10) { // Data bit
+        if (n < 9) { // Data bit
             b >>= 1;
             if (p) {
                 b |= 0x80;
             }
+            n++;
+            if (n >= 9) {
+                fifo_push(&cereal_fifo_rx, b);
+                idle_flag_cleared = false;
+            }
             return;
         }
-        //if (!p || i == sizeof iobuf - 1) WWDG_CR = WWDG_CR_WDGA; // Data error
-        RC_IC_TIMx->SR = ~TIM_SR_CC2IF;
-        RC_IC_TIMx->DIER = TIM_DIER_CC2IE;
         n = 0;
-
-        fifo_push(&cereal_fifo_rx, b);
-        idle_flag_cleared = false;
-
-        RC_IC_TIMx->SMCR = 0;
-        RC_IC_TIMx->CCR1 = 0; // Preload high level
-        RC_IC_TIMx->EGR  = TIM_EGR_UG;    // Update registers and trigger UEV
-        RC_IC_TIMx->CCER = TIM_CCER_CC1E; // Enable output
-        RC_IC_TIMx->DIER = TIM_DIER_UIE;
+        rx_mode();
     }
-    else if (LL_TIM_IsActiveFlag_CC2(RC_IC_TIMx))
+    else if (LL_TIM_IsActiveFlag_CC2(RC_IC_TIMx) && LL_TIM_IsEnabledIT_CC2(RC_IC_TIMx))
     {
+        // receiving
+        // this event happens on the falling edge of the start bit
+        LL_TIM_ClearFlag_CC1(RC_IC_TIMx);
         LL_TIM_ClearFlag_CC2(RC_IC_TIMx);
         LL_TIM_EnableIT_CC1(RC_IC_TIMx);
+        LL_TIM_DisableIT_CC2(RC_IC_TIMx);
+        LL_TIM_DisableIT_UPDATE(RC_IC_TIMx);
+        RC_IC_TIMx->SMCR = 0; // ignore edges
+        RC_IC_TIMx->CCER = 0; // no need for capture
+        LL_GPIO_SetPinMode(INPUT_PIN_PORT, INPUT_PIN, LL_GPIO_MODE_INPUT);
     }
 }
 
@@ -118,35 +137,38 @@ void Cereal_TimerBitbang::init(uint32_t baud)
     RC_IC_TIMx->DIER  = TIM_DIER_CC2IE;
     RC_IC_TIMx->PSC   = 0;
     RC_IC_TIMx->ARR   = CLK_CNT(baud) - 1;  // Bit time
-    RC_IC_TIMx->CCR1  = CLK_CNT(baud * 2); // Half-bit time
+    RC_IC_TIMx->CCR1  = CLK_CNT(baud * 2);  // Half-bit time
     RC_IC_TIMx->EGR   = TIM_EGR_UG;
-    RC_IC_TIMx->CR1   = TIM_CR1_CEN;
-
-    LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
-    GPIO_InitStruct.Pin        = INPUT_PIN;
-    GPIO_InitStruct.Mode       = LL_GPIO_MODE_ALTERNATE;
-    GPIO_InitStruct.Speed      = LL_GPIO_SPEED_FREQ_HIGH;
-    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-    GPIO_InitStruct.Pull       = LL_GPIO_PULL_UP;
-    GPIO_InitStruct.Alternate  = 
-    #if INPUT_PIN == LL_GPIO_PIN_2
-        LL_GPIO_AF_0
-    #elif INPUT_PIN == LL_GPIO_PIN_4
-        LL_GPIO_AF_1
-    #elif INPUT_PIN == LL_GPIO_PIN_6
-        LL_GPIO_AF_1
-    #endif
-        ;
-    LL_GPIO_Init(INPUT_PIN_PORT, &GPIO_InitStruct);
 
     ictimer_modeIsPulse = false;
     rc_ic_tim_init_2();
+
+    __disable_irq();
+    rx_mode();
+    __enable_irq();
 }
 
 #ifdef ENABLE_CEREAL_TX
 void Cereal_TimerBitbang::write(uint8_t x)
 {
     fifo_push(fifo_tx, x);
+    __disable_irq();
+    if (tx_is_busy == false)
+    {
+        // trigger the first bit, the interrupt will pop out the byte and start sending
+        tx_is_busy = true;
+        LL_GPIO_SetPinMode(INPUT_PIN_PORT, INPUT_PIN, LL_GPIO_MODE_ALTERNATE);
+        LL_TIM_DisableCounter(RC_IC_TIMx);
+        LL_TIM_SetCounter(RC_IC_TIMx, 0);
+        RC_IC_TIMx->SMCR = 0;
+        RC_IC_TIMx->CCR1 = 0;             // Preload high level
+        RC_IC_TIMx->EGR  = TIM_EGR_UG;    // Update registers and trigger UEV
+        RC_IC_TIMx->CCER = TIM_CCER_CC1E; // Enable output
+        LL_TIM_EnableIT_UPDATE(RC_IC_TIMx);
+        LL_TIM_ClearFlag_UPDATE(RC_IC_TIMx);
+        LL_TIM_EnableCounter(RC_IC_TIMx);
+    }
+    __enable_irq();
     if (x == '\n') {
         flush();
     }
@@ -154,7 +176,9 @@ void Cereal_TimerBitbang::write(uint8_t x)
 
 void Cereal_TimerBitbang::flush(void)
 {
-    while (fifo_available(fifo_tx)) {
+    while (
+        //fifo_available(fifo_tx) &&
+        tx_is_busy) {
         // do nothing but wait
     }
 }

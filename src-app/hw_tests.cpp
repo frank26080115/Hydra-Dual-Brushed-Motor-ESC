@@ -17,6 +17,11 @@ extern Cereal_USART dbg_cer;
 
 #ifdef STMICRO
 extern RcPulse_InputCap rc_pulse_1;
+extern RcPulse_GpioIsr  rc_pulse_2;
+#endif
+
+#ifdef ENABLE_COMPILE_CLI
+extern Cereal_TimerBitbang cli_cer;
 #endif
 
 #ifdef HW_TESTS
@@ -24,7 +29,8 @@ void hw_test(void)
 {
     //hwtest_adc();
     //hwtest_pwm();
-    hwtest_rc1();
+    //hwtest_rc1();
+    hwtest_bbcer();
 }
 #endif
 
@@ -92,3 +98,55 @@ void hwtest_rc1(void)
         }
     }
 }
+
+void hwtest_rc2(void)
+{
+    #ifdef DEVELOPMENT_BOARD
+    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false, false);
+    #endif
+    rc_pulse_2.init(GPIOEXTI_TIMx, GPIOEXTI_GPIO, GPIOEXTI_Pin);
+    uint32_t t = millis();
+    while (true)
+    {
+        rc_pulse_2.task();
+        if ((millis() - t) >= 200)
+        {
+            t = millis();
+            if (rc_pulse_2.is_alive()) {
+                dbg_printf("[%u]  RC2 = %u\r\n", t, rc_pulse_1.readRaw());
+            }
+            else {
+                dbg_printf("[%u]  RC2 = ?\r\n", t);
+            }
+        }
+    }
+}
+
+#ifdef ENABLE_COMPILE_CLI
+void hwtest_bbcer(void)
+{
+    #ifdef DEVELOPMENT_BOARD
+    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false, false);
+    #endif
+    cli_cer.init(CLI_BAUD);
+    uint32_t t = millis();
+    while (true)
+    {
+        if ((millis() - t) >= 200)
+        {
+            t = millis();
+            cli_cer.printf("\r\n> %lu\r\n", t);
+            dbg_cer.printf("\r\n< %lu\r\n", t);
+        }
+        int16_t c;
+        c = dbg_cer.read();
+        if (c >= 0) {
+            cli_cer.write((uint8_t)c);
+        }
+        c = cli_cer.read();
+        if (c >= 0) {
+            dbg_cer.write((uint8_t)c);
+        }
+    }
+}
+#endif
