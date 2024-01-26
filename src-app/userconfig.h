@@ -14,6 +14,7 @@ extern uint32_t cfg_addr;
 
 bool eeprom_verify_checksum(uint8_t* ptr8);
 bool eeprom_load_or_default(void);
+void eeprom_load_defaults(void);
 void eeprom_save(void);
 void eeprom_save_if_needed(void);
 void eeprom_factory_reset(void);

@@ -70,7 +70,7 @@ int main(void)
 
     inp_init();
     pwm_init();
-    pwm_full_coast();
+    pwm_all_flt();
     sense_init();
     dbg_printf("low level init done at %u\r\n", millis());
 

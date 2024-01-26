@@ -168,11 +168,16 @@ bool eeprom_load_or_default(void)
     }
 }
 
+void eeprom_load_defaults(void)
+{
+    memcpy(&cfg, &default_eeprom, sizeof(EEPROM_data_t));
+    eeprom_has_loaded = true;
+}
+
 void eeprom_factory_reset(void)
 {
     dbg_printf("EEPROM factory resetting\r\n");
-    memcpy(&cfg, &default_eeprom, sizeof(EEPROM_data_t));
-    eeprom_has_loaded = true;
+    eeprom_load_defaults();
     eeprom_save();
 }
 

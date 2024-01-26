@@ -1,6 +1,7 @@
 #pragma once
 
 #include "main.h"
+#include "mcu.h"
 
 void hwtest_led(void);
 void hwtest_pwm(void);
@@ -9,6 +10,9 @@ void hwtest_rc1(void);
 void hwtest_rc2(void);
 void hwtest_rc_crsf(void);
 void hwtest_eeprom(void);
+void hwtest_sense(void);
+
+void hwtest_gpio(GPIO_TypeDef* gpio, uint32_t pin);
 
 #ifdef ENABLE_COMPILE_CLI
 void hwtest_bbcer(void);

@@ -34,7 +34,9 @@ extern Cereal_TimerBitbang cli_cer;
 void hw_test(void)
 {
     //hwtest_adc();
-    //hwtest_pwm();
+    //hwtest_sense();
+    //hwtest_gpio(GPIOA, LL_GPIO_PIN_8 | LL_GPIO_PIN_9 | LL_GPIO_PIN_10);
+    hwtest_pwm();
     //hwtest_rc1();
     //hwtest_rc2();
     //hwtest_rc_crsf();
@@ -42,6 +44,30 @@ void hw_test(void)
     //hwtest_eeprom();
 }
 #endif
+
+void hwtest_gpio(GPIO_TypeDef* gpio, uint32_t pin)
+{
+    LL_GPIO_InitTypeDef GPIO_InitStruct    = {0};
+
+    GPIO_InitStruct.Pin        = pin;
+    GPIO_InitStruct.Mode       = LL_GPIO_MODE_OUTPUT;
+    GPIO_InitStruct.Speed      = LL_GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+    GPIO_InitStruct.Pull       = LL_GPIO_PULL_NO;
+    LL_GPIO_Init(gpio, &GPIO_InitStruct);
+
+    while (true)
+    {
+        uint32_t t = millis();
+        t %= 2000;
+        if (t < 1000) {
+            LL_GPIO_SetOutputPin(gpio, pin);
+        }
+        else {
+            LL_GPIO_ResetOutputPin(gpio, pin);
+        }
+    }
+}
 
 void hwtest_led(void)
 {
@@ -58,8 +84,9 @@ void hwtest_pwm(void)
     dbg_button_init();
     pwm_init();
     dbg_switch_to_pwm();
+    pwm_all_flt();
     pwm_set_braking(true);
-    pwm_full_coast();
+    pwm_all_pwm();
     pwm_set_reload(2000);
     pwm_set_remap(1);
     pwm_set_loadbalance(false);
@@ -67,7 +94,7 @@ void hwtest_pwm(void)
     {
         if (dbg_read_btn())
         {
-            uint32_t x = (millis() / 10) % 1900;
+            uint32_t x = (millis() / 5) % 1900;
             pwm_set_all_duty_remapped(x, x + 1, x + 2);
         }
         else
@@ -91,6 +118,25 @@ void hwtest_adc(void)
         {
             t = millis();
             dbg_printf("[%u]  v = %u     c = %u    t = %u\r\n", t, adc_raw_voltage, adc_raw_current, adc_raw_temperature);
+        }
+    }
+}
+
+void hwtest_sense(void)
+{
+    #ifdef DEVELOPMENT_BOARD
+    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false, false);
+    #endif
+    eeprom_load_defaults();
+    sense_init();
+    uint32_t t = millis();
+    while (true)
+    {
+        sense_task();
+        if ((millis() - t) >= 200)
+        {
+            t = millis();
+            dbg_printf("[%u]  v = %u     c = %u    t = %u\r\n", t, sense_voltage, sense_current, sense_temperatureC);
         }
     }
 }
