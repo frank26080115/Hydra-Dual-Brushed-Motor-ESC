@@ -46,15 +46,18 @@ void CrsfChannel::task(void)
     }
     #endif
 
+    uint8_t* buff = cereal->get_buffer();
+    crsf_header_t* hdr = (crsf_header_t*)buff;
+    uint16_t avail = cereal->available();
+    uint32_t now = millis();
+
     // check packet header for match
-    if (cereal->peek() == CRSF_SYNC_BYTE
-        && cereal->peekAt(2) == CRSF_FRAMETYPE_RC_CHANNELS_PACKED
-        && cereal->peekAt(1) <= (cereal->available() + 2)
+    if (hdr->sync == CRSF_SYNC_BYTE
+        && hdr->type == CRSF_FRAMETYPE_RC_CHANNELS_PACKED
+        && hdr->len <= (avail + 2) // packet is complete
     ) {
-        uint8_t* buff = cereal->get_buffer();
-        crsf_header_t* hdr = (crsf_header_t*)buff;
         uint8_t crc = crsf_crc8(&(hdr->type), hdr->len - 1);
-        if (crc == buff[hdr->len + 1] || crc == buff[hdr->len + 2] || crc == buff[hdr->len]) // CRC matches
+        if (crc == buff[hdr->len + 1]) // CRC matches
         {
             #ifdef DEBUG_CRSF
             if (to_debug) {
@@ -133,26 +136,29 @@ void CrsfChannel::task(void)
         }
         cereal->reset_buffer();
     }
-    else if (cereal->available() >= 3 && (cereal->peek() != CRSF_SYNC_BYTE || cereal->peekAt(2) != CRSF_FRAMETYPE_RC_CHANNELS_PACKED)) {
+    else if (hdr->sync == CRSF_SYNC_BYTE
+        && hdr->type != CRSF_FRAMETYPE_RC_CHANNELS_PACKED
+        && (hdr->len <= (avail + 2) || (now - last_good_time) >= 5)
+    ) {
         #ifdef DEBUG_CRSF
         if (to_debug) {
-            dbg_printf("CRSF bad header 0x%02X 0x%02X 0x%02X\r\n", cereal->peek(), cereal->peekAt(1), cereal->peekAt(2));
+            dbg_printf("CRSF unwanted packet 0x%02X 0x%02X 0x%02X\r\n", hdr->sync, hdr->len, hdr->type);
             to_debug = false;
         }
         #endif
         cereal->reset_buffer();
     }
-    else if (cereal->available() >= 1 && cereal->peek() != CRSF_SYNC_BYTE) {
+    else if (avail >= 1 && hdr->sync != CRSF_SYNC_BYTE) {
         #ifdef DEBUG_CRSF
         if (to_debug) {
-            dbg_printf("CRSF bad header 0x%02X\r\n", cereal->peek());
+            dbg_printf("CRSF bad header 0x%02X\r\n", hdr->sync);
             to_debug = false;
         }
         #endif
         cereal->reset_buffer();
     }
 
-    if ((millis() - last_good_time) >= 200)
+    if ((now - last_good_time) >= 200)
     {
         arming_cnt = 0;
         while (true)
@@ -169,7 +175,7 @@ void CrsfChannel::task(void)
 
     if (disarm_timeout > 0)
     {
-        if ((millis() - last_good_time) >= disarm_timeout)
+        if ((now - last_good_time) >= disarm_timeout)
         {
             armed = false;
             arming_cnt = 0;

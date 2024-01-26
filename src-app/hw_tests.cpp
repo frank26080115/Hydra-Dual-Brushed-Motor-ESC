@@ -41,9 +41,9 @@ void hw_test(void)
     //hwtest_pwm();
     //hwtest_rc1();
     //hwtest_rc2();
-    //hwtest_rc_crsf();
+    hwtest_rc_crsf();
     //hwtest_bbcer();
-    hwtest_eeprom();
+    //hwtest_eeprom();
 }
 #endif
 
