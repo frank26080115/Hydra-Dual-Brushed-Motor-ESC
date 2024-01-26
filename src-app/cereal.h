@@ -14,7 +14,7 @@ class Cereal
     public:
     #ifdef ENABLE_CEREAL_TX
         virtual void write(uint8_t x);
-        virtual size_t write(uint8_t* buf, int len);
+        virtual size_t writeb(uint8_t* buf, int len);
         virtual void flush(void);
     #endif
         virtual int16_t read(void);

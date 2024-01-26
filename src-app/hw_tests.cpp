@@ -33,13 +33,14 @@ extern Cereal_TimerBitbang cli_cer;
 #ifdef HW_TESTS
 void hw_test(void)
 {
+    //hwtest_uart();
     //hwtest_adc();
     //hwtest_sense();
     //hwtest_gpio(GPIOA, LL_GPIO_PIN_8 | LL_GPIO_PIN_9 | LL_GPIO_PIN_10);
     //hwtest_pwm();
     //hwtest_rc1();
-    hwtest_rc2();
-    //hwtest_rc_crsf();
+    //hwtest_rc2();
+    hwtest_rc_crsf();
     //hwtest_bbcer();
     //hwtest_eeprom();
 }
@@ -141,6 +142,32 @@ void hwtest_sense(void)
     }
 }
 
+void hwtest_uart(void)
+{
+    #ifdef DEVELOPMENT_BOARD
+    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false, false);
+    while (true)
+    {
+        //if (dbg_cer.get_idle_flag(false))
+        //{
+        //    if (dbg_cer.available() > 0)
+        //    {
+        //        int len = dbg_cer.available();
+        //        uint8_t* buf = dbg_cer.get_buffer();
+        //        dbg_cer.writeb(buf, len);
+        //        dbg_cer.flush();
+        //        dbg_cer.reset_buffer();
+        //        dbg_cer.get_idle_flag(true);
+        //    }
+        //}
+        if (dbg_cer.available() > 0)
+        {
+            dbg_cer.write((uint8_t)dbg_cer.read());
+        }
+    }
+    #endif
+}
+
 void hwtest_rcx(RcChannel* rcx, uint8_t idx);
 void hwtest_rcx_print(RcChannel* rcx, uint8_t idx);
 
@@ -175,7 +202,7 @@ void hwtest_rc_crsf(void)
     #else
     usart_id = CEREAL_ID_USART2;
     #endif
-    main_cer.init(usart_id, CRSF_BAUDRATE, false, true, false);
+    main_cer.init(usart_id, 420000, false, false, true);
     crsf_1.init(&main_cer, 1);
     crsf_2.init(&main_cer, 2);
     uint32_t t = millis();

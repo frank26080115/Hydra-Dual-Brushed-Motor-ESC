@@ -1,6 +1,8 @@
 #include "crsf.h"
 #include "userconfig.h"
 
+//#define DEBUG_CRSF
+
 #define CRSF_CHAN_CNT 16
 #define CRSF_SYNC_BYTE 0xC8
 #define CRSF_FRAMETYPE_RC_CHANNELS_PACKED 0x16
@@ -35,81 +37,121 @@ void CrsfChannel::init(Cereal* cer, uint8_t idx)
 
 void CrsfChannel::task(void)
 {
-    if (cereal->get_idle_flag(true) || (millis() - last_good_time) >= 100) // UART is idle or a long time has passed
-    {
-        // check packet header for match
-        if (cereal->peek() == CRSF_SYNC_BYTE
-            && cereal->peekAt(2) == CRSF_FRAMETYPE_RC_CHANNELS_PACKED
-            && cereal->peekAt(1) >= (cereal->available() + 2)
-        ) {
-            uint8_t* buff = cereal->get_buffer();
-            crsf_header_t* hdr = (crsf_header_t*)buff;
-            uint8_t crc = crsf_crc8(&(hdr->type), hdr->len - 1);
-            if (crc == buff[hdr->len + 1]) // CRC matches
+    #ifdef DEBUG_CRSF
+    static bool to_debug = false;
+    static uint32_t last_debug_time = 0;
+    if ((millis() - last_debug_time) >= 200 && to_debug == false) {
+        last_debug_time = millis();
+        to_debug = true;
+    }
+    #endif
+
+    // check packet header for match
+    if (cereal->peek() == CRSF_SYNC_BYTE
+        && cereal->peekAt(2) == CRSF_FRAMETYPE_RC_CHANNELS_PACKED
+        && cereal->peekAt(1) <= (cereal->available() + 2)
+    ) {
+        uint8_t* buff = cereal->get_buffer();
+        crsf_header_t* hdr = (crsf_header_t*)buff;
+        uint8_t crc = crsf_crc8(&(hdr->type), hdr->len - 1);
+        if (crc == buff[hdr->len + 1] || crc == buff[hdr->len + 2] || crc == buff[hdr->len]) // CRC matches
+        {
+            #ifdef DEBUG_CRSF
+            if (to_debug) {
+                dbg_printf("CRSF good\r\n");
+                to_debug = false;
+            }
+            #endif
+
+            // decompress, 11 bits per channel
+            if (hdr->len >= 8) {
+                crsf_channels[0]  = ((buff[3]       | buff[4]  << 8) & 0x07FF);
+                crsf_channels[1]  = ((buff[4]  >> 3 | buff[5]  << 5) & 0x07FF);
+                crsf_channels[2]  = ((buff[5]  >> 6 | buff[6]  << 2 | buff[7] << 10) & 0x07FF);
+                crsf_channels[3]  = ((buff[7]  >> 1 | buff[8]  << 7) & 0x07FF);
+            }
+            if (hdr->len >= 13) {
+                crsf_channels[4]  = ((buff[8]  >> 4 | buff[9]  << 4) & 0x07FF);
+                crsf_channels[5]  = ((buff[9]  >> 7 | buff[10] << 1 | buff[11] << 9) & 0x07FF);
+                crsf_channels[6]  = ((buff[11] >> 2 | buff[12] << 6) & 0x07FF);
+                crsf_channels[7]  = ((buff[12] >> 5 | buff[13] << 3) & 0x07FF);
+            }
+            if (hdr->len >= 19) {
+                crsf_channels[8]  = ((buff[14]      | buff[15] << 8) & 0x07FF);
+                crsf_channels[9]  = ((buff[15] >> 3 | buff[16] << 5) & 0x07FF);
+                crsf_channels[10] = ((buff[16] >> 6 | buff[17] << 2 | buff[18] << 10) & 0x07FF);
+                crsf_channels[11] = ((buff[18] >> 1 | buff[19] << 7) & 0x07FF);
+            }
+            if (hdr->len >= 24) {
+                crsf_channels[12] = ((buff[19] >> 4 | buff[20] << 4) & 0x07FF);
+                crsf_channels[13] = ((buff[20] >> 7 | buff[21] << 1 | buff[22] << 9) & 0x07FF);
+                crsf_channels[14] = ((buff[22] >> 2 | buff[23] << 6) & 0x07FF);
+                crsf_channels[15] = ((buff[23] >> 5 | buff[24] << 3) & 0x07FF);
+            }
+
+            rc_register_good_pulse(
+                0
+                , 0, 0
+                , &last_good_time
+                , &good_pulse_cnt, &bad_pulse_cnt, NULL
+                , (bool*)&new_flag, NULL
+            );
+
+            _has_new = true;
+            if (arm_pulses_required > 0)
             {
-                // decompress, 11 bits per channel
-                if (hdr->len >= 8) {
-                    crsf_channels[0]  = ((buff[3]       | buff[4]  << 8) & 0x07FF);
-                    crsf_channels[1]  = ((buff[4]  >> 3 | buff[5]  << 5) & 0x07FF);
-                    crsf_channels[2]  = ((buff[5]  >> 6 | buff[6]  << 2 | buff[7] << 10) & 0x07FF);
-                    crsf_channels[3]  = ((buff[7]  >> 1 | buff[8]  << 7) & 0x07FF);
-                }
-                if (hdr->len >= 13) {
-                    crsf_channels[4]  = ((buff[8]  >> 4 | buff[9]  << 4) & 0x07FF);
-                    crsf_channels[5]  = ((buff[9]  >> 7 | buff[10] << 1 | buff[11] << 9) & 0x07FF);
-                    crsf_channels[6]  = ((buff[11] >> 2 | buff[12] << 6) & 0x07FF);
-                    crsf_channels[7]  = ((buff[12] >> 5 | buff[13] << 3) & 0x07FF);
-                }
-                if (hdr->len >= 19) {
-                    crsf_channels[8]  = ((buff[14]      | buff[15] << 8) & 0x07FF);
-                    crsf_channels[9]  = ((buff[15] >> 3 | buff[16] << 5) & 0x07FF);
-                    crsf_channels[10] = ((buff[16] >> 6 | buff[17] << 2 | buff[18] << 10) & 0x07FF);
-                    crsf_channels[11] = ((buff[18] >> 1 | buff[19] << 7) & 0x07FF);
-                }
-                if (hdr->len >= 24) {
-                    crsf_channels[12] = ((buff[19] >> 4 | buff[20] << 4) & 0x07FF);
-                    crsf_channels[13] = ((buff[20] >> 7 | buff[21] << 1 | buff[22] << 9) & 0x07FF);
-                    crsf_channels[14] = ((buff[22] >> 2 | buff[23] << 6) & 0x07FF);
-                    crsf_channels[15] = ((buff[23] >> 5 | buff[24] << 3) & 0x07FF);
-                }
-
-                rc_register_good_pulse(
-                    0
-                    , 0, 0
-                    , &last_good_time
-                    , &good_pulse_cnt, &bad_pulse_cnt, NULL
-                    , (bool*)&new_flag, NULL
-                );
-
-                _has_new = true;
-                cereal->consume(hdr->len + 2); // pop the buffer
-                if (arm_pulses_required > 0)
-                {
-                    if (read() == 0) {
-                        arming_cnt++;
-                        if (arming_cnt >= arm_pulses_required) {
-                            armed = true;
-                        }
-                    }
-                    else {
-                        arming_cnt = 0;
+                if (read() == 0) {
+                    arming_cnt++;
+                    if (arming_cnt >= arm_pulses_required) {
+                        armed = true;
                     }
                 }
                 else {
-                    armed = true;
+                    arming_cnt = 0;
                 }
             }
-            else
-            {
-                rc_register_bad_pulse(&good_pulse_cnt, &bad_pulse_cnt, &arming_cnt);
+            else {
+                armed = true;
             }
+        }
+        else
+        {
+            #ifdef DEBUG_CRSF
+            if (to_debug) {
+                dbg_printf("CRSF bad CRC 0x%02X != 0x%02X  --  ", crc, buff[hdr->len + 1]);
+                for (int iii = 0; iii <= hdr->len + 1; iii++) {
+                    if (iii < 3 || iii > hdr->len - 3) {
+                        dbg_printf("%02X ", buff[iii]);
+                    }
+                }
+                dbg_printf("\r\n");
+                to_debug = false;
+            }
+            #endif
 
-            cereal->reset_buffer();
+            rc_register_bad_pulse(&good_pulse_cnt, &bad_pulse_cnt, &arming_cnt);
         }
-        else {
-            cereal->reset_buffer();
-        }
+        cereal->reset_buffer();
     }
+    else if (cereal->available() >= 3 && (cereal->peek() != CRSF_SYNC_BYTE || cereal->peekAt(2) != CRSF_FRAMETYPE_RC_CHANNELS_PACKED)) {
+        #ifdef DEBUG_CRSF
+        if (to_debug) {
+            dbg_printf("CRSF bad header 0x%02X 0x%02X 0x%02X\r\n", cereal->peek(), cereal->peekAt(1), cereal->peekAt(2));
+            to_debug = false;
+        }
+        #endif
+        cereal->reset_buffer();
+    }
+    else if (cereal->available() >= 1 && cereal->peek() != CRSF_SYNC_BYTE) {
+        #ifdef DEBUG_CRSF
+        if (to_debug) {
+            dbg_printf("CRSF bad header 0x%02X\r\n", cereal->peek());
+            to_debug = false;
+        }
+        #endif
+        cereal->reset_buffer();
+    }
+
     if ((millis() - last_good_time) >= 200)
     {
         arming_cnt = 0;
@@ -120,7 +162,7 @@ void CrsfChannel::task(void)
                 break;
             }
             else {
-                cereal->read();
+                cereal->reset_buffer();
             }
         }
     }

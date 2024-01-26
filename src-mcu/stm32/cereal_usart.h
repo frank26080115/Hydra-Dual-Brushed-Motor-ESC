@@ -25,6 +25,7 @@ class Cereal_USART : public Cereal
         virtual bool get_idle_flag(bool clr);
     protected:
         USART_TypeDef* _usart;
+        uint8_t _u;
         #ifdef ENABLE_CEREAL_TX
         fifo_t* fifo_tx;
         #endif

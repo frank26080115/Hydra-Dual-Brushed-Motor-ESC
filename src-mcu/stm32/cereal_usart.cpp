@@ -26,10 +26,7 @@ volatile bool* is_idle, volatile uint32_t* timestamp, volatile bool* had_1st)
     if (LL_USART_IsActiveFlag_RXNE(usart))
     {
         dbg_evntcnt_add(DBGEVNTID_USART_RX);
-        volatile uint8_t x;
-        while (LL_USART_IsActiveFlag_RXNE(usart)) {
-            x = LL_USART_ReceiveData8(usart);
-        }
+        volatile uint8_t x = LL_USART_ReceiveData8(usart);
         if ((x < 0x80 && x != 0x00) || (*had_1st) != false) { // this prevents the first junk character from entering the FIFO
             fifo_push(fifo_rx, x);
             *had_1st = true;
@@ -98,26 +95,27 @@ void Cereal_USART::init(uint8_t id, uint32_t baud, bool invert, bool halfdup, bo
     _id = id;
     if (id == CEREAL_ID_USART1) {
         _usart = USART1;
+        _u = CEREAL_ID_USART1;
     }
     else if (id == CEREAL_ID_USART2) {
         _usart = USART2;
+        _u = CEREAL_ID_USART2;
     }
     else if (_id == CEREAL_ID_USART_DEBUG) {
         #if defined(STM32F051DISCO)
         _usart = USART1;
+        _u = CEREAL_ID_USART1;
         #elif defined(STM32G071NUCLEO)
         _usart = USART2;
+        _u = CEREAL_ID_USART2;
         #endif
     }
     else if (_id == CEREAL_ID_USART_SWCLK) {
         _usart = USART2;
+        _u = CEREAL_ID_USART2;
     }
 
-    if (_id == CEREAL_ID_USART1
-        #if defined(STM32F051DISCO)
-            || _id == CEREAL_ID_USART_DEBUG
-        #endif
-    ) {
+    if (_u == CEREAL_ID_USART1) {
         fifo_init(&fifo_rx_1, cer_buff_1, CEREAL_BUFFER_SIZE);
         fifo_rx = &fifo_rx_1;
         #ifdef ENABLE_CEREAL_TX
@@ -127,11 +125,7 @@ void Cereal_USART::init(uint8_t id, uint32_t baud, bool invert, bool halfdup, bo
         is_idle_1 = false;
         last_rx_time_1 = 0;
     }
-    else if (_id == CEREAL_ID_USART2 || _id == CEREAL_ID_USART_SWCLK
-        #if defined(STM32G071NUCLEO)
-            || _id == CEREAL_ID_USART_DEBUG
-        #endif
-    ) {
+    else if (_u == CEREAL_ID_USART2) {
         fifo_init(&fifo_rx_2, cer_buff_1, CEREAL_BUFFER_SIZE);
         fifo_rx = &fifo_rx_2;
         #ifdef ENABLE_CEREAL_TX
@@ -284,10 +278,10 @@ void Cereal_USART::flush(void)
 
 uint32_t Cereal_USART::get_last_time(void)
 {
-    if (_id == 1 || _id == 3) {
+    if (_u == CEREAL_ID_USART1) {
         return last_rx_time_1;
     }
-    else if (_id == 2) {
+    else if (_u == CEREAL_ID_USART2) {
         return last_rx_time_2;
     }
     return 0;
@@ -297,13 +291,13 @@ bool Cereal_USART::get_idle_flag(bool clr)
 {
     bool x = false;
     __disable_irq();
-    if (_id == 1 || _id == 3) {
+    if (_u == CEREAL_ID_USART1) {
         x = is_idle_1;
         if (clr) {
             is_idle_1 = false;
         }
     }
-    else if (_id == 2) {
+    else if (_u == CEREAL_ID_USART2) {
         x = is_idle_2;
         if (clr) {
             is_idle_2 = false;

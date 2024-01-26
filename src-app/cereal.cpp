@@ -48,7 +48,7 @@ size_t Cereal::printf(const char *format, ...)
         #endif
     }
     va_end(arg);
-    len = write((uint8_t*)temp, len);
+    len = writeb((uint8_t*)temp, len);
     #if 0
     if (temp != loc_buf){
         free(temp);
@@ -59,7 +59,7 @@ size_t Cereal::printf(const char *format, ...)
 #endif
 
 #ifdef ENABLE_CEREAL_TX
-size_t Cereal::write(uint8_t* buf, int len)
+size_t Cereal::writeb(uint8_t* buf, int len)
 {
     int i;
     for (i = 0; i < len; i++) {
