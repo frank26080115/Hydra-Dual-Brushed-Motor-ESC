@@ -36,9 +36,9 @@ void hw_test(void)
     //hwtest_adc();
     //hwtest_sense();
     //hwtest_gpio(GPIOA, LL_GPIO_PIN_8 | LL_GPIO_PIN_9 | LL_GPIO_PIN_10);
-    hwtest_pwm();
+    //hwtest_pwm();
     //hwtest_rc1();
-    //hwtest_rc2();
+    hwtest_rc2();
     //hwtest_rc_crsf();
     //hwtest_bbcer();
     //hwtest_eeprom();
@@ -197,7 +197,7 @@ void hwtest_rc_crsf(void)
 
 void hwtest_rcx_print(RcChannel* rcx, uint8_t idx)
 {
-    dbg_printf("%c%c%u = %u"
+    dbg_printf("%c%c%u = %d"
         #ifdef RC_LOG_JITTER
         "  (j %u)"
         #endif

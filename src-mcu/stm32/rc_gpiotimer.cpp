@@ -2,6 +2,8 @@
 #include "rc_stm32.h"
 #include "gpio_to_exti.h"
 
+#define RC_MEASURE_MULTIPLIER 4 // speed up the timer to see if it can improve jitter
+
 static GPIO_TypeDef* rc_gpio;
 static TIM_TypeDef*  rc_tim;
 static uint32_t      rc_pin;
@@ -26,13 +28,13 @@ static volatile uint16_t pulse_width_prev = 0;
 static volatile uint32_t jitter = 0;
 #endif
 
-#ifdef GPIOEXTI_IRQHandler
+//#ifdef GPIOEXTI_IRQHandler
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-void GPIOEXTI_IRQHandler(void)
+void EXTI4_15_IRQHandler(void)
 {
     uint32_t t = LL_TIM_GetCounter(rc_tim);
     #if defined(MCU_F051)
@@ -50,7 +52,8 @@ void GPIOEXTI_IRQHandler(void)
         #endif
         if (was_high)
         {
-            if (overflow_cnt == 0 && t >= (RC_INPUT_VALID_MIN * 4) && t <= (RC_INPUT_VALID_MAX * 4))
+            if (overflow_cnt == 0 && t >= (RC_INPUT_VALID_MIN * RC_MEASURE_MULTIPLIER) && t <= (RC_INPUT_VALID_MAX * RC_MEASURE_MULTIPLIER)
+                )
             {
                 pulse_width = t;
 
@@ -82,14 +85,25 @@ void GPIOEXTI_IRQHandler(void)
         LL_EXTI_ClearRisingFlag_0_31(rc_exti_line);
         #endif
         // reset counter on rising edge
-        LL_TIM_SetCounter(rc_tim, 0);
-        overflow_cnt = 0;
+        if (was_high == false)
+        {
+            LL_TIM_SetCounter(rc_tim, 0);
+            overflow_cnt = 0;
+        }
         was_high = true;
     }
 }
 
 // note: the overflow occurs every 16 milliseconds, which means it does occur at least once during one period of RC signaling
-void GPIOEXTI_TIM_IRQHandler(void)
+void 
+#if defined(MCU_F051)
+TIM6_IRQHandler
+#elif defined(MCU_G071)
+TIM6_DAC_LPTIM1_IRQHandler
+#else
+#error
+#endif
+(void)
 {
     dbg_evntcnt_add(DBGEVNTID_GPIOTMR_OVERFLOW);
     if (LL_TIM_IsActiveFlag_UPDATE(rc_tim))
@@ -107,7 +121,7 @@ void GPIOEXTI_TIM_IRQHandler(void)
 }
 #endif
 
-#endif
+//#endif
 
 RcPulse_GpioIsr::RcPulse_GpioIsr(void)
 {
@@ -129,16 +143,15 @@ void RcPulse_GpioIsr::init(TIM_TypeDef* TIMx, GPIO_TypeDef* GPIOx, uint32_t pin)
     rc_exti_sysline = gpio_to_exti_sys_line(rc_pin);
 
     LL_TIM_InitTypeDef timcfg = {0};
-    timcfg.Prescaler     = __LL_TIM_CALC_PSC(SystemCoreClock, 4000000);
+    timcfg.Prescaler     = __LL_TIM_CALC_PSC(SystemCoreClock, 1000000 * RC_MEASURE_MULTIPLIER);
     timcfg.CounterMode   = LL_TIM_COUNTERMODE_UP;
     timcfg.ClockDivision = LL_TIM_CLOCKDIVISION_DIV1;
-    timcfg.Autoreload    = 0; // this will make it interrupt at overflow event
+    timcfg.Autoreload    = -1; // this will make it interrupt at overflow event
     LL_TIM_Init(rc_tim, &timcfg);
     // every count is 0.25 us , this works for both 8 MHz and 48 MHz system core clock
 
     LL_TIM_EnableIT_UPDATE(rc_tim);
-    NVIC_SetPriority(GPIOEXTI_TIM_IRQn, 0);
-    NVIC_EnableIRQ(GPIOEXTI_TIM_IRQn);
+    LL_TIM_EnableCounter(rc_tim);
 
     LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
     GPIO_InitStruct.Pin          = rc_pin;
@@ -152,18 +165,22 @@ void RcPulse_GpioIsr::init(TIM_TypeDef* TIMx, GPIO_TypeDef* GPIOx, uint32_t pin)
     LL_SYSCFG_SetEXTISource(rc_exti_port, rc_exti_sysline);
     #elif defined(MCU_G071)
     LL_EXTI_SetEXTISource(rc_exti_port, rc_exti_sysline);
+    #else
+    #error
     #endif
     LL_EXTI_EnableRisingTrig_0_31 (rc_exti_line);
     LL_EXTI_EnableFallingTrig_0_31(rc_exti_line);
     LL_EXTI_EnableEvent_0_31      (rc_exti_line);
     LL_EXTI_EnableIT_0_31         (rc_exti_line);
 
+    NVIC_SetPriority(GPIOEXTI_TIM_IRQn, 1);
+    NVIC_EnableIRQ  (GPIOEXTI_TIM_IRQn);
     NVIC_SetPriority(GPIOEXTI_IRQn, 0);
     NVIC_EnableIRQ  (GPIOEXTI_IRQn);
 
     was_high = LL_GPIO_IsInputPinSet(rc_gpio, rc_pin);
 
-    rc_find_arming_vals(4, GPIO_RC_PULSE_OFFSET, (uint16_t*)&arming_val_min, (uint16_t*)&arming_val_max);
+    rc_find_arming_vals(RC_MEASURE_MULTIPLIER, GPIO_RC_PULSE_OFFSET, (uint16_t*)&arming_val_min, (uint16_t*)&arming_val_max);
 }
 
 void RcPulse_GpioIsr::task(void)

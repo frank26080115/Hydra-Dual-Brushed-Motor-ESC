@@ -228,24 +228,6 @@ void pwm_init()
     LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH1);
     LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH2);
     LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH3);
-    //LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH1 | LL_TIM_CHANNEL_CH2 | LL_TIM_CHANNEL_CH3 | LL_TIM_CHANNEL_CH1N | LL_TIM_CHANNEL_CH2N | LL_TIM_CHANNEL_CH3N);
-
-    #ifdef MCU_G071
-    LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH5);
-    LL_TIM_CC_EnableChannel(TIM1, LL_TIM_CHANNEL_CH4);
-    TIM1->CCR4 = 100;
-
-    TIM_InitStruct.Prescaler = 31;
-    TIM_InitStruct.CounterMode = LL_TIM_COUNTERMODE_UP;
-    TIM_InitStruct.Autoreload = 65535;
-    TIM_InitStruct.ClockDivision = LL_TIM_CLOCKDIVISION_DIV1;
-    LL_TIM_Init(TIM2, &TIM_InitStruct);
-    LL_TIM_DisableARRPreload(TIM2);
-    LL_TIM_SetClockSource(TIM2, LL_TIM_CLOCKSOURCE_INTERNAL);
-    LL_TIM_SetTriggerOutput(TIM2, LL_TIM_TRGO_RESET);
-    LL_TIM_DisableMasterSlaveMode(TIM2);
-
-    #endif
 
     LL_TIM_EnableCounter(TIM1);
     LL_TIM_EnableAllOutputs(TIM1);
