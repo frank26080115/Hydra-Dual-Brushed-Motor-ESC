@@ -481,9 +481,10 @@
     #define HAS_TELEMETRY_PIN
     #define SIXTY_FOUR_KB_MEMORY
     #define DEVELOPMENT_BOARD
-    #define LED_PIN                 LL_GPIO_PIN_5
-    #define LED_GPIO                GPIOA
-    #define LED_IS_OPENDRAIN        false
+    //#define LED_PIN                 LL_GPIO_PIN_5
+    //#define LED_GPIO                GPIOA
+    //#define LED_IS_OPENDRAIN        false
+    #define USE_LED_STRIP
 #endif
 
 #ifdef AIKON_PRO_G071

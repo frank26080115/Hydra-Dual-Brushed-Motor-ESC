@@ -37,12 +37,13 @@ void hw_test(void)
     //hwtest_adc();
     //hwtest_sense();
     //hwtest_gpio(GPIOA, LL_GPIO_PIN_8 | LL_GPIO_PIN_9 | LL_GPIO_PIN_10);
+    //hwtest_led();
     //hwtest_pwm();
     //hwtest_rc1();
     //hwtest_rc2();
-    hwtest_rc_crsf();
+    //hwtest_rc_crsf();
     //hwtest_bbcer();
-    //hwtest_eeprom();
+    hwtest_eeprom();
 }
 #endif
 
@@ -299,7 +300,7 @@ void hwtest_eeprom(void)
             dbg_printf("EEPROM addr 0x%08X\r\n", cfg_addr);
             cfg.useless = 0x12345678;
             eeprom_factory_reset();
-            dbg_printf("checksum after factory reset: 0x%08X\r\n", cfg.chksum);
+            dbg_printf("checksum after factory reset: 0x%02X\r\n", cfg.chksum);
             dbg_printf("dump after factory reset:");
             for (i = 0, j = cfg_addr; i < sizeof(EEPROM_data_t); i++, j++)
             {
@@ -312,7 +313,7 @@ void hwtest_eeprom(void)
             dbg_printf("\r\n");
             cfg.useless = 0xDEADBEEF;
             eeprom_save();
-            dbg_printf("checksum after save: 0x%08X\r\n", cfg.chksum);
+            dbg_printf("checksum after save: 0x%02X\r\n", cfg.chksum);
             dbg_printf("test pattern after save: 0x%08X\r\n", cfg.useless);
             dbg_printf("dump after save:");
             for (i = 0, j = cfg_addr; i < sizeof(EEPROM_data_t); i++, j++)
@@ -326,7 +327,7 @@ void hwtest_eeprom(void)
             dbg_printf("\r\n");
             cfg.useless = 0; // load should restore this back to 0xDEADBEEF
             eeprom_load_or_default();
-            dbg_printf("checksum after load: 0x%08X\r\n", cfg.chksum);
+            dbg_printf("checksum after load: 0x%02X\r\n", cfg.chksum);
             dbg_printf("test pattern after load: 0x%08X\r\n", cfg.useless);
             while (true) {
                 // do nothing
