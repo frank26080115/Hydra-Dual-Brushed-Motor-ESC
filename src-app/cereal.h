@@ -23,11 +23,14 @@ class Cereal
         virtual int16_t peekTail(void);
         virtual int available(void);
         virtual int read(uint8_t* buf, int len);
+        virtual bool popUntil(uint8_t x);
         virtual int16_t consume(uint16_t);
         virtual void reset_buffer(void);
         virtual uint8_t* get_buffer(void);
         virtual uint32_t get_last_time(void);
+        #ifdef ENABLE_CEREAL_IDLE_DETECT
         virtual bool get_idle_flag(bool clr);
+        #endif
         inline uint8_t get_id(void) { return _id; };
 
         #ifdef ENABLE_COMPILE_CLI

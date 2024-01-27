@@ -108,5 +108,7 @@ void rc_register_bad_pulse(uint8_t* good_cnt, uint8_t* bad_cnt, uint32_t* arm_cn
     else {
         (*good_cnt) = 0;
     }
-    (*arm_cnt) = 0;
+    if (arm_cnt != NULL) {
+        (*arm_cnt) = 0;
+    }
 }

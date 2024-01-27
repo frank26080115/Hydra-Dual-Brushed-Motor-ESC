@@ -10,7 +10,7 @@
 #define CRSF_CHANNEL_VALUE_2000 1792
 #define CRSF_CHANNEL_VALUE_MAX  1811 // 2012us - actual CRSF max is 1984 with E.Limits on
 
-#define CRSF_BAUDRATE 416666
+#define CRSF_BAUDRATE 420000
 
 class CrsfChannel : public RcChannel
 {
@@ -32,6 +32,7 @@ class CrsfChannel : public RcChannel
         uint32_t arming_cnt = 0;
         bool armed = false;
         bool _has_new = false;
+        uint32_t arming_tick = 0;
 };
 
 uint16_t crsf_readChan(uint8_t i);

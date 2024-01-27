@@ -47,7 +47,7 @@ Cereal_TimerBitbang cli_cer(0);
 #endif
 
 #ifdef ENABLE_COMPILE_CLI
-void boot_decide_cli(void);
+void cliboot_decide(void);
 void cli_enter(void);
 #endif
 
@@ -55,7 +55,7 @@ int main(void)
 {
     mcu_init();
 
-    //hw_test();
+    hw_test();
 
     #ifdef DEVELOPMENT_BOARD
     dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false, false);
@@ -68,7 +68,6 @@ int main(void)
     dbg_pintoggle_init();
     // this happens after LED init because I'm borrowing the green and blue LED pins
 
-    inp_init();
     pwm_init();
     pwm_all_flt();
     sense_init();
@@ -80,7 +79,8 @@ int main(void)
     current_pid.Kd = cfg.currlim_kd;
 
     #ifdef ENABLE_COMPILE_CLI
-    boot_decide_cli();
+    cliboot_decide();
+    swdpins_deinit();
     #endif
 
     ledblink_disarmed();
@@ -94,7 +94,7 @@ int main(void)
         }
         else if (cfg.input_mode == INPUTMODE_RC_SWD) {
             #ifdef STMICRO
-            swdpins_init(LL_GPIO_PULL_NO);
+            swclk_init(LL_GPIO_PULL_DOWN);
             #endif
             rc_pulse_2.init(GPIOEXTI_TIMx, GPIOA, GPIO_PIN_SWCLK);
         }
@@ -167,7 +167,7 @@ int main(void)
         bool need_debug_print = false;
         #ifdef DEBUG_PRINT
         static uint32_t last_debug_time = 0;
-        if ((millis() - last_debug_time) >= 250)
+        if ((millis() - last_debug_time) >= 2000)
         {
             need_debug_print = true;
             last_debug_time = millis();
@@ -341,128 +341,3 @@ int main(void)
 
     return 0;
 }
-
-#ifdef ENABLE_COMPILE_CLI
-
-#ifndef DEVELOPMENT_BOARD
-#define CLI_CHECK_SWDIO
-#endif
-
-void boot_decide_cli(void)
-{
-    ledblink_boot();
-
-    if (inp_read() == 0) {
-        dbg_printf("CLI await, pin is low\r\n");
-        #ifdef CLI_CHECK_SWDIO
-        swdpins_init(LL_GPIO_PULL_UP); // check for grounded SWDIO to enter CLI
-        #endif
-        while (inp_read() == 0) {
-            led_task(false);
-            if (millis() >= CLI_ENTER_LOW_CRITERIA) {
-                inp_pullUp();
-                ledblink_boot2();
-                dbg_printf("CLI confirmation stage\r\n");
-                break;
-            }
-            #if defined(DEVELOPMENT_BOARD)
-            if (dbg_cer.available() >= 3 && dbg_cer.peekTail() == '\n') {
-                dbg_printf("CLI enter from key\r\n");
-                dbg_cer.reset_buffer();
-                cli_enter(); // this never returns
-            }
-            #endif
-            #ifdef CLI_CHECK_SWDIO
-            if (millis() >= 200) { // enough time for pull-up to be effective
-                if (swdio_read() == 0) {
-                    dbg_printf("CLI enter from SWDIO\r\n");
-                    cli_enter(); // this never returns
-                }
-            }
-            #endif
-        }
-        while (inp_read() == 0) {
-            led_task(false);
-            #if defined(DEVELOPMENT_BOARD)
-            if (dbg_cer.available() >= 3 && dbg_cer.peekTail() == '\n') {
-                dbg_printf("CLI enter from key\r\n");
-                dbg_cer.reset_buffer();
-                cli_enter(); // this never returns
-            }
-            #endif
-        }
-    }
-
-    if (millis() < CLI_ENTER_LOW_CRITERIA) {
-        // did not remain unplugged long enough
-        // do not enter CLI
-
-        uint32_t t = millis();
-        while (inp_read() != 0)
-        {
-            led_task(true);
-            if ((millis() - t) >= 3000) {
-                NVIC_SystemReset(); // to back to bootloader
-            }
-        }
-
-        swdpins_deinit();
-        return;
-    }
-
-    inp_pullDown();
-
-    uint32_t t;
-    uint8_t low_pulse_cnt = 0;
-    bool has_high = false;
-    while (true) {
-        led_task(false);
-        // debounce low pulses from hot-plug
-        if (inp_read() == 0 && has_high) {
-            // measure the low pulse
-            uint32_t t2 = millis();
-            while (inp_read() == 0) {
-                led_task(false);
-            }
-            uint32_t t3 = millis();
-            if ((t3 - t2 >= 5)) {
-                // low pulse too long, it's probably a RC pulse
-                // do not enter CLI
-                dbg_printf("low pulse too long\r\n");
-                break;
-            }
-            else {
-                // low pulse very short
-                low_pulse_cnt++;
-                if (low_pulse_cnt >= 10) {
-                    // too many of these low pulses
-                    // do not enter CLI
-                    dbg_printf("low pulse too many\r\n");
-                    break;
-                }
-            }
-        }
-        else if (inp_read() != 0)
-        {
-            if (has_high == false) {
-                t = millis(); // take timestamp of first rising edge
-            }
-            has_high = true;
-            if ((millis() - t) >= CLI_ENTER_HIGH_CRITERIA) {
-                // has been long enough
-                dbg_printf("CLI entering from insertion\r\n");
-                cli_enter(); // this never returns
-            }
-        }
-
-        #if defined(DEVELOPMENT_BOARD)
-        if (dbg_cer.available() >= 3 && dbg_cer.peekTail() == '\n') {
-            dbg_printf("CLI enter from key\r\n");
-            dbg_cer.reset_buffer();
-            cli_enter(); // this never returns
-        }
-        #endif
-    }
-    swdpins_deinit();
-}
-#endif

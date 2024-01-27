@@ -17,6 +17,7 @@
 #include "swd_pins.h"
 #endif
 
+#include "inputpin.h"
 #include "led.h"
 #include "phaseout.h"
 #include "userconfig.h"
@@ -230,7 +231,8 @@ void cli_execute(Cereal* cer, char* str)
         }
         if (cli_hwdebug) {
             #ifdef STMICRO
-            swdpins_init(LL_GPIO_PULL_UP);
+            swdio_init(LL_GPIO_PULL_UP);
+            swclk_init(LL_GPIO_PULL_UP);
             #endif
         }
         cer->printf("\r\nhardware debug: %u\r\n", cli_hwdebug);
@@ -396,6 +398,156 @@ void eeprom_print_all(Cereal* cer)
         memcpy(&v, &(ptr8[itmidx]), desc->size);
         dbg_printf("%u %u \t ", itmidx, desc->size);
         cer->printf("%s %li\r\n", desc->name, v);
+    }
+}
+
+#ifdef DEVELOPMENT_BOARD
+void cliboot_if_key(void)
+{
+    if (dbg_cer.available() >= 3 && dbg_cer.peekTail() == '\n') {
+        dbg_cer.reset_buffer();
+        dbg_printf("CLI enter from keys\r\n");
+        cli_enter();
+    }
+}
+#else
+#define cliboot_if_key(...)
+#endif
+
+bool cliboot_if_2nd_sig(void)
+{
+    if (inp2_read() != 0 || ((cfg.input_mode == INPUTMODE_CRSF_SWCLK || cfg.input_mode == INPUTMODE_RC_SWD) && swclk_read() != 0)) {
+        dbg_printf("CLI cancel from 2ndary signal high\r\n");
+        return true;
+    }
+    return false;
+}
+
+#define CLIBOOT_IF_2ND_SIG()    do { if (cliboot_if_2nd_sig()) { return; } } while (0)
+
+void cliboot_decide(void)
+{
+    inp_init();
+    inp2_init();
+    inp_pullDown();
+    inp2_pullDown();
+
+    if (cfg.input_mode == INPUTMODE_RC_SWD || cfg.input_mode == INPUTMODE_CRSF_SWCLK)
+    {
+        swclk_init(LL_GPIO_PULL_DOWN);
+    }
+
+    ledblink_boot();
+
+    uint32_t tstart = millis();
+    while ((millis() - tstart) < 2) {
+        // wait for pull resistors to take effect
+        if (inp_read() == 0
+         #if INPUT_PIN == LL_GPIO_PIN_4
+         && ((cfg.input_mode == INPUTMODE_CRSF && inp2_read() == 0) || cfg.input_mode != INPUTMODE_CRSF)
+         #endif
+         && ((cfg.input_mode == INPUTMODE_CRSF_SWCLK && swclk_read() == 0) || cfg.input_mode != INPUTMODE_CRSF_SWCLK)
+         )
+        {
+            break;
+        }
+    }
+    tstart = millis();
+
+    if (inp_read() == 0)
+    {
+        dbg_printf("CLI potential - input is low\r\n");
+
+        while ((millis() - tstart) < 100)
+        {
+            led_task(false);
+            cliboot_if_key();
+            CLIBOOT_IF_2ND_SIG();
+
+            if (inp_read() != 0)
+            {
+                dbg_printf("CLI cancel from signal high\r\n");
+                return;
+            }
+        }
+        dbg_printf("CLI stage - 100ms passed\r\n");
+        inp_pullUp();
+        while ((millis() - tstart) < CLI_ENTER_LOW_CRITERIA)
+        {
+            led_task(false);
+            cliboot_if_key();
+            CLIBOOT_IF_2ND_SIG();
+
+            if (inp_read() == 0)
+            {
+                dbg_printf("CLI cancel from signal low\r\n"); // meaning a device is connected but driving it low, CLI requires the signal to be completely unplugged
+                return;
+            }
+        }
+        dbg_printf("CLI stage - long unplug criteria passed\r\n");
+        ledblink_boot2();
+    }
+    else
+    {
+        tstart = millis();
+        while (true)
+        {
+            led_task(true);
+            cliboot_if_key();
+            CLIBOOT_IF_2ND_SIG();
+            if (inp_read() == 0) {
+                dbg_printf("reboot cancel from signal low\r\n");
+                return;
+            }
+            if ((millis() - tstart) >= 3000)
+            {
+                dbg_printf("reset into bootloader\r\n");
+                NVIC_SystemReset(); // to back to bootloader
+            }
+        }
+    }
+
+    inp_init();
+    tstart = millis();
+    uint8_t pulse_cnt = 0;
+    bool was_high = inp_read();
+    uint32_t th = was_high ? tstart : 0;
+    uint32_t tl = was_high ? 0 : tstart;
+    while (true)
+    {
+        led_task(false);
+        cliboot_if_key();
+
+        if (inp_read() != 0)
+        {
+            if (was_high == false) {
+                th = millis();
+            }
+            if ((millis() - th) >= CLI_ENTER_HIGH_CRITERIA) {
+                dbg_printf("CLI enter from insertion\r\n");
+                cli_enter();
+            }
+            was_high = true;
+        }
+        else
+        {
+            if (was_high != false) {
+                tl = millis();
+                pulse_cnt++;
+                if (pulse_cnt >= 20) {
+                    dbg_printf("CLI cancel from signal pulses\r\n");
+                    return;
+                }
+            }
+            was_high = false;
+        }
+
+        if (tl != 0 && th > tl && pulse_cnt >= 1 && (th - tl) >= 12) {
+            dbg_printf("CLI cancel from signal pulses\r\n");
+            return;
+        }
+
+        CLIBOOT_IF_2ND_SIG();
     }
 }
 

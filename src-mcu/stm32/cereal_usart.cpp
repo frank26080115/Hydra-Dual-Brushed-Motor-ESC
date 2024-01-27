@@ -6,10 +6,12 @@ static fifo_t fifo_rx_2;
 static fifo_t fifo_tx_1;
 static fifo_t fifo_tx_2;
 #endif
-static volatile uint32_t last_rx_time_1;
-static volatile uint32_t last_rx_time_2;
-static volatile bool is_idle_1;
-static volatile bool is_idle_2;
+static volatile uint32_t last_rx_time_1 = 0;
+static volatile uint32_t last_rx_time_2 = 0;
+#ifdef ENABLE_CEREAL_IDLE_DETECT
+static volatile bool is_idle_1 = false;
+static volatile bool is_idle_2 = false;
+#endif
 static volatile bool had_first_byte_1 = false;
 static volatile bool had_first_byte_2 = false;
 
@@ -21,7 +23,10 @@ void USARTx_IRQHandler(USART_TypeDef* usart, fifo_t* fifo_rx,
 #ifdef ENABLE_CEREAL_TX
 fifo_t* fifo_tx,
 #endif
-volatile bool* is_idle, volatile uint32_t* timestamp, volatile bool* had_1st)
+#ifdef ENABLE_CEREAL_IDLE_DETECT
+volatile bool* is_idle,
+#endif
+volatile uint32_t* timestamp, volatile bool* had_1st)
 {
     if (LL_USART_IsActiveFlag_RXNE(usart))
     {
@@ -45,12 +50,14 @@ volatile bool* is_idle, volatile uint32_t* timestamp, volatile bool* had_1st)
         }
     }
     #endif
+    #ifdef ENABLE_CEREAL_IDLE_DETECT
     if (LL_USART_IsActiveFlag_IDLE(usart))
     {
         dbg_evntcnt_add(DBGEVNTID_USART_IDLE);
         LL_USART_ClearFlag_IDLE(usart);
         *is_idle = true;
     }
+    #endif
 }
 
 #ifdef __cplusplus
@@ -63,7 +70,10 @@ void USART1_IRQHandler(void)
     #ifdef ENABLE_CEREAL_TX
     &fifo_tx_1,
     #endif
-    (volatile bool*)&is_idle_1, (volatile uint32_t*)&last_rx_time_1, (volatile bool*)&had_first_byte_1);
+    #ifdef ENABLE_CEREAL_IDLE_DETECT
+    (volatile bool*)&is_idle_1,
+    #endif
+    (volatile uint32_t*)&last_rx_time_1, (volatile bool*)&had_first_byte_1);
     #ifdef MCU_F051
     NVIC_ClearPendingIRQ(USART1_IRQn);
     #endif
@@ -75,7 +85,10 @@ void USART2_IRQHandler(void)
     #ifdef ENABLE_CEREAL_TX
     &fifo_tx_2,
     #endif
-    (volatile bool*)&is_idle_2, (volatile uint32_t*)&last_rx_time_2, (volatile bool*)&had_first_byte_2);
+    #ifdef ENABLE_CEREAL_IDLE_DETECT
+    (volatile bool*)&is_idle_2,
+    #endif
+    (volatile uint32_t*)&last_rx_time_2, (volatile bool*)&had_first_byte_2);
     #ifdef MCU_F051
     NVIC_ClearPendingIRQ(USART2_IRQn);
     #endif
@@ -122,8 +135,6 @@ void Cereal_USART::init(uint8_t id, uint32_t baud, bool invert, bool halfdup, bo
         fifo_init(&fifo_tx_1, cer_buff_2, CEREAL_BUFFER_SIZE);
         fifo_tx = &fifo_tx_1;
         #endif
-        is_idle_1 = false;
-        last_rx_time_1 = 0;
     }
     else if (_u == CEREAL_ID_USART2) {
         fifo_init(&fifo_rx_2, cer_buff_1, CEREAL_BUFFER_SIZE);
@@ -132,8 +143,6 @@ void Cereal_USART::init(uint8_t id, uint32_t baud, bool invert, bool halfdup, bo
         fifo_init(&fifo_tx_2, cer_buff_2, CEREAL_BUFFER_SIZE);
         fifo_tx = &fifo_tx_2;
         #endif
-        is_idle_2 = false;
-        last_rx_time_2 = 0;
     }
 
     _usart->BRR = CLK_CNT(baud);
@@ -160,7 +169,13 @@ void Cereal_USART::init(uint8_t id, uint32_t baud, bool invert, bool halfdup, bo
     }
     _usart->CR2 = cr2;
 
-    _usart->CR1 = USART_CR1_UE | USART_CR1_TE | USART_CR1_RE | USART_CR1_TCIE |
+    _usart->CR1 = USART_CR1_UE | USART_CR1_RE |
+        #ifdef ENABLE_CEREAL_TX
+            USART_CR1_TE | USART_CR1_TCIE |
+        #endif
+        #ifdef ENABLE_CEREAL_IDLE_DETECT
+            USART_CR1_IDLEIE | 
+        #endif
         #if defined(MCU_F051)
             USART_CR1_RXNEIE
         #elif defined(MCU_G071)
@@ -287,6 +302,8 @@ uint32_t Cereal_USART::get_last_time(void)
     return 0;
 }
 
+#ifdef ENABLE_CEREAL_IDLE_DETECT
+
 bool Cereal_USART::get_idle_flag(bool clr)
 {
     bool x = false;
@@ -306,6 +323,8 @@ bool Cereal_USART::get_idle_flag(bool clr)
     __enable_irq();
     return x;
 }
+
+#endif
 
 #if defined(DEBUG_PRINT)
 

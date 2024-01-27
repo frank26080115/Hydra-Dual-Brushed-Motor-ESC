@@ -17,7 +17,9 @@ class Cereal_TimerBitbang : public Cereal
         virtual void flush(void);
         #endif
         virtual uint32_t get_last_time(void);
+        #ifdef ENABLE_CEREAL_IDLE_DETECT
         virtual bool get_idle_flag(bool clr);
+        #endif
 
     protected:
         #ifdef ENABLE_CEREAL_TX

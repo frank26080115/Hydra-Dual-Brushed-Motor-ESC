@@ -24,6 +24,7 @@ static bool     new_flag       = false;
 static uint32_t last_good_time = 0;
 static uint8_t  good_pulse_cnt = 0;
 static uint8_t  bad_pulse_cnt  = 0;
+static uint8_t  crsf_tmpbuff[CEREAL_BUFFER_SIZE];
 
 CrsfChannel::CrsfChannel(void)
 {
@@ -46,16 +47,24 @@ void CrsfChannel::task(void)
     }
     #endif
 
-    uint8_t* buff = cereal->get_buffer();
-    crsf_header_t* hdr = (crsf_header_t*)buff;
-    uint16_t avail = cereal->available();
-    uint32_t now = millis();
+    cereal->popUntil(CRSF_SYNC_BYTE);
+
+    uint8_t tmp_syncByte = cereal->peek();
+    uint8_t tmp_pktLen   = cereal->peekAt(1);
+    uint8_t tmp_pktType  = cereal->peekAt(2);
+
+    uint16_t avail       = cereal->available();
+    uint32_t now         = millis();
 
     // check packet header for match
-    if (hdr->sync == CRSF_SYNC_BYTE
-        && hdr->type == CRSF_FRAMETYPE_RC_CHANNELS_PACKED
-        && hdr->len <= (avail + 2) // packet is complete
+    if (tmp_syncByte   == CRSF_SYNC_BYTE
+        && tmp_pktType == CRSF_FRAMETYPE_RC_CHANNELS_PACKED
+        && (tmp_pktLen + 2) <= avail // packet is complete
     ) {
+        cereal->read(crsf_tmpbuff, tmp_pktLen + 2);
+        uint8_t* buff = crsf_tmpbuff;
+        crsf_header_t* hdr = (crsf_header_t*)buff;
+
         uint8_t crc = crsf_crc8(&(hdr->type), hdr->len - 1);
         if (crc == buff[hdr->len + 1]) // CRC matches
         {
@@ -99,23 +108,6 @@ void CrsfChannel::task(void)
                 , &good_pulse_cnt, &bad_pulse_cnt, NULL
                 , (bool*)&new_flag, NULL
             );
-
-            _has_new = true;
-            if (arm_pulses_required > 0)
-            {
-                if (read() == 0) {
-                    arming_cnt++;
-                    if (arming_cnt >= arm_pulses_required) {
-                        armed = true;
-                    }
-                }
-                else {
-                    arming_cnt = 0;
-                }
-            }
-            else {
-                armed = true;
-            }
         }
         else
         {
@@ -132,45 +124,56 @@ void CrsfChannel::task(void)
             }
             #endif
 
-            rc_register_bad_pulse(&good_pulse_cnt, &bad_pulse_cnt, &arming_cnt);
+            rc_register_bad_pulse(&good_pulse_cnt, &bad_pulse_cnt,
+                #if 0
+                    &arming_cnt
+                #else
+                    NULL
+                #endif
+            );
         }
-        cereal->reset_buffer();
+
+        // too much data?
+        if ((tmp_pktLen + 2) <= cereal->available()) {
+            cereal->reset_buffer();
+        }
     }
-    else if (hdr->sync == CRSF_SYNC_BYTE
-        && hdr->type != CRSF_FRAMETYPE_RC_CHANNELS_PACKED
-        && (hdr->len <= (avail + 2) || (now - last_good_time) >= 5)
+    else if (tmp_syncByte == CRSF_SYNC_BYTE
+        && tmp_pktType != CRSF_FRAMETYPE_RC_CHANNELS_PACKED
+        && ((tmp_pktLen + 2) <= avail || (now - last_good_time) >= 5)
     ) {
         #ifdef DEBUG_CRSF
         if (to_debug) {
-            dbg_printf("CRSF unwanted packet 0x%02X 0x%02X 0x%02X\r\n", hdr->sync, hdr->len, hdr->type);
+            dbg_printf("CRSF unwanted packet 0x%02X 0x%02X 0x%02X\r\n", tmp_syncByte, tmp_pktLen, tmp_pktType);
             to_debug = false;
         }
         #endif
-        cereal->reset_buffer();
-    }
-    else if (avail >= 1 && hdr->sync != CRSF_SYNC_BYTE) {
-        #ifdef DEBUG_CRSF
-        if (to_debug) {
-            dbg_printf("CRSF bad header 0x%02X\r\n", hdr->sync);
-            to_debug = false;
+        cereal->consume(tmp_pktLen + 2);
+        if ((tmp_pktLen + 2) <= cereal->available()) { // too much data?
+            cereal->reset_buffer();
         }
-        #endif
-        cereal->reset_buffer();
     }
 
-    if ((now - last_good_time) >= 200)
+    _has_new |= new_flag;
+
+    if (arm_pulses_required > 0)
     {
-        arming_cnt = 0;
-        while (true)
+        if ((now - arming_tick) >= 20)
         {
-            int16_t d = cereal->peek();
-            if (d == CRSF_SYNC_BYTE || d < 0) {
-                break;
+            arming_tick = now;
+            if ((now - last_good_time) <= 100 && read() == 0) {
+                arming_cnt++;
+                if (arming_cnt >= arm_pulses_required) {
+                    armed = true;
+                }
             }
             else {
-                cereal->reset_buffer();
+                arming_cnt = 0;
             }
         }
+    }
+    else {
+        armed = true;
     }
 
     if (disarm_timeout > 0)

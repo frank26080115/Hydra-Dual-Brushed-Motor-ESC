@@ -29,6 +29,8 @@ int16_t fifo_pop(fifo_t* f);
 void    fifo_push(fifo_t* f, uint8_t x);
 int     fifo_available(fifo_t* f);
 int16_t fifo_consume(fifo_t* f, uint16_t x);
+int     fifo_readN(fifo_t* f, uint8_t* dst, uint16_t len);
+bool    fifo_popUntil(fifo_t* f, uint8_t x);
 
 #ifdef __cplusplus
 }

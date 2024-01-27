@@ -20,6 +20,11 @@ void inp_pullUp(void);
 void inp_pullDown(void);
 bool inp_read(void);
 
+void inp2_init(void);
+void inp2_pullUp(void);
+void inp2_pullDown(void);
+bool inp2_read(void);
+
 #ifdef __cplusplus
 }
 #endif

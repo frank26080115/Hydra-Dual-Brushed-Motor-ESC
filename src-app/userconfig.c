@@ -23,9 +23,9 @@ const EEPROM_data_t default_eeprom = {
 
     .voltage_split_mode = VSPLITMODE_BOOST_ALWAYS,
     .load_balance       = false,
-    .input_mode         = INPUTMODE_RC,
+    .input_mode         = INPUTMODE_CRSF,
     .phase_map          = 1,
-    .baud               = 420000,
+    .baud               = 0,
 
     .voltage_divider    = TARGET_VOLTAGE_DIVIDER,
     .current_offset     = CURRENT_OFFSET,

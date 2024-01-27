@@ -108,16 +108,12 @@ int Cereal::available(void)
 
 int Cereal::read(uint8_t* buf, int len)
 {
-    int i;
-    for (i = 0; i < len; i++)
-    {
-        int16_t c = fifo_pop(fifo_rx);
-        if (c < 0) {
-            return i;
-        }
-        buf[i] = c;
-    }
-    return i;
+    return fifo_readN(fifo_rx, buf, len);
+}
+
+bool Cereal::popUntil(uint8_t x)
+{
+    return fifo_popUntil(fifo_rx, x);
 }
 
 void Cereal::reset_buffer(void)
@@ -135,7 +131,9 @@ uint32_t Cereal::get_last_time(void)
     return 0;
 }
 
+#ifdef ENABLE_CEREAL_IDLE_DETECT
 bool Cereal::get_idle_flag(bool clr)
 {
     return false;
 }
+#endif

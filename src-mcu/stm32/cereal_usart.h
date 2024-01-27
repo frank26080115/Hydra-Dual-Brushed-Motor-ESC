@@ -22,7 +22,9 @@ class Cereal_USART : public Cereal
         virtual void flush(void);
         #endif
         virtual uint32_t get_last_time(void);
+        #ifdef ENABLE_CEREAL_IDLE_DETECT
         virtual bool get_idle_flag(bool clr);
+        #endif
     protected:
         USART_TypeDef* _usart;
         uint8_t _u;
