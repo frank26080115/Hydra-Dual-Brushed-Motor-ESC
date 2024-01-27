@@ -343,12 +343,18 @@ int main(void)
 }
 
 #ifdef ENABLE_COMPILE_CLI
+
+#define CLI_CHECK_SWDIO
+
 void boot_decide_cli(void)
 {
     ledblink_boot();
 
     if (inp_read() == 0) {
         dbg_printf("CLI await, pin is low\r\n");
+        #ifdef CLI_CHECK_SWDIO
+        swdpins_init(LL_GPIO_PULL_UP); // check for grounded SWDIO to enter CLI
+        #endif
         while (inp_read() == 0) {
             led_task(false);
             if (millis() >= CLI_ENTER_LOW_CRITERIA) {
@@ -361,6 +367,14 @@ void boot_decide_cli(void)
             if (dbg_cer.available() >= 3 && dbg_cer.peekTail() == '\n') {
                 dbg_printf("CLI enter from key\r\n");
                 cli_enter(); // this never returns
+            }
+            #endif
+            #ifdef CLI_CHECK_SWDIO
+            if (millis() >= 100) { // enough time for pull-up to be effective
+                if (swdio_read() == 0) {
+                    dbg_printf("CLI enter from SWDIO\r\n");
+                    cli_enter(); // this never returns
+                }
             }
             #endif
         }
@@ -388,6 +402,7 @@ void boot_decide_cli(void)
             }
         }
 
+        swdpins_deinit();
         return;
     }
 
@@ -408,7 +423,7 @@ void boot_decide_cli(void)
             if ((t3 - t2 >= 5)) {
                 // low pulse too long, it's probably a RC pulse
                 // do not enter CLI
-                return;
+                break;
             }
             else {
                 // low pulse very short
@@ -416,7 +431,7 @@ void boot_decide_cli(void)
                 if (low_pulse_cnt >= 10) {
                     // too many of these low pulses
                     // do not enter CLI
-                    return;
+                    break;
                 }
             }
         }
@@ -432,6 +447,7 @@ void boot_decide_cli(void)
         }
         #endif
     }
+    swdpins_deinit();
 }
 #endif
 

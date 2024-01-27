@@ -6,7 +6,8 @@
 extern "C" {
 #endif
 
-void swdpins_init(uint32_t pull);
+void swdpins_init(uint32_t pull);   // turn the SWD pins into inputs
+void swdpins_deinit(void);          // return to being used for debugging
 
 static inline bool swclk_read(void)
 {

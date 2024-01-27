@@ -70,6 +70,7 @@ extern const EEPROM_data_t cfge;
 void cli_enter(void)
 {
     ledblink_cli();
+    swdpins_deinit();
     dbg_printf("CLI entered at %u\r\n", millis());
 
     #if defined(DEVELOPMENT_BOARD)
@@ -197,23 +198,9 @@ void cli_execute(Cereal* cer, char* str)
         cer->write('\r');
         cer->write('\n');
     }
-    else if (item_strcmp("whichinput", str))
+    else if (item_strcmp("version", str))
     {
-        cer->printf("\r\nInput Pin: P");
-        if (INPUT_PIN_PORT == GPIOA) {
-            cer->printf("A");
-        }
-        else if (INPUT_PIN_PORT == GPIOB) {
-            cer->printf("B");
-        }
-        else {
-            cer->printf("?");
-        }
-        for (int i = 0; i < 32; i++) {
-            if (INPUT_PIN == (1 << i)) {
-                cer->printf("%u\r\n", i);
-            }
-        }
+        cer->printf("\r\nV %u E %u HW 0x%08X N:%s\r\n", firmware_info.version_major, firmware_info.version_eeprom, firmware_info.device_code, firmware_info.device_name);
     }
     else if (item_strcmp("hwdebug", str))
     {
@@ -238,6 +225,12 @@ void cli_execute(Cereal* cer, char* str)
     {
         eeprom_factory_reset();
         cer->printf("\r\nfactory reset EEPROM done");
+    }
+    else if (item_strcmp("reboot", str))
+    {
+        cer->printf("\r\nrebooting...\r\n");
+        cer->flush();
+        NVIC_SystemReset();
     }
     else if (item_strcmp("testpwm", str))
     {
