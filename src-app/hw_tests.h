@@ -12,6 +12,7 @@ void hwtest_rc_crsf(void);
 void hwtest_eeprom(void);
 void hwtest_sense(void);
 void hwtest_uart(void);
+void hwtest_cli(void);
 
 void hwtest_gpio(GPIO_TypeDef* gpio, uint32_t pin);
 

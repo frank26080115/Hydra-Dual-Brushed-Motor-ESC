@@ -22,6 +22,7 @@
 #include "userconfig.h"
 #include "sense.h"
 #include "rc.h"
+#include "version.h"
 
 #define MAX_CMD_ARGS 8
 int32_t cmd_args[MAX_CMD_ARGS];
@@ -77,8 +78,11 @@ void cli_enter(void)
     Cereal_USART* cer = &dbg_cer;
     // init already called on dbg_cer
     // since we are using the debugging UART, the two pins can be used for testing RC inputs
-    rc1->init();
-    rc2->init();
+    if (rc1 != NULL && rc2 != NULL)
+    {
+        rc1->init();
+        rc2->init();
+    }
     #elif INPUT_PIN == LL_GPIO_PIN_2
     Cereal_USART* cer = &main_cer;
     cer->init(CEREAL_ID_USART2, CLI_BAUD, false, true, false);
@@ -95,6 +99,8 @@ void cli_enter(void)
     char buff[CLI_BUFF_SIZE];
     uint16_t buff_idx = 0;
     char prev = '\0';
+    bool has_interaction = false;
+    uint32_t last_idle_prompt = millis();
 
     while (true)
     {
@@ -103,6 +109,7 @@ void cli_enter(void)
         int16_t c = cer->read();
         if (c >= 0) // data available
         {
+            has_interaction |= c >= 'a' || c >= 'A';
             if (c == '\n' && prev == '\r')
             {
                 // ignore windows style new line sequence
@@ -132,8 +139,9 @@ void cli_enter(void)
                 cer->write('>'); // show prompt
                 continue;
             }
-            else if (c == 0x08 || c == 0x1B || c == 0x7F)
+            else if (c == 0x08 || c == 0x1B || c == 0x18 || c == 0x7F)
             {
+                // these keys will clear the buffer, cancelling anything that's been written
                 prev = c;
                 #if CLI_ECHO
                 cer->write('\r');
@@ -173,6 +181,13 @@ void cli_enter(void)
                 continue;
             }
         }
+        else if (has_interaction == false && (millis() - last_idle_prompt) >= 3000) {
+            last_idle_prompt = millis();
+            // if the user has not interacted at all with the CLI
+            // then keep printing the prompt symbol periodically
+            // just to aid the user
+            cer->write('>');
+        }
 
         // do other things
         eeprom_save_if_needed();
@@ -193,21 +208,21 @@ void cli_execute(Cereal* cer, char* str)
     int argc;
     if (item_strcmp("list", str))
     {
-        cer->printf("all settings:\r\n");
+        cer->printf("all settings:\r\n\r\n");
         eeprom_print_all(cer);
         cer->write('\r');
         cer->write('\n');
     }
     else if (item_strcmp("version", str))
     {
-        cer->printf("\r\nV %u E %u HW 0x%08X N:%s\r\n", firmware_info.version_major, firmware_info.version_eeprom, firmware_info.device_code, firmware_info.device_name);
+        cer->printf("\r\nV %u E %u HW 0x%08lX N:%s\r\n", firmware_info.version_major, firmware_info.version_eeprom, firmware_info.device_code, firmware_info.device_name);
     }
     else if (item_strcmp("hwdebug", str))
     {
         argc = cmd_parseArgs(str);
         if (argc <= 0) {
             // no arguments means toggle
-            cli_hwdebug ^= true;
+            cli_hwdebug = !cli_hwdebug;
         }
         else {
             // 0 means false
@@ -240,12 +255,16 @@ void cli_execute(Cereal* cer, char* str)
         // analog sensor values are printed during the test
         // this can be used to test current limits
 
+        // args:
+        // which_phase    power    duration
+
         argc = cmd_parseArgs(str);
         if (argc < 3 || cmd_args[0] <= 0) {
-            cer->printf("\r\nERROR");
+            cer->printf("\r\nERROR ARGS");
             return;
         }
 
+        pwm_set_braking(true);
         pwm_set_remap(cli_phaseremap); // set by command "testremap"
 
         int phase = (cmd_args[0] - 1) % 3;
@@ -291,7 +310,7 @@ void cli_execute(Cereal* cer, char* str)
         // it is not committed to EEPROM
         argc = cmd_parseArgs(str);
         if (argc < 1) {
-            cer->printf("\r\nERROR");
+            cer->printf("\r\nERROR NO ARG");
             return;
         }
         cli_phaseremap = cmd_args[0];
@@ -300,13 +319,15 @@ void cli_execute(Cereal* cer, char* str)
     else
     {
         // none of the commands match, loop through the potential settings to see if it's something to save
-        bool res = eeprom_user_edit(str, NULL);
+        int32_t nv;
+        bool res = eeprom_user_edit(str, &nv);
         if (res) {
-            cer->printf("\r\nOK");
+            cer->printf("\r\nOK (%s = %li)", str, nv);
             return;
         }
         else {
-            cer->printf("\r\nERROR");
+            // unrecognized command
+            cer->printf("\r\nERROR CMD");
             return;
         }
     }
@@ -326,26 +347,29 @@ int cmd_parseArgs(char* str) // parse a list of integers delimited by space
         token = strtok(NULL, " ");
         i += 1;
    }
-   return 0;
+   return i;
 }
 
 void cli_reportSensors(Cereal* cer)
 {
     cer->printf("[%lu]: ", millis());
-    #if defined(STM32F051DISCO)
-    cer->printf("RC1=");
-    if (rc1->is_alive()) {
-        cer->printf("%d, ", rc1->read());
-    }
-    else {
-        cer->printf("?, ");
-    }
-    cer->printf("RC2=");
-    if (rc2->is_alive()) {
-        cer->printf("%d, ", rc2->read());
-    }
-    else {
-        cer->printf("?, ");
+    #if defined(DEVELOPMENT_BOARD)
+    if (rc1 != NULL && rc2 != NULL)
+    {
+        cer->printf("RC1=");
+        if (rc1->is_alive()) {
+            cer->printf("%d, ", rc1->read());
+        }
+        else {
+            cer->printf("?, ");
+        }
+        cer->printf("RC2=");
+        if (rc2->is_alive()) {
+            cer->printf("%d, ", rc2->read());
+        }
+        else {
+            cer->printf("?, ");
+        }
     }
     #endif
     #ifdef STMICRO
@@ -367,10 +391,10 @@ void eeprom_print_all(Cereal* cer)
         }
         uint32_t ptrstart = (uint32_t)&cfge;
         uint32_t itmidx = desc->ptr - ptrstart;
-        itmidx += (uint32_t)&cfg;
         uint8_t* ptr8 = (uint8_t*)&cfg;
         int32_t v = 0;
         memcpy(&v, &(ptr8[itmidx]), desc->size);
+        dbg_printf("%u %u \t ", itmidx, desc->size);
         cer->printf("%s %li\r\n", desc->name, v);
     }
 }

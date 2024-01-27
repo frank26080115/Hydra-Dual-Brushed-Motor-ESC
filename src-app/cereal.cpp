@@ -16,8 +16,6 @@ uint8_t cer_buff_3[CEREAL_BUFFER_SIZE];
 }
 #endif
 
-
-
 #ifdef ENABLE_COMPILE_CLI
 
 size_t Cereal::printf(const char *format, ...)

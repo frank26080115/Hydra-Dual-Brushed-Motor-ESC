@@ -2,8 +2,9 @@
 
 // this file is used for preprocessor configurations
 
-#define HW_TESTS
+//#define HW_TESTS
 //#define RC_LOG_JITTER
+//#define DISABLE_EEPROM
 
 #define EEPROM_DIRTY_SAVE_TIME_MS 1000 // if the user edits a EEPROM item, it will auto-save only after this amount of time
 
@@ -16,7 +17,6 @@
 
 #define CLI_BAUD      19200 // baud rate used for CLI
 #define CLI_BUFF_SIZE 64
-#define CLI_ECHO      false // most of the one-wire USB-links already echo, so do not echo ourselves
 
 #define PWM_DEFAULT_HEADROOM     50 // for the high-MOSFET's charge pump
 

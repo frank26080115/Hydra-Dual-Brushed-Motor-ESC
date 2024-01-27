@@ -17,8 +17,8 @@
 #include "swd_pins.h"
 #endif
 
-RcChannel* rc1;
-RcChannel* rc2;
+RcChannel* rc1 = NULL;
+RcChannel* rc2 = NULL;
 
 #if defined(DEVELOPMENT_BOARD)
 Cereal_USART dbg_cer;
@@ -55,15 +55,15 @@ int main(void)
 {
     mcu_init();
 
-    hw_test();
+    //hw_test();
+
+    #ifdef DEVELOPMENT_BOARD
+    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false, false);
+    #endif
 
     ENSURE_VERSION_DATA_IS_KEPT();
 
     led_init();
-
-    #if defined(DEVELOPMENT_BOARD)
-    dbg_wait_user();
-    #endif
 
     dbg_pintoggle_init();
     // this happens after LED init because I'm borrowing the green and blue LED pins
@@ -243,12 +243,12 @@ int main(void)
         if (cfg.voltage_limit > 0) {
             if (sense_voltage < cfg.voltage_limit) {
                 duty_max -= fi_map(sense_voltage, cfg.voltage_limit, cfg.voltage_limit - UNDERVOLTAGE, 0, duty_max, true);
-                limit_reached = true;
+                ledblink_lowbatt();
             }
         }
 
         if (limit_reached) {
-
+            ledblink_currentlimit();
         }
 
         uint32_t duty_mid = (duty_max + 1) / 2; // this represents the center tap voltage if motors are going in opposite directions
@@ -344,7 +344,9 @@ int main(void)
 
 #ifdef ENABLE_COMPILE_CLI
 
+#ifndef DEVELOPMENT_BOARD
 #define CLI_CHECK_SWDIO
+#endif
 
 void boot_decide_cli(void)
 {
@@ -366,11 +368,12 @@ void boot_decide_cli(void)
             #if defined(DEVELOPMENT_BOARD)
             if (dbg_cer.available() >= 3 && dbg_cer.peekTail() == '\n') {
                 dbg_printf("CLI enter from key\r\n");
+                dbg_cer.reset_buffer();
                 cli_enter(); // this never returns
             }
             #endif
             #ifdef CLI_CHECK_SWDIO
-            if (millis() >= 100) { // enough time for pull-up to be effective
+            if (millis() >= 200) { // enough time for pull-up to be effective
                 if (swdio_read() == 0) {
                     dbg_printf("CLI enter from SWDIO\r\n");
                     cli_enter(); // this never returns
@@ -383,6 +386,7 @@ void boot_decide_cli(void)
             #if defined(DEVELOPMENT_BOARD)
             if (dbg_cer.available() >= 3 && dbg_cer.peekTail() == '\n') {
                 dbg_printf("CLI enter from key\r\n");
+                dbg_cer.reset_buffer();
                 cli_enter(); // this never returns
             }
             #endif
@@ -408,12 +412,13 @@ void boot_decide_cli(void)
 
     inp_pullDown();
 
-    uint32_t t = millis();
+    uint32_t t;
     uint8_t low_pulse_cnt = 0;
+    bool has_high = false;
     while (true) {
         led_task(false);
         // debounce low pulses from hot-plug
-        if (inp_read() == 0) {
+        if (inp_read() == 0 && has_high) {
             // measure the low pulse
             uint32_t t2 = millis();
             while (inp_read() == 0) {
@@ -423,6 +428,7 @@ void boot_decide_cli(void)
             if ((t3 - t2 >= 5)) {
                 // low pulse too long, it's probably a RC pulse
                 // do not enter CLI
+                dbg_printf("low pulse too long\r\n");
                 break;
             }
             else {
@@ -431,51 +437,32 @@ void boot_decide_cli(void)
                 if (low_pulse_cnt >= 10) {
                     // too many of these low pulses
                     // do not enter CLI
+                    dbg_printf("low pulse too many\r\n");
                     break;
                 }
             }
         }
-        if ((millis() - t) >= CLI_ENTER_HIGH_CRITERIA) {
-            // has been long enough
-            dbg_printf("CLI entering from insertion\r\n");
-            cli_enter(); // this never returns
+        else if (inp_read() != 0)
+        {
+            if (has_high == false) {
+                t = millis(); // take timestamp of first rising edge
+            }
+            has_high = true;
+            if ((millis() - t) >= CLI_ENTER_HIGH_CRITERIA) {
+                // has been long enough
+                dbg_printf("CLI entering from insertion\r\n");
+                cli_enter(); // this never returns
+            }
         }
+
         #if defined(DEVELOPMENT_BOARD)
         if (dbg_cer.available() >= 3 && dbg_cer.peekTail() == '\n') {
             dbg_printf("CLI enter from key\r\n");
+            dbg_cer.reset_buffer();
             cli_enter(); // this never returns
         }
         #endif
     }
     swdpins_deinit();
-}
-#endif
-
-#ifdef DEVELOPMENT_BOARD
-void dbg_wait_user(void)
-{
-    led_state_set(true);
-    dbg_button_init();
-    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false, false);
-    {
-        char c = 0;
-        uint32_t _t = millis();
-        while (true) {
-            led_state_set((millis() % 1000) < 200);
-            if ((millis() - _t) >= 500) {
-                dbg_printf("hello hydra! %u 0x%02X\r\n", millis(), c);
-                _t = millis();
-            }
-            if (dbg_cer.available() > 0) {
-                c = dbg_cer.read();
-                dbg_printf(">0x%02X %c !!!\r\n", c, c);
-                break;
-            }
-            if (dbg_read_btn()) {
-                dbg_printf("B!!!\r\n");
-                break;
-            }
-        }
-    }
 }
 #endif

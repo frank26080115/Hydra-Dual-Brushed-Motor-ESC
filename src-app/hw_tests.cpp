@@ -26,9 +26,14 @@ extern CrsfChannel      crsf_2;
 extern Cereal_USART     main_cer;
 #endif
 
+extern RcChannel* rc1;
+extern RcChannel* rc2;
+
 #ifdef ENABLE_COMPILE_CLI
 extern Cereal_TimerBitbang cli_cer;
 #endif
+
+extern void cli_enter(void);
 
 #ifdef HW_TESTS
 void hw_test(void)
@@ -41,9 +46,10 @@ void hw_test(void)
     //hwtest_pwm();
     //hwtest_rc1();
     //hwtest_rc2();
-    hwtest_rc_crsf();
+    //hwtest_rc_crsf();
     //hwtest_bbcer();
     //hwtest_eeprom();
+    //hwtest_cli();
 }
 #endif
 
@@ -341,4 +347,20 @@ void hwtest_eeprom(void)
         }
     }
     #endif
+}
+
+void hwtest_cli(void)
+{
+    led_init();
+    eeprom_load_defaults();
+    sense_init();
+    pwm_init();
+    #ifdef DEVELOPMENT_BOARD
+    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false, false);
+    rc_pulse_1.init();
+    rc_pulse_2.init(GPIOEXTI_TIMx, GPIOEXTI_GPIO, GPIOEXTI_Pin);
+    rc1 = &rc_pulse_1;
+    rc2 = &rc_pulse_2;
+    #endif
+    cli_enter();
 }

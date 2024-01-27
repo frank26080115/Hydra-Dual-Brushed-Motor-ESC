@@ -25,7 +25,7 @@ const EEPROM_data_t default_eeprom = {
     .load_balance       = false,
     .input_mode         = INPUTMODE_RC,
     .phase_map          = 1,
-    .baud               = 416666,
+    .baud               = 420000,
 
     .voltage_divider    = TARGET_VOLTAGE_DIVIDER,
     .current_offset     = CURRENT_OFFSET,
@@ -195,7 +195,11 @@ void eeprom_save(void)
     EEPROM_chksum_t calculated_chksum = eeprom_checksum(start_addr, (int)(((uint32_t)end_addr) - ((uint32_t)start_addr)));
     ptre->chksum = calculated_chksum;
     memcpy(&cfg, &default_eeprom, head_len);                       // ensures header is written
+
+    #ifndef DISABLE_EEPROM
     eeprom_write((uint8_t*)&cfg, sizeof(EEPROM_data_t), cfg_addr); // commit to flash
+    #endif
+
     eeprom_save_time = 0; // remove dirty flag
     dbg_printf("EEPROM saved\r\n");
 }
@@ -244,7 +248,7 @@ uint32_t eeprom_idx_of_item(char* str)
 bool eeprom_user_edit(char* str, int32_t* retv)
 {
     uint32_t idxret = eeprom_idx_of_item(str);
-    uint16_t* idxret16 = (uint16_t*)idxret;
+    uint16_t* idxret16 = (uint16_t*)&idxret;
     if (idxret16[1] <= 0) {
         return false;
     }

@@ -85,5 +85,3 @@ void dbg_switch_to_cereal(void);
 #ifdef __cplusplus
 }
 #endif
-
-extern void dbg_wait_user(void);

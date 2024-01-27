@@ -7,3 +7,11 @@
 // but is not a type definition
 
 #define EEPROM_MAGIC    0xDEADBEEF
+
+#ifndef CLI_ECHO
+#ifdef DEVELOPMENT_BOARD
+#define CLI_ECHO    true  // development boards use two wires for UART
+#else
+#define CLI_ECHO    false // most of the one-wire USB-links already echo, so do not echo ourselves
+#endif
+#endif
