@@ -1,9 +1,6 @@
 #include "main.h"
 
 #ifdef ENABLE_COMPILE_CLI
-#ifndef ENABLE_CEREAL_TX
-#error
-#endif
 
 #include <stdlib.h>
 #include <stdio.h>

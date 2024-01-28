@@ -201,15 +201,8 @@ void hwtest_rc_crsf(void)
     #ifdef DEVELOPMENT_BOARD
     dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false, false);
     #endif
-    uint8_t usart_id;
-    #if INPUT_PIN == LL_GPIO_PIN_2
-    usart_id = CEREAL_ID_USART2;
-    #elif INPUT_PIN == LL_GPIO_PIN_4
-    usart_id = CEREAL_ID_USART1;
-    #else
-    usart_id = CEREAL_ID_USART2;
-    #endif
-    main_cer.init(usart_id, 420000, false, false, true);
+    eeprom_load_defaults();
+    main_cer.init(CEREAL_ID_USART_CRSF, 420000, false, true, false, true);
     crsf_1.init(&main_cer, 1);
     crsf_2.init(&main_cer, 2);
     uint32_t t = millis();

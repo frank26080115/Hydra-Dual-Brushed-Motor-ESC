@@ -10,8 +10,6 @@
 #define CRSF_CHANNEL_VALUE_2000 1792
 #define CRSF_CHANNEL_VALUE_MAX  1811 // 2012us - actual CRSF max is 1984 with E.Limits on
 
-#define CRSF_BAUDRATE 420000
-
 class CrsfChannel : public RcChannel
 {
     public:

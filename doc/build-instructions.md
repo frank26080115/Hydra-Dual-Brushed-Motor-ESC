@@ -37,7 +37,6 @@ Batch build will be slow as all the files need to be completely rebuilt for ever
 
 Compiler preprocessor defines that can be enabled or disabled to save memory:
 
- * `ENABLE_CEREAL_TX` ability to transmit bytes over serial
  * `ENABLE_LED_BLINK` complex blinking behavior vs simple colours and simple blinks
  * `ENABLE_COMPILE_CLI` if the CLI is available, a ton of memory is used for `printf`
 

@@ -1,5 +1,8 @@
 #pragma once
 
+#include "conf.h"
+#include "defs.h"
+#include "types.h"
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -12,11 +15,9 @@
 class Cereal
 {
     public:
-    #ifdef ENABLE_CEREAL_TX
         virtual void write(uint8_t x);
         virtual size_t writeb(uint8_t* buf, int len);
         virtual void flush(void);
-    #endif
         virtual int16_t read(void);
         virtual int16_t peek(void);
         virtual int16_t peekAt(int16_t);
@@ -28,7 +29,7 @@ class Cereal
         virtual void reset_buffer(void);
         virtual uint8_t* get_buffer(void);
         virtual uint32_t get_last_time(void);
-        #ifdef ENABLE_CEREAL_IDLE_DETECT
+        #ifdef ENABLE_CEREAL_DMA
         virtual bool get_idle_flag(bool clr);
         #endif
         inline uint8_t get_id(void) { return _id; };

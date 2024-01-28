@@ -55,7 +55,7 @@ int main(void)
 {
     mcu_init();
 
-    hw_test();
+    //hw_test();
 
     #ifdef DEVELOPMENT_BOARD
     dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false, false);
@@ -106,24 +106,7 @@ int main(void)
     }
     else if (cfg.input_mode == INPUTMODE_CRSF || cfg.input_mode == INPUTMODE_CRSF_SWCLK)
     {
-        uint8_t usart_id;
-
-        if (cfg.input_mode == INPUTMODE_CRSF)
-        {
-            #if INPUT_PIN == LL_GPIO_PIN_2
-            usart_id = CEREAL_ID_USART2;
-            #elif INPUT_PIN == LL_GPIO_PIN_4
-            usart_id = CEREAL_ID_USART1;
-            #else
-            usart_id = CEREAL_ID_USART2;
-            #endif
-        }
-        else if (cfg.input_mode == INPUTMODE_CRSF_SWCLK)
-        {
-            usart_id = CEREAL_ID_USART_SWCLK;
-        }
-
-        main_cer.init(usart_id, cfg.baud == 0 ? CRSF_BAUDRATE : cfg.baud, false, true, false);
+        main_cer.init(cfg.input_mode == INPUTMODE_CRSF_SWCLK ? CEREAL_ID_USART_SWCLK : CEREAL_ID_USART_CRSF, cfg.baud == 0 ? CRSF_BAUDRATE : cfg.baud, false, true, false, true);
         crsf_1.init(&main_cer, cfg.channel_1);
         crsf_2.init(&main_cer, cfg.channel_2);
         rc1 = &crsf_1;
@@ -167,7 +150,7 @@ int main(void)
         bool need_debug_print = false;
         #ifdef DEBUG_PRINT
         static uint32_t last_debug_time = 0;
-        if ((millis() - last_debug_time) >= 2000)
+        if ((millis() - last_debug_time) >= 200)
         {
             need_debug_print = true;
             last_debug_time = millis();
@@ -204,7 +187,7 @@ int main(void)
             ledblink_disarmed();
             pwm_all_flt();
             if (need_debug_print) {
-                dbg_printf("[%u] disarmed, v=%lu   c=%u\r\n", millis(), sense_voltage, sense_current);
+                dbg_printf("[%u] disarmed (%d %d), v=%lu   c=%u\r\n", millis(), rc1->read(), rc2->read(), sense_voltage, sense_current);
             }
             continue; // do not execute the rest of the logic
         }

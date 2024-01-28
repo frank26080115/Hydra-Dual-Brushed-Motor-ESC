@@ -56,7 +56,6 @@ size_t Cereal::printf(const char *format, ...)
 }
 #endif
 
-#ifdef ENABLE_CEREAL_TX
 size_t Cereal::writeb(uint8_t* buf, int len)
 {
     int i;
@@ -73,8 +72,6 @@ void Cereal::write(uint8_t x) {
 void Cereal::flush(void) {
     // dummy, must be overridden
 }
-
-#endif
 
 int16_t Cereal::read(void)
 {
@@ -131,7 +128,7 @@ uint32_t Cereal::get_last_time(void)
     return 0;
 }
 
-#ifdef ENABLE_CEREAL_IDLE_DETECT
+#ifdef ENABLE_CEREAL_DMA
 bool Cereal::get_idle_flag(bool clr)
 {
     return false;

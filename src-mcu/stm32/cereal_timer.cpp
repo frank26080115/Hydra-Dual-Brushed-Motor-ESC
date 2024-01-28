@@ -8,9 +8,7 @@
 // so we use global static variables that can be access through ISRs
 
 static uint32_t cereal_baud;
-#ifdef ENABLE_CEREAL_TX
 static fifo_t cereal_fifo_tx;
-#endif
 static fifo_t cereal_fifo_rx;
 static volatile uint32_t last_rx_time = 0;
 static volatile bool tx_is_busy = false;
@@ -148,7 +146,6 @@ void Cereal_TimerBitbang::init(uint32_t baud)
     __enable_irq();
 }
 
-#ifdef ENABLE_CEREAL_TX
 void Cereal_TimerBitbang::write(uint8_t x)
 {
     fifo_push(fifo_tx, x);
@@ -182,14 +179,13 @@ void Cereal_TimerBitbang::flush(void)
         // do nothing but wait
     }
 }
-#endif
 
 uint32_t Cereal_TimerBitbang::get_last_time(void)
 {
     return last_rx_time;
 }
 
-#ifdef ENABLE_CEREAL_IDLE_DETECT
+#ifdef ENABLE_CEREAL_DMA
 bool Cereal_TimerBitbang::get_idle_flag(bool clr)
 {
     // this implementation is never used, only data packet parsers use it

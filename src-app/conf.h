@@ -19,6 +19,7 @@
 #define CLI_BUFF_SIZE 64
 
 #define CRSF_BAUDRATE 420000
+#define ENABLE_CEREAL_DMA
 
 #define PWM_DEFAULT_HEADROOM     50 // for the high-MOSFET's charge pump
 

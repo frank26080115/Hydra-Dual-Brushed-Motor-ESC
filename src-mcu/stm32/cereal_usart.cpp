@@ -1,17 +1,14 @@
 #include "cereal_usart.h"
 
+#define CEREAL_DMAx        DMA1
+#define CEREAL_DMA_CHAN    LL_DMA_CHANNEL_3
+
 static fifo_t fifo_rx_1;
 static fifo_t fifo_rx_2;
-#ifdef ENABLE_CEREAL_TX
 static fifo_t fifo_tx_1;
 static fifo_t fifo_tx_2;
-#endif
 static volatile uint32_t last_rx_time_1 = 0;
 static volatile uint32_t last_rx_time_2 = 0;
-#ifdef ENABLE_CEREAL_IDLE_DETECT
-static volatile bool is_idle_1 = false;
-static volatile bool is_idle_2 = false;
-#endif
 static volatile bool had_first_byte_1 = false;
 static volatile bool had_first_byte_2 = false;
 
@@ -19,11 +16,40 @@ static volatile bool had_first_byte_2 = false;
 static Cereal_USART* dbg_cer_tgt = NULL;
 #endif
 
-void USARTx_IRQHandler(USART_TypeDef* usart, fifo_t* fifo_rx,
-#ifdef ENABLE_CEREAL_TX
-fifo_t* fifo_tx,
+#ifdef ENABLE_CEREAL_DMA
+#define ENABLE_CEREAL_DMA_IRQ
+// CRSF only works with DMA IRQ
+
+#ifdef ENABLE_CEREAL_DMA_IRQ
+static volatile bool is_idle_1 = false;
+static volatile bool is_idle_2 = false;
 #endif
-#ifdef ENABLE_CEREAL_IDLE_DETECT
+static uint8_t use_dma_on = 0;
+static uint8_t dma_buff[CEREAL_BUFFER_SIZE];
+
+void cereal_dmaRestart(void)
+{
+    // reset the DMA buffer completely or else CRSF parsing will fail
+    LL_DMA_DisableChannel(CEREAL_DMAx, CEREAL_DMA_CHAN);
+    LL_DMA_SetDataLength(CEREAL_DMAx, CEREAL_DMA_CHAN, 0);
+    dma_buff[0] = 0; // invalidate the packet
+    dma_buff[1] = 0; // invalidate the packet
+    dma_buff[2] = 0; // invalidate the packet
+    dma_buff[3] = 0; // invalidate the packet
+    LL_DMA_SetDataLength(CEREAL_DMAx, CEREAL_DMA_CHAN, CEREAL_BUFFER_SIZE);
+    if (use_dma_on == CEREAL_ID_USART1) {
+        LL_USART_EnableDMAReq_RX(USART1);
+    }
+    else if (use_dma_on == CEREAL_ID_USART2) {
+        LL_USART_EnableDMAReq_RX(USART2);
+    }
+    LL_DMA_EnableChannel(CEREAL_DMAx, CEREAL_DMA_CHAN);
+}
+
+#endif
+
+void USARTx_IRQHandler(uint8_t _u, USART_TypeDef* usart, fifo_t* fifo_rx, fifo_t* fifo_tx,
+#if defined(ENABLE_CEREAL_DMA) && defined(ENABLE_CEREAL_DMA_IRQ)
 volatile bool* is_idle,
 #endif
 volatile uint32_t* timestamp, volatile bool* had_1st)
@@ -38,7 +64,6 @@ volatile uint32_t* timestamp, volatile bool* had_1st)
         }
         *timestamp = millis();
     }
-    #ifdef ENABLE_CEREAL_TX
     if (LL_USART_IsActiveFlag_TC(usart))
     {
         dbg_evntcnt_add(DBGEVNTID_USART_TX);
@@ -49,13 +74,13 @@ volatile uint32_t* timestamp, volatile bool* had_1st)
             LL_USART_TransmitData8(usart, x);
         }
     }
-    #endif
-    #ifdef ENABLE_CEREAL_IDLE_DETECT
+    #if defined(ENABLE_CEREAL_DMA) && defined(ENABLE_CEREAL_DMA_IRQ)
     if (LL_USART_IsActiveFlag_IDLE(usart))
     {
         dbg_evntcnt_add(DBGEVNTID_USART_IDLE);
         LL_USART_ClearFlag_IDLE(usart);
         *is_idle = true;
+        *timestamp = millis();
     }
     #endif
 }
@@ -66,11 +91,8 @@ extern "C" {
 
 void USART1_IRQHandler(void)
 {
-    USARTx_IRQHandler(USART1, &fifo_rx_1,
-    #ifdef ENABLE_CEREAL_TX
-    &fifo_tx_1,
-    #endif
-    #ifdef ENABLE_CEREAL_IDLE_DETECT
+    USARTx_IRQHandler(CEREAL_ID_USART1, USART1, &fifo_rx_1, &fifo_tx_1,
+    #if defined(ENABLE_CEREAL_DMA) && defined(ENABLE_CEREAL_DMA_IRQ)
     (volatile bool*)&is_idle_1,
     #endif
     (volatile uint32_t*)&last_rx_time_1, (volatile bool*)&had_first_byte_1);
@@ -81,11 +103,8 @@ void USART1_IRQHandler(void)
 
 void USART2_IRQHandler(void)
 {
-    USARTx_IRQHandler(USART2, &fifo_rx_2,
-    #ifdef ENABLE_CEREAL_TX
-    &fifo_tx_2,
-    #endif
-    #ifdef ENABLE_CEREAL_IDLE_DETECT
+    USARTx_IRQHandler(CEREAL_ID_USART2, USART2, &fifo_rx_2, &fifo_tx_2,
+    #if defined(ENABLE_CEREAL_DMA) && defined(ENABLE_CEREAL_DMA_IRQ)
     (volatile bool*)&is_idle_2,
     #endif
     (volatile uint32_t*)&last_rx_time_2, (volatile bool*)&had_first_byte_2);
@@ -103,10 +122,27 @@ Cereal_USART::Cereal_USART(void)
 
 }
 
-void Cereal_USART::init(uint8_t id, uint32_t baud, bool invert, bool halfdup, bool swap)
+void Cereal_USART::init(uint8_t id, uint32_t baud, bool invert, bool halfdup, bool swap
+    #ifdef ENABLE_CEREAL_DMA
+        , bool dma
+    #endif
+    )
 {
     _id = id;
-    if (id == CEREAL_ID_USART1) {
+    if (id == CEREAL_ID_USART_CRSF) {
+        #if INPUT_PIN == LL_GPIO_PIN_2
+        _usart = USART2;
+        _u = CEREAL_ID_USART2;
+        #elif INPUT_PIN == LL_GPIO_PIN_4
+        _usart = USART1;
+        _u = CEREAL_ID_USART1;
+        #else
+        _usart = USART2;
+        _u = CEREAL_ID_USART2;
+        #endif
+        _id = _u;
+    }
+    else if (id == CEREAL_ID_USART1) {
         _usart = USART1;
         _u = CEREAL_ID_USART1;
     }
@@ -131,18 +167,14 @@ void Cereal_USART::init(uint8_t id, uint32_t baud, bool invert, bool halfdup, bo
     if (_u == CEREAL_ID_USART1) {
         fifo_init(&fifo_rx_1, cer_buff_1, CEREAL_BUFFER_SIZE);
         fifo_rx = &fifo_rx_1;
-        #ifdef ENABLE_CEREAL_TX
         fifo_init(&fifo_tx_1, cer_buff_2, CEREAL_BUFFER_SIZE);
         fifo_tx = &fifo_tx_1;
-        #endif
     }
     else if (_u == CEREAL_ID_USART2) {
         fifo_init(&fifo_rx_2, cer_buff_1, CEREAL_BUFFER_SIZE);
         fifo_rx = &fifo_rx_2;
-        #ifdef ENABLE_CEREAL_TX
         fifo_init(&fifo_tx_2, cer_buff_2, CEREAL_BUFFER_SIZE);
         fifo_tx = &fifo_tx_2;
-        #endif
     }
 
     _usart->BRR = CLK_CNT(baud);
@@ -169,19 +201,28 @@ void Cereal_USART::init(uint8_t id, uint32_t baud, bool invert, bool halfdup, bo
     }
     _usart->CR2 = cr2;
 
-    _usart->CR1 = USART_CR1_UE | USART_CR1_RE |
-        #ifdef ENABLE_CEREAL_TX
-            USART_CR1_TE | USART_CR1_TCIE |
-        #endif
-        #ifdef ENABLE_CEREAL_IDLE_DETECT
-            USART_CR1_IDLEIE | 
-        #endif
+    uint32_t cr1 = _usart->CR1;
+
+    #ifdef ENABLE_CEREAL_DMA
+    #ifdef ENABLE_CEREAL_DMA_IRQ
+    if (dma) {
+        cr1 |= USART_CR1_RE | USART_CR1_IDLEIE;
+    }
+    #endif
+    if (!dma)
+    #endif
+    {
+        cr1 |= USART_CR1_TE | LL_USART_CR1_TCIE | USART_CR1_RE |
         #if defined(MCU_F051)
             USART_CR1_RXNEIE
         #elif defined(MCU_G071)
             LL_USART_CR1_RXNEIE_RXFNEIE
+        #else
+        #error
         #endif
-        ;
+            ;
+    }
+    _usart->CR1 = cr1;
 
     LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
     if (_id == CEREAL_ID_USART1)
@@ -246,13 +287,44 @@ void Cereal_USART::init(uint8_t id, uint32_t baud, bool invert, bool halfdup, bo
     }
     #endif
 
-    NVIC_SetPriority(USART1_IRQn, 1);
-    NVIC_SetPriority(USART2_IRQn, 1);
-    NVIC_EnableIRQ(USART1_IRQn);
-    NVIC_EnableIRQ(USART2_IRQn);
+    #ifdef ENABLE_CEREAL_DMA
+    if (dma) {
+        use_dma_on = _u;
+        LL_DMA_SetPeriphRequest        (CEREAL_DMAx, CEREAL_DMA_CHAN, _u == CEREAL_ID_USART2 ? LL_DMAMUX_REQ_USART2_RX : LL_DMAMUX_REQ_USART1_RX);
+        LL_DMA_SetDataTransferDirection(CEREAL_DMAx, CEREAL_DMA_CHAN, LL_DMA_DIRECTION_PERIPH_TO_MEMORY);
+        LL_DMA_SetChannelPriorityLevel (CEREAL_DMAx, CEREAL_DMA_CHAN, LL_DMA_PRIORITY_HIGH);
+        LL_DMA_SetMode                 (CEREAL_DMAx, CEREAL_DMA_CHAN, LL_DMA_MODE_CIRCULAR);
+        LL_DMA_SetPeriphIncMode        (CEREAL_DMAx, CEREAL_DMA_CHAN, LL_DMA_PERIPH_NOINCREMENT);
+        LL_DMA_SetMemoryIncMode        (CEREAL_DMAx, CEREAL_DMA_CHAN, LL_DMA_MEMORY_INCREMENT);
+        LL_DMA_SetPeriphSize           (CEREAL_DMAx, CEREAL_DMA_CHAN, LL_DMA_PDATAALIGN_BYTE);
+        LL_DMA_SetMemorySize           (CEREAL_DMAx, CEREAL_DMA_CHAN, LL_DMA_MDATAALIGN_BYTE);
+        LL_DMA_ConfigAddresses         (CEREAL_DMAx, CEREAL_DMA_CHAN,
+                                        LL_USART_DMA_GetRegAddr(_usart, LL_USART_DMA_REG_DATA_RECEIVE),
+                                        (uint32_t)dma_buff,
+                                        LL_DMA_GetDataTransferDirection(CEREAL_DMAx, CEREAL_DMA_CHAN));
+        cereal_dmaRestart();
+    }
+    #endif
+
+    LL_USART_Enable(_usart);
+
+    IRQn_Type irqn = _u == CEREAL_ID_USART2 ? USART2_IRQn : USART1_IRQn;
+
+    #ifdef ENABLE_CEREAL_DMA
+    if (
+        #ifdef ENABLE_CEREAL_DMA_IRQ
+            true
+        #else
+            !dma
+        #endif
+    )
+    #endif
+    {
+        NVIC_SetPriority(irqn, 1);
+        NVIC_EnableIRQ(irqn);
+    }
 }
 
-#ifdef ENABLE_CEREAL_TX
 void Cereal_USART::write(uint8_t x)
 {
     fifo_push(fifo_tx, x);
@@ -289,7 +361,6 @@ void Cereal_USART::flush(void)
     }
     #endif
 }
-#endif
 
 uint32_t Cereal_USART::get_last_time(void)
 {
@@ -302,11 +373,22 @@ uint32_t Cereal_USART::get_last_time(void)
     return 0;
 }
 
-#ifdef ENABLE_CEREAL_IDLE_DETECT
+uint8_t* Cereal_USART::get_buffer(void)
+{
+    if (use_dma_on != _u) {
+        return cer_buff_1;
+    }
+    else {
+        return dma_buff;
+    }
+}
+
+#ifdef ENABLE_CEREAL_DMA
 
 bool Cereal_USART::get_idle_flag(bool clr)
 {
     bool x = false;
+    #ifdef ENABLE_CEREAL_DMA_IRQ
     __disable_irq();
     if (_u == CEREAL_ID_USART1) {
         x = is_idle_1;
@@ -321,6 +403,15 @@ bool Cereal_USART::get_idle_flag(bool clr)
         }
     }
     __enable_irq();
+    #else
+    if (LL_USART_IsActiveFlag_IDLE(_usart))
+    {
+        if (clr) {
+            LL_USART_ClearFlag_IDLE(_usart);
+        }
+        x = true;
+    }
+    #endif
     return x;
 }
 

@@ -83,20 +83,23 @@ void rc_register_good_pulse(uint16_t pw, uint16_t arm_thresh_min, uint16_t arm_t
     }
     (*bad_cnt) = 0;
     (*nflag) = true;
-    if (arm_pulses_required > 0 && armed != NULL && arm_cnt != NULL)
+    if (armed != NULL && arm_cnt != NULL)
     {
-        if (pw >= arm_thresh_min && pw <= arm_thresh_max) {
-            (*arm_cnt)++;
-            if ((*arm_cnt) >= arm_pulses_required) {
-                (*armed) = true;
+        if (arm_pulses_required > 0)
+        {
+            if (pw >= arm_thresh_min && pw <= arm_thresh_max) {
+                (*arm_cnt)++;
+                if ((*arm_cnt) >= arm_pulses_required) {
+                    (*armed) = true;
+                }
+            }
+            else {
+                (*arm_cnt) = 0;
             }
         }
         else {
-            (*arm_cnt) = 0;
+            (*armed) = true;
         }
-    }
-    else if (armed != NULL) {
-        (*armed) = true;
     }
 }
 

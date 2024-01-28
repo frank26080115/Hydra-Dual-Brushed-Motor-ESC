@@ -2,6 +2,7 @@
 #include "userconfig.h"
 
 //#define DEBUG_CRSF
+//#define DEBUG_CRSF_RATE
 
 #define CRSF_CHAN_CNT 16
 #define CRSF_SYNC_BYTE 0xC8
@@ -24,7 +25,21 @@ static bool     new_flag       = false;
 static uint32_t last_good_time = 0;
 static uint8_t  good_pulse_cnt = 0;
 static uint8_t  bad_pulse_cnt  = 0;
+
+#ifdef DEBUG_CRSF_RATE
+static uint32_t data_rate_cnt = 0;
+static uint32_t data_rate_tmr = 0;
+static uint32_t calls_cnt = 0;
+static uint32_t badcrc_cnt = 0;
+static uint32_t badhdr_cnt = 0;
+static uint32_t idle_cnt_prev = 0;
+#endif
+
+#ifdef ENABLE_CEREAL_DMA
+extern void cereal_dmaRestart(void);
+#else
 static uint8_t  crsf_tmpbuff[CEREAL_BUFFER_SIZE];
+#endif
 
 CrsfChannel::CrsfChannel(void)
 {
@@ -47,6 +62,20 @@ void CrsfChannel::task(void)
     }
     #endif
 
+    #ifdef DEBUG_CRSF_RATE
+    calls_cnt++;
+    #endif
+
+    uint32_t now = millis();
+
+#ifdef ENABLE_CEREAL_DMA
+    bool           is_idle = cereal->get_idle_flag(true);
+    uint8_t*       buff    = cereal->get_buffer();
+    crsf_header_t* hdr     = (crsf_header_t*)buff;
+
+    if (is_idle && hdr->sync == CRSF_SYNC_BYTE && hdr->type == CRSF_FRAMETYPE_RC_CHANNELS_PACKED)
+    {
+#else
     cereal->popUntil(CRSF_SYNC_BYTE);
 
     uint8_t tmp_syncByte = cereal->peek();
@@ -54,23 +83,24 @@ void CrsfChannel::task(void)
     uint8_t tmp_pktType  = cereal->peekAt(2);
 
     uint16_t avail       = cereal->available();
-    uint32_t now         = millis();
 
     // check packet header for match
     if (tmp_syncByte   == CRSF_SYNC_BYTE
         && tmp_pktType == CRSF_FRAMETYPE_RC_CHANNELS_PACKED
         && (tmp_pktLen + 2) <= avail // packet is complete
-    ) {
+    )
+    {
         cereal->read(crsf_tmpbuff, tmp_pktLen + 2);
         uint8_t* buff = crsf_tmpbuff;
         crsf_header_t* hdr = (crsf_header_t*)buff;
+#endif
 
         uint8_t crc = crsf_crc8(&(hdr->type), hdr->len - 1);
         if (crc == buff[hdr->len + 1]) // CRC matches
         {
             #ifdef DEBUG_CRSF
             if (to_debug) {
-                dbg_printf("CRSF good\r\n");
+                dbg_printf("[%u] CRSF good (last %u)\r\n", millis(), last_good_time);
                 to_debug = false;
             }
             #endif
@@ -108,6 +138,21 @@ void CrsfChannel::task(void)
                 , &good_pulse_cnt, &bad_pulse_cnt, NULL
                 , (bool*)&new_flag, NULL
             );
+
+            #ifdef DEBUG_CRSF_RATE
+            data_rate_cnt++;
+            if ((now - data_rate_tmr) >= 1000) {
+                data_rate_tmr = now;
+                uint32_t idle_cnt_now = dbg_evntcnt_get(DBGEVNTID_USART_IDLE);
+                dbg_printf("CRSF %u / %u / %u / %u / %u\r\n", data_rate_cnt, badcrc_cnt, badhdr_cnt, idle_cnt_now - idle_cnt_prev, calls_cnt);
+                data_rate_cnt = 0;
+                calls_cnt = 0;
+                badcrc_cnt = 0;
+                badhdr_cnt = 0;
+                idle_cnt_prev = idle_cnt_now;
+            }
+            #endif
+
         }
         else
         {
@@ -123,66 +168,103 @@ void CrsfChannel::task(void)
                 to_debug = false;
             }
             #endif
+            #ifdef DEBUG_CRSF_RATE
+            badcrc_cnt++;
+            #endif
 
-            rc_register_bad_pulse(&good_pulse_cnt, &bad_pulse_cnt,
-                #if 0
-                    &arming_cnt
-                #else
-                    NULL
-                #endif
-            );
+            rc_register_bad_pulse(&good_pulse_cnt, &bad_pulse_cnt, NULL);
         }
 
+        #ifndef ENABLE_CEREAL_DMA
         // too much data?
         if ((tmp_pktLen + 2) <= cereal->available()) {
             cereal->reset_buffer();
         }
+        #endif
     }
-    else if (tmp_syncByte == CRSF_SYNC_BYTE
-        && tmp_pktType != CRSF_FRAMETYPE_RC_CHANNELS_PACKED
-        && ((tmp_pktLen + 2) <= avail || (now - last_good_time) >= 5)
-    ) {
+    #ifdef ENABLE_CEREAL_DMA
+    else if (is_idle && hdr->sync == CRSF_SYNC_BYTE && hdr->type != CRSF_FRAMETYPE_RC_CHANNELS_PACKED)
+    #else
+    else if (tmp_syncByte == CRSF_SYNC_BYTE && tmp_pktType != CRSF_FRAMETYPE_RC_CHANNELS_PACKED && ((tmp_pktLen + 2) <= avail || (millis() - last_good_time) >= 5))
+    #endif
+    {
         #ifdef DEBUG_CRSF
         if (to_debug) {
-            dbg_printf("CRSF unwanted packet 0x%02X 0x%02X 0x%02X\r\n", tmp_syncByte, tmp_pktLen, tmp_pktType);
+            dbg_printf("CRSF unwanted packet 0x%02X 0x%02X 0x%02X\r\n",
+                #ifdef ENABLE_CEREAL_DMA
+                    hdr->sync, hdr->len, hdr->type
+                #else
+                    tmp_syncByte, tmp_pktLen, tmp_pktType
+                #endif
+                );
             to_debug = false;
         }
         #endif
+        #ifndef ENABLE_CEREAL_DMA
         cereal->consume(tmp_pktLen + 2);
         if ((tmp_pktLen + 2) <= cereal->available()) { // too much data?
             cereal->reset_buffer();
         }
+        #endif
+    }
+    else if (is_idle)
+    {
+        #ifdef DEBUG_CRSF_RATE
+        badhdr_cnt++;
+        #endif
     }
 
-    _has_new |= new_flag;
+    #ifdef ENABLE_CEREAL_DMA
+    if (is_idle) {
+        cereal_dmaRestart();
+    }
+    #endif
 
-    if (arm_pulses_required > 0)
+    _has_new |= new_flag;
+    now = millis();
+
+    if (arm_pulses_required > 0) // user has configured a requirement
     {
-        if ((now - arming_tick) >= 20)
+        if ((now - arming_tick) >= 20) // time to check
         {
-            arming_tick = now;
-            if ((now - last_good_time) <= 100 && read() == 0) {
+            arming_tick = now; // stage next time to check
+
+            if ((now - last_good_time) <= 100 && read() == 0) { // signal is still valid and reading 0
                 arming_cnt++;
-                if (arming_cnt >= arm_pulses_required) {
+                if (arming_cnt >= arm_pulses_required) { // met requirements
+                    #ifdef DEBUG_CRSF
+                    if (armed == false) {
+                        dbg_printf("CRSF armed!\r\n");
+                    }
+                    #endif
                     armed = true;
                 }
             }
             else {
+                #ifdef DEBUG_CRSF
+                if (read() == 0) {
+                    dbg_printf("CRSF temporary lost arming count (%u - %u)\r\n", now, last_good_time);
+                }
+                #endif
+                arming_cnt = 0;
+            }
+        }
+
+
+        if (disarm_timeout > 0) // a disarm timeout is required
+        {
+            if ((now - last_good_time) >= disarm_timeout) // passed the timeout
+            {
+                #ifdef DEBUG_CRSF
+                dbg_printf("CRSF disarmed due to timeout (%u - %u > %u)\r\n", now, last_good_time, disarm_timeout);
+                #endif
+                armed = false;
                 arming_cnt = 0;
             }
         }
     }
-    else {
+    else { // user specified no arming is required, so always arm
         armed = true;
-    }
-
-    if (disarm_timeout > 0)
-    {
-        if ((now - last_good_time) >= disarm_timeout)
-        {
-            armed = false;
-            arming_cnt = 0;
-        }
     }
 }
 
