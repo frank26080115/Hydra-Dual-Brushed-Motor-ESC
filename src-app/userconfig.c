@@ -219,6 +219,23 @@ void eeprom_mark_dirty(void)
     eeprom_save_time = millis();
 }
 
+extern uint32_t arm_pulses_required;
+extern uint32_t disarm_timeout;
+extern void pwm_set_reload(uint32_t);
+extern void pwm_set_remap(uint8_t);
+extern void pwm_set_loadbalance(bool);
+extern void pwm_set_braking(bool);
+
+void load_runtime_configs(void)
+{
+    arm_pulses_required = cfg.arm_duration;
+    disarm_timeout = cfg.disarm_timeout;
+    pwm_set_braking(cfg.braking);
+    pwm_set_reload(cfg.pwm_reload);
+    pwm_set_remap(cfg.phase_map);
+    pwm_set_loadbalance(cfg.load_balance);
+}
+
 #ifdef ENABLE_COMPILE_CLI
 uint32_t eeprom_idx_of_item(char* str)
 {

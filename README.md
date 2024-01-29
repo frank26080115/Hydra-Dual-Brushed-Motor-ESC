@@ -10,6 +10,8 @@ To control the ESC, RC pulse signals (PWM) are supported, and also the CRSF seri
 
 To configure the ESC, there is a command-line-interface (CLI) implemented, where various commands are used to manipulate stored settings.
 
+(other features: current limiting, temperature limiting, low-battery limiting)
+
 # Principle of Operation
 
 Brushless motor ESCs have 6 MOSFETs on them to form 3 half-bridges. These drive the three windings inside a brushless motor. Each half-bridge is driven by a PWM signal, which can approximate a voltage.
@@ -58,6 +60,29 @@ To install, update, and configure Hydra firmware, you must use a USB-linker mean
  * [Wiring](doc/wiring.md)
  * [Install Firmware](doc/install-firmware.md)
  * [Configuration](doc/configuration.md)
- * [Basic Operation](doc/basic-operation.md)
+
+Once you've done all of the above, it's ready to use as any other dual ESC.
+
+If arming is enabled (by default, it is enabled), then the motors won't start moving until the signal is indicating center throttle (center stick position), meaning stop. This is to prevent the motor from moving unexpectedly.
+
+The ESC is always commanded in bi-directional mode. Braking mode is enabled by default and is prefered for better responsiveness.
+
+During operation, if there is a LED, then the LED indicates the ESC's state:
+
+| state            | LED single colour | LED multi-colour |
+|------------------|-------------------|------------------|
+| disarmed         | solid, no blink   | solid red, no blink |
+| armed <br /> not moving | short slow blink | short slow green blink |
+| armed <br /> yes moving | short fast blink | short fast green blink |
+| current/temperature limit reached | double blink with alternating durations | rapid purple blink |
+| low battery | slow blink with alternating durations | slow blink alternating red and blue |
+| CLI mode         | slow blink        | purple blinks |
+
+(it is not possible to accidentally enter CLI mode, as it checks for input signal pulses)
+
+There is no "arcade mode mixing" feature in this firmware, please do this from the transmitter side. I always recommend avoiding using any mixing modes on ESCs, it is much better to do it on the transmitter.
+
+# Additional Advanced Topics
+
  * [Firmware Build Instructions](doc/build-instructions.md)
  * [Install AM32](doc/install-am32.md)

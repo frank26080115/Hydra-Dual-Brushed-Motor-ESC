@@ -130,12 +130,7 @@ int main(void)
         #endif
     }
 
-    arm_pulses_required = cfg.arm_duration;
-    disarm_timeout = cfg.disarm_timeout;
-    pwm_set_braking(cfg.braking);
-    pwm_set_reload(cfg.pwm_reload);
-    pwm_set_remap(cfg.phase_map);
-    pwm_set_loadbalance(cfg.load_balance);
+    load_runtime_configs();
 
     dbg_printf("init finished at %u\r\n", millis());
 

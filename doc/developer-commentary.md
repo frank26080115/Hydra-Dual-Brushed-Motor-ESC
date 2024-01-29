@@ -14,6 +14,8 @@ To drive a single brushed motor bidirectionally, a H-bridge circuit is needed, w
 
 So thus a brushless ESC can easily be used to drive a brushed motor as well. AM32 brushless ESC firmware (which is open source) has its own separate brushed-mode releases for ESCs using 32-bit microcontrollers. There's also Greenjay firmware that's dedicated to driving brushed motor using cheaper ESCs using 8-bit microcontrollers.
 
+(I did not write the Greenjay firmware, but I have a [forked repo of Greenjay with documentation on how to use it](https://github.com/frank26080115/greenjay). I was actually writing it but the Bluejay developers told me that they already wrote it for a customer, and the customer allowed them to open-source it)
+
 **But how about driving two motors?**
 
 Instead of connecting a single brushless motor, we connect two brushed motors. By changing the voltage (changing the PWM signal's duty cycle) of each half-bridge, we can control each of these two brushed motors independently.
@@ -22,7 +24,11 @@ Instead of connecting a single brushless motor, we connect two brushed motors. B
 
 This technique is known, author of AM32 actually showed me videos of him driving two brushed motors from a single brushless ESCs, he already has the code somewhere on his own computer. Repeat Robotics also sells a brushless ESC preloaded with AM32 firmware and the hardware was actually designed with an extra signal input for this kind of operation. But apparently there was nobody interested. The feature doesn't exist and the code was never published.
 
-AM32 is a good starting point, it has some commercially availability already and is open source. I actually wrote out my proposed algorithm for a more complex mixing of the motor voltages, and also documented the way my code repurposed some of the configuration bytes in the user configuration EEPROM. I sent this to AM32's author, he was appreciative but he works on the firmware on a private copy on his local computer and it wouldn't be practical to add my changes. A version of the firmware will be released later with an entirely different configuration application, adding a ton of more user configurable options, and will not even be at all backwards compatible.
+I was interested though, and I had ideas about how to give the motors an extra boost in voltage, purely for tank-drive robots. Thinking about my idea, it would drive a bit weird since the voltage curve would not be linear, but I wanted to try it out and think it will be successful.
+
+![](imgs/operating_voltage_modes.png)
+
+AM32 is a good starting point, it has some commercially availability already and is open source. I actually wrote out my proposed algorithm for a more complex mixing of the motor voltages, and also documented the way my code repurposed some of the configuration bytes in the user configuration EEPROM. I sent my work to AM32's author, he was appreciative but he works on the firmware on a private copy on his local computer and it wouldn't be practical to add my changes since the project has already changed so much. A version of the firmware will be released later with an entirely different configuration application, adding a ton of more user configurable options, and will not even be at all backwards compatible.
 
 I'm a robotics competition competitor so I actually kind of have a deadline for myself, so I just decided to write the brushed-mode firmware on my own instead of waiting on AM32's next github update. It'll need to be compatible with the AM32 bootloader because it'll be easy for me and other people to purchase a AM32-pre-loaded ESC as a starting point.
 
@@ -56,7 +62,7 @@ These daughter-boards make it simple to connect up a ELRS radio receiver, which 
 
 The code is written to be very modular, and using C++ object class inheritance in appropriate places. The simplifies the code and I also write specific tests for all the modules, kind of like unit tests but a bit more broad. It does chew up a bit more memory but as I said before, brushed mode operation does not take as much memory as brushless motors.
 
-I did actually make the mistake of using `malloc` and `new` in the code, and the code didn't fit in the 32 KB available. Now the code uses static buffers and global instances of the classes after realizing my mistake. In my own defense, my previous few projects have been very complex ESP32 projects, and ESP32 usually comes with gigantic flash memory but executes from RAM. My ESP32 projects had heavy usage of GUI menu systems where inheritance was very useful, and if I didn't manage memory properly, then my sprite animations ran slowly if I loaded it from flash for every frame.
+I did actually make the mistake of using `malloc` and `new` in the code, and the code didn't fit in the 32 KB available. Now the code uses static buffers and global instances of the classes after realizing my mistake. In my own defense, my previous few projects have been [very complex ESP32 projects](https://github.com/frank26080115/alpha-fairy/), and ESP32 usually comes with gigantic flash memory but executes from RAM. My ESP32 projects had heavy usage of GUI menu systems where inheritance was very useful, and if I didn't manage memory properly, then my sprite animations ran slowly if I loaded it from flash for every frame.
 
 For my ESC firmware, inheritance is used for two major things:
 
@@ -101,6 +107,8 @@ For transmitting a byte, the same timer set to the same overflow time for exactl
 ![](imgs/bitbangcerealtx.png)
 
 Very very easy to implement, and it all happens with perfect timing in a non-blocking fashion.
+
+NOTE: timer overflow is called an `UPDATE` event on STM32 microcontrollers
 
 # Other: CRSF input
 

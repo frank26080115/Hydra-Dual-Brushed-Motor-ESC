@@ -27,9 +27,13 @@
 #if defined(USE_RGB_LED) || defined(USE_LED_STRIP)
 
 const uint8_t blinkpattern_boot[] = {
-    // slow single yellow blink
-    BLINK_RGB_TIME(1, 1, 0, 1),
-    BLINK_OFF_TIME(4),
+    // rapid multi-coloured blink
+    BLINK_RGB_TIME(1, 0, 0, 1),
+    BLINK_OFF_TIME(1),
+    BLINK_RGB_TIME(0, 1, 0, 1),
+    BLINK_OFF_TIME(1),
+    BLINK_RGB_TIME(0, 0, 1, 1),
+    BLINK_OFF_TIME(1),
     BLINK_LOOP,
 };
 
@@ -38,7 +42,7 @@ const uint8_t blinkpattern_cli[] = {
     BLINK_RGB_TIME(1, 0, 1, 1),
     BLINK_OFF_TIME(1),
     BLINK_RGB_TIME(1, 0, 1, 1),
-    BLINK_OFF_TIME(2),
+    BLINK_OFF_TIME(1),
     BLINK_LOOP,
 };
 
@@ -63,14 +67,14 @@ const uint8_t blinkpattern_running[] = {
 };
 
 const uint8_t blinkpattern_currentlimited[] = {
-    BLINK_RGB_TIME(1, 0, 1, 3),
+    BLINK_RGB_TIME(1, 0, 0, 3),
     BLINK_OFF_TIME(1),
     BLINK_RGB_TIME(1, 0, 1, 1),
     BLINK_OFF_TIME(1),
-    BLINK_RGB_TIME(1, 0, 1, 3),
+    BLINK_RGB_TIME(1, 0, 0, 3),
     BLINK_OFF_TIME(1),
     BLINK_RGB_TIME(1, 0, 1, 1),
-    BLINK_OFF_TIME(5),
+    BLINK_OFF_TIME(1),
     BLINK_STOP,
 };
 
@@ -126,7 +130,7 @@ const uint8_t blinkpattern_currentlimited[] = {
     BLINK_ON_TIME(3),
     BLINK_OFF_TIME(1),
     BLINK_ON_TIME(1),
-    BLINK_OFF_TIME(5),
+    BLINK_OFF_TIME(1),
     BLINK_STOP,
 };
 

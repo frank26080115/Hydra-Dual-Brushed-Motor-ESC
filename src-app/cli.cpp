@@ -25,7 +25,6 @@
 #define MAX_CMD_ARGS 8
 int32_t cmd_args[MAX_CMD_ARGS];
 
-uint8_t cli_phaseremap;
 bool cli_hwdebug;
 extern int16_t current_limit_val;
 extern void current_limit_task(void);
@@ -91,8 +90,6 @@ void cli_enter(void)
     Cereal_TimerBitbang* cer = &cli_cer;
     cer->init(CLI_BAUD);
     #endif
-
-    cli_phaseremap = cfg.phase_map;
 
     char buff[CLI_BUFF_SIZE];
     uint16_t buff_idx = 0;
@@ -264,15 +261,20 @@ void cli_execute(Cereal* cer, char* str)
         }
 
         pwm_set_braking(true);
-        pwm_set_remap(cli_phaseremap); // set by command "testremap"
 
-        int phase = (cmd_args[0] - 1) % 3;
-        switch (phase)
-        {
-            case 0: pwm_set_all_duty_remapped(cmd_args[1], 0, 0); break;
-            case 1: pwm_set_all_duty_remapped(0, cmd_args[1], 0); break;
-            case 2: pwm_set_all_duty_remapped(0, 0, cmd_args[1]); break;
-        }
+        uint16_t pwr = fi_map(cmd_args[1], 0, 100, 0, PWM_DEFAULT_AUTORELOAD - PWM_DEFAULT_HEADROOM, true);
+
+        int phase = ((cmd_args[0] - 1) % 3) + 1;
+        uint32_t duration = cmd_args[2];
+        pwm_set_remap(phase);
+
+        cer->printf("\r\ntesting PWM, phase %u, pwr = %u%%, time = %lums\r\n"
+                , phase
+                , pwr
+                , duration
+                );
+
+        pwm_set_all_duty_remapped(pwr, 0, 0);
 
         cer->reset_buffer();
         uint32_t t = 0;
@@ -287,7 +289,7 @@ void cli_execute(Cereal* cer, char* str)
                     t = millis();
                 }
             }
-            if (t != 0 && cmd_args[2] > 0 && (int)(millis() - t) >= cmd_args[2]) {
+            if (t != 0 && duration > 0 && (millis() - t) >= duration) {
                 // quit if time expired
                 break;
             }
@@ -303,18 +305,6 @@ void cli_execute(Cereal* cer, char* str)
         pwm_set_all_duty_remapped(0, 0, 0); // end
         cer->printf("\r\ntest end");
     }
-    else if (item_strcmp("testremap", str))
-    {
-        // changes the phase remapping temporarily for testing purposes
-        // it is not committed to EEPROM
-        argc = cmd_parseArgs(str);
-        if (argc < 1) {
-            cer->printf("\r\nERROR NO ARG");
-            return;
-        }
-        cli_phaseremap = cmd_args[0];
-        cer->printf("\r\ntest remap val = %u", cli_phaseremap);
-    }
     else
     {
         // none of the commands match, loop through the potential settings to see if it's something to save
@@ -322,6 +312,7 @@ void cli_execute(Cereal* cer, char* str)
         bool res = eeprom_user_edit(str, &nv);
         if (res) {
             cer->printf("\r\nOK (%s = %li)", str, nv);
+            load_runtime_configs();
             return;
         }
         else {
