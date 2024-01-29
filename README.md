@@ -54,8 +54,10 @@ Other models potentially will work if they meet the following criteria:
 To install, update, and configure Hydra firmware, you must use a USB-linker meant for communicating with ESCs. See this [wiki page](../../wiki/USB-Linker) for a list of linkers you can use.
 
 # Instructions
-
+ 
+ * [Wiring](doc/wiring.md)
  * [Install Firmware](doc/install-firmware.md)
  * [Configuration](doc/configuration.md)
- * [Build Instructions](doc/build-instructions.md)
+ * [Basic Operation](doc/basic-operation.md)
+ * [Firmware Build Instructions](doc/build-instructions.md)
  * [Install AM32](doc/install-am32.md)

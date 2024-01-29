@@ -53,3 +53,5 @@ Helpful debugging constants:
 # Using IDE
 
 There is a `.cproject` file available to build the development board firmwares, this can be opened with STM32CubeIDE. This is useful for using the ST-Link debugger to debug the code. It is not meant for building actual ESC firmware.
+
+There are some `*.launch_` files available inside the `src-mcu` directory. Rename these to `*.launch` and then they can be imported into STM32CubeIDE as debugger configurations.
