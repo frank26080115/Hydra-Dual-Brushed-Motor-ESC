@@ -185,7 +185,6 @@ uint32_t Cereal_TimerBitbang::get_last_time(void)
     return last_rx_time;
 }
 
-#ifdef ENABLE_CEREAL_DMA
 bool Cereal_TimerBitbang::get_idle_flag(bool clr)
 {
     // this implementation is never used, only data packet parsers use it
@@ -202,6 +201,4 @@ bool Cereal_TimerBitbang::get_idle_flag(bool clr)
     __enable_irq();
     return x;
 }
-#endif
-
 #endif

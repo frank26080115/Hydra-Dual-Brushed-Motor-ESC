@@ -413,7 +413,11 @@ void cliboot_if_key(void)
 
 bool cliboot_if_2nd_sig(void)
 {
-    if (inp2_read() != 0 || ((cfg.input_mode == INPUTMODE_CRSF_SWCLK || cfg.input_mode == INPUTMODE_RC_SWD) && swclk_read() != 0)) {
+    if (inp2_read() != 0
+        #ifdef DEVELOPMENT_BOARD
+            || ((cfg.input_mode == INPUTMODE_CRSF_SWCLK || cfg.input_mode == INPUTMODE_RC_SWD) && swclk_read() != 0)
+        #endif
+         ) {
         dbg_printf("CLI cancel from 2ndary signal high\r\n");
         return true;
     }
@@ -434,7 +438,7 @@ void cliboot_decide(void)
         swclk_init(LL_GPIO_PULL_DOWN);
     }
 
-    ledblink_boot();
+    ledblink_disarmed();
 
     uint32_t tstart = millis();
     while ((millis() - tstart) < 2) {
@@ -482,7 +486,7 @@ void cliboot_decide(void)
             }
         }
         dbg_printf("CLI stage - long unplug criteria passed\r\n");
-        ledblink_boot2();
+        ledblink_boot();
     }
     else
     {
@@ -509,7 +513,7 @@ void cliboot_decide(void)
     uint8_t pulse_cnt = 0;
     bool was_high = inp_read();
     uint32_t th = was_high ? tstart : 0;
-    uint32_t tl = was_high ? 0 : tstart;
+    //uint32_t tl = was_high ? 0 : tstart;
     while (true)
     {
         led_task(false);
@@ -529,19 +533,13 @@ void cliboot_decide(void)
         else
         {
             if (was_high != false) {
-                tl = millis();
                 pulse_cnt++;
                 if (pulse_cnt >= 20) {
-                    dbg_printf("CLI cancel from signal pulses\r\n");
+                    dbg_printf("CLI cancel from signal pulses (too many pulses)\r\n");
                     return;
                 }
             }
             was_high = false;
-        }
-
-        if (tl != 0 && th > tl && pulse_cnt >= 1 && (th - tl) >= 12) {
-            dbg_printf("CLI cancel from signal pulses\r\n");
-            return;
         }
 
         CLIBOOT_IF_2ND_SIG();

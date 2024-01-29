@@ -138,10 +138,6 @@ void ledblink_boot(void) {
     led_set_pattern_primary(blinkpattern_boot);
 }
 
-void ledblink_boot2(void) {
-    led_set_pattern_primary(blinkpattern_boot2);
-}
-
 void ledblink_cli(void) {
     led_set_pattern_primary(blinkpattern_cli);
 }
@@ -171,19 +167,6 @@ void ledblink_lowbatt(void) {
 void ledblink_boot(void) {
     #ifdef USE_RGB_LED
     led_set(LED_GPIO_RED  , LED_PIN_RED  , 0    , LED_IS_OPENDRAIN);
-    led_set(LED_GPIO_GREEN, LED_PIN_GREEN, 0    , LED_IS_OPENDRAIN);
-    led_set(LED_GPIO_BLUE , LED_PIN_BLUE , 0xFF , LED_IS_OPENDRAIN);
-    #elif defined(LED_GPIO) && defined(LED_PIN)
-    led_state = 1;
-    #endif
-    #ifdef USE_LED_STRIP
-    WS2812_setRGB(255, 0, 0);
-    #endif
-}
-
-void ledblink_boot2(void) {
-    #ifdef USE_RGB_LED
-    led_set(LED_GPIO_RED  , LED_PIN_RED  , 0xFF , LED_IS_OPENDRAIN);
     led_set(LED_GPIO_GREEN, LED_PIN_GREEN, 0    , LED_IS_OPENDRAIN);
     led_set(LED_GPIO_BLUE , LED_PIN_BLUE , 0xFF , LED_IS_OPENDRAIN);
     #elif defined(LED_GPIO) && defined(LED_PIN)

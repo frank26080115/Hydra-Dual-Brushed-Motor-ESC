@@ -33,15 +33,6 @@ const uint8_t blinkpattern_boot[] = {
     BLINK_LOOP,
 };
 
-const uint8_t blinkpattern_boot2[] = {
-    // slow double yellow blink
-    BLINK_RGB_TIME(1, 1, 0, 1),
-    BLINK_OFF_TIME(1),
-    BLINK_RGB_TIME(1, 1, 0, 1),
-    BLINK_OFF_TIME(4),
-    BLINK_LOOP,
-};
-
 const uint8_t blinkpattern_cli[] = {
     // fast double purple blink
     BLINK_RGB_TIME(1, 0, 1, 1),
@@ -94,20 +85,10 @@ const uint8_t blinkpattern_lowbatt[] = {
 #else
 
 const uint8_t blinkpattern_boot[] = {
-    BLINK_ON_TIME(3),
+    BLINK_ON_TIME(5),
     BLINK_OFF_TIME(1),
-    BLINK_ON_TIME(1),
-    BLINK_OFF_TIME(4),
-    BLINK_LOOP,
-};
-
-const uint8_t blinkpattern_boot2[] = {
-    BLINK_ON_TIME(3),
+    BLINK_ON_TIME(2),
     BLINK_OFF_TIME(1),
-    BLINK_ON_TIME(3),
-    BLINK_OFF_TIME(1),
-    BLINK_ON_TIME(1),
-    BLINK_OFF_TIME(4),
     BLINK_LOOP,
 };
 

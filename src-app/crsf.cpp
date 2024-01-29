@@ -35,11 +35,7 @@ static uint32_t badhdr_cnt = 0;
 static uint32_t idle_cnt_prev = 0;
 #endif
 
-#ifdef ENABLE_CEREAL_DMA
 extern void cereal_dmaRestart(void);
-#else
-static uint8_t  crsf_tmpbuff[CEREAL_BUFFER_SIZE];
-#endif
 
 CrsfChannel::CrsfChannel(void)
 {
@@ -68,33 +64,12 @@ void CrsfChannel::task(void)
 
     uint32_t now = millis();
 
-#ifdef ENABLE_CEREAL_DMA
     bool           is_idle = cereal->get_idle_flag(true);
     uint8_t*       buff    = cereal->get_buffer();
     crsf_header_t* hdr     = (crsf_header_t*)buff;
 
     if (is_idle && hdr->sync == CRSF_SYNC_BYTE && hdr->type == CRSF_FRAMETYPE_RC_CHANNELS_PACKED)
     {
-#else
-    cereal->popUntil(CRSF_SYNC_BYTE);
-
-    uint8_t tmp_syncByte = cereal->peek();
-    uint8_t tmp_pktLen   = cereal->peekAt(1);
-    uint8_t tmp_pktType  = cereal->peekAt(2);
-
-    uint16_t avail       = cereal->available();
-
-    // check packet header for match
-    if (tmp_syncByte   == CRSF_SYNC_BYTE
-        && tmp_pktType == CRSF_FRAMETYPE_RC_CHANNELS_PACKED
-        && (tmp_pktLen + 2) <= avail // packet is complete
-    )
-    {
-        cereal->read(crsf_tmpbuff, tmp_pktLen + 2);
-        uint8_t* buff = crsf_tmpbuff;
-        crsf_header_t* hdr = (crsf_header_t*)buff;
-#endif
-
         uint8_t crc = crsf_crc8(&(hdr->type), hdr->len - 1);
         if (crc == buff[hdr->len + 1]) // CRC matches
         {
@@ -174,36 +149,15 @@ void CrsfChannel::task(void)
 
             rc_register_bad_pulse(&good_pulse_cnt, &bad_pulse_cnt, NULL);
         }
-
-        #ifndef ENABLE_CEREAL_DMA
-        // too much data?
-        if ((tmp_pktLen + 2) <= cereal->available()) {
-            cereal->reset_buffer();
-        }
-        #endif
     }
-    #ifdef ENABLE_CEREAL_DMA
     else if (is_idle && hdr->sync == CRSF_SYNC_BYTE && hdr->type != CRSF_FRAMETYPE_RC_CHANNELS_PACKED)
-    #else
-    else if (tmp_syncByte == CRSF_SYNC_BYTE && tmp_pktType != CRSF_FRAMETYPE_RC_CHANNELS_PACKED && ((tmp_pktLen + 2) <= avail || (millis() - last_good_time) >= 5))
-    #endif
     {
         #ifdef DEBUG_CRSF
         if (to_debug) {
             dbg_printf("CRSF unwanted packet 0x%02X 0x%02X 0x%02X\r\n",
-                #ifdef ENABLE_CEREAL_DMA
                     hdr->sync, hdr->len, hdr->type
-                #else
-                    tmp_syncByte, tmp_pktLen, tmp_pktType
-                #endif
                 );
             to_debug = false;
-        }
-        #endif
-        #ifndef ENABLE_CEREAL_DMA
-        cereal->consume(tmp_pktLen + 2);
-        if ((tmp_pktLen + 2) <= cereal->available()) { // too much data?
-            cereal->reset_buffer();
         }
         #endif
     }
@@ -214,11 +168,9 @@ void CrsfChannel::task(void)
         #endif
     }
 
-    #ifdef ENABLE_CEREAL_DMA
     if (is_idle) {
         cereal_dmaRestart();
     }
-    #endif
 
     _has_new |= new_flag;
     now = millis();

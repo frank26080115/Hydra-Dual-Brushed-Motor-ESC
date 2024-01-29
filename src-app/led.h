@@ -28,7 +28,6 @@ void led_blink_set(uint8_t x);
 void led_state_set(bool x);
 
 void ledblink_boot(void);
-void ledblink_boot2(void);
 void ledblink_disarmed(void);
 void ledblink_armed_stopped(void);
 void ledblink_moving(void);

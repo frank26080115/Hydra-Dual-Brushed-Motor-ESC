@@ -128,9 +128,7 @@ uint32_t Cereal::get_last_time(void)
     return 0;
 }
 
-#ifdef ENABLE_CEREAL_DMA
 bool Cereal::get_idle_flag(bool clr)
 {
     return false;
 }
-#endif

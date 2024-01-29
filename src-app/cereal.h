@@ -29,9 +29,7 @@ class Cereal
         virtual void reset_buffer(void);
         virtual uint8_t* get_buffer(void);
         virtual uint32_t get_last_time(void);
-        #ifdef ENABLE_CEREAL_DMA
         virtual bool get_idle_flag(bool clr);
-        #endif
         inline uint8_t get_id(void) { return _id; };
 
         #ifdef ENABLE_COMPILE_CLI
