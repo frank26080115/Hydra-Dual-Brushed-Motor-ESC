@@ -6,13 +6,13 @@ See this [wiki page](../../../wiki/USB-Linker) for a list of linkers you can use
 
 # Connecting to the ESC
 
- 1. Keep the power off on the ESC
+ 1. Keep the ESC's power completely off
  
  2. Connect it to the USB linker through the main signal input cable (the servo cable).
  
  3. Connect the USB linker to the PC
 
- 4. Power on the ESC
+ 4. Power up the ESC
 
 This sequence activates the AM32 bootloader. If you connect it in a different sequence, the bootloader might not activate.
 
