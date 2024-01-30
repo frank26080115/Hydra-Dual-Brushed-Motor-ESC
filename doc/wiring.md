@@ -1,6 +1,11 @@
 ## Wiring the Motors
 
-Ideally you can put some small connectors on the ESC and on the motor wires. To deliver the full voltage to the motors, they have to be wired in the correct orientation, so it is important to be able to reconnect a motor if it is connected backwards by mistake.
+Ideally you can put some small connectors on the ESC and on the motor wires.
+
+![](imgs/4connectors.jpg)
+![](imgs/examplewiring.jpg)
+
+To deliver the full voltage to the motors, they have to be wired in the correct orientation, so it is important to be able to reconnect a motor if it is connected backwards by mistake.
 
 Two connectors needs to be put on the center common-shared phase. The two side phases only need one connector each.
 
