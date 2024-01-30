@@ -105,9 +105,9 @@ This will cause the ESC to enter into the AM32 bootloader.
 | `inputmode   ` | 0       | 0 - 3       | 0 = RC PWM pulse input <br /> 1 = CRSF input <br /> 2 = RC PWM input through SWCLK <br /> 3 = CRSF input through SWCLK |
 | `phasemap    ` | 1       | 1 - 3       | selects which one of the three phases is used as the common-shared phase |  
 | `baud        ` | 0       |             | baud rate used for CRSF <br /> 0 means default (420000) <br /> useful for taking commands from slower microcontrollers |
-| `channel_1   ` | 1       | 0 - 16      | which CRSF channel is the first channel, 0 = unassigned |
-| `channel_2   ` | 2       | 0 - 16      | which CRSF channel is the first channel, 0 = unassigned |
-| `channel_mode` | 5       | 0 - 16      | which CRSF channel can control the voltage splitting mode, useful for temporary   voltage boosting, 0 = unassigned |
+| `channel_1   ` | 1       | 0 - 16      | which CRSF channel is the 1st channel, 0 = unassigned |
+| `channel_2   ` | 2       | 0 - 16      | which CRSF channel is the 2nd channel, 0 = unassigned |
+| `channel_mode` | 0       | 0 - 16      | which CRSF channel can control the voltage splitting mode, useful for temporary voltage boosting, 0 = unassigned |
 | `rc_mid      ` | 1500    | 800 - 2200  | RC PWM pulse middle value, in microseconds, does not affect CRSF |
 | `rc_range    ` | 500     | 0 - 1000    | RC PWM pulse range, 500 means 1000 to 2000, does not affect CRSF |
 | `rc_deadzone ` | 10      | 0 - uint16  | RC PWM pusle deadzone around the center <br /> used if the signal is noisy <br /> unit is in microseconds <br /> does also apply to CRSF |

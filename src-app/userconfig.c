@@ -23,7 +23,7 @@ const EEPROM_data_t default_eeprom = {
 
     .voltage_split_mode = VSPLITMODE_BOOST_ALWAYS,
     .load_balance       = false,
-    .input_mode         = INPUTMODE_CRSF,
+    .input_mode         = INPUTMODE_RC,
     .phase_map          = 1,
     .baud               = 0,
 
@@ -34,7 +34,7 @@ const EEPROM_data_t default_eeprom = {
 
     .channel_1          = 1,
     .channel_2          = 2,
-    .channel_mode       = 5,
+    .channel_mode       = 0,
 
     .rc_mid             = 1500,
     .rc_range           = 500,
