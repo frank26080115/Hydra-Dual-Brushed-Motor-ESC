@@ -8,6 +8,8 @@ To install, update, and configure Hydra firmware, you must use a USB-linker mean
 
 See this [wiki page](../../../wiki/USB-Linker) for a list of linkers you can use. That page also has links to the appropriate USB drivers that you might need to install.
 
+![](imgs/usblinkerconnection.jpg)
+
 ## Required: Serial Terminal App
 
 You need a simple serial terminal app of some sort installed on your computer.
@@ -43,6 +45,8 @@ These steps are different from installing the firmware. Please do not confuse th
 The LED blink pattern will change again to indicate successfully entering CLI mode ![](imgs/ledblinks/climode.png)
 
 Send the enter keystroke into the terminal a few times and you should see `>` appear on your screen. This means you are ready to enter in a command.
+
+![](imgs/terminalprompt.png)
 
 NOTE: arrow keys will never work, the delete or backspace key will simply cancel the entire command
 

@@ -55,7 +55,7 @@ int main(void)
 {
     mcu_init();
 
-    //hw_test();
+    hw_test();
 
     #ifdef DEVELOPMENT_BOARD
     dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false, false);
@@ -134,6 +134,8 @@ int main(void)
 
     dbg_printf("init finished at %u\r\n", millis());
 
+    bool armed_both = false;
+
     while (true) // main forever loop
     {
         led_task(false);
@@ -152,24 +154,37 @@ int main(void)
         }
         #endif
 
-        bool armed1, armed2;
         int v1, v2;
 
         if (cfg.tied == false)
         {
-            v1 = (armed1 = rc1->is_armed()) != false ? rc1->read() : 0;
-            v2 = (armed2 = rc2->is_armed()) != false ? rc2->read() : 0;
+            if (armed_both == false) {
+                if (rc1->is_armed() && rc2->is_armed() && rc1->read() == 0 && rc2->read() == 0) { // require both to be simultaneously zero
+                    armed_both = true;
+                }
+            }
+            else {
+                if (rc1->is_armed() == false || rc2->is_armed() == false) { // disarm both on any disarm
+                    armed_both = false;
+                }
+            }
+
+            v1 = armed_both ? rc1->read() : 0;
+            v2 = armed_both ? rc2->read() : 0;
         }
         else // controls are tied, take from one channel and apply to both
         {
-            if ((armed1 = rc1->is_armed()) != false) {
+            if (rc1->is_armed() != false) {
                 v2 = v1 = rc1->read();
+                armed_both = true;
             }
-            else if ((armed2 = rc2->is_armed()) != false) {
+            else if (rc2->is_armed() != false) {
                 v2 = v1 = rc2->read();
+                armed_both = true;
             }
             else {
                 v1 = v2 = 0;
+                armed_both = false;
             }
         }
         if (cfg.chan_swap) {
@@ -178,7 +193,7 @@ int main(void)
         v1 *= cfg.flip_1 ? -1 : 1;
         v2 *= cfg.flip_2 ? -1 : 1;
 
-        if (armed1 == false && armed2 == false) {
+        if (armed_both == false) {
             ledblink_disarmed();
             pwm_all_flt();
             if (need_debug_print) {

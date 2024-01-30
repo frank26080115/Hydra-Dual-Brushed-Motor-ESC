@@ -18,9 +18,13 @@ note: Hydra firmware does not ever actually provide telemetry, this functionalit
 
 The SWD signals are called SWDIO and SWCLK. These either appear as a pair or in a group of 4.
 
+![](imgs/repeatam32pins.jpg)
+
+![](imgs/neutronrcpins.jpg)
+
 ## For RC PWM Pulse Inputs
 
-The first channel input will always be the main input signal. That usually means the signal wire that came pre-soldered with the ESC, or the traditional signal input solder-pad on the ESC (there might be a `S` letter beside it).
+The first channel input will always be the main input signal. That usually means the signal wire that came pre-soldered with the ESC, or the traditional signal input solder-pad on the ESC (there might be a `S` letter beside it, or `RC`).
 
 For the second channel input, ideally there is a telemetry solder-pad that can be used.
 

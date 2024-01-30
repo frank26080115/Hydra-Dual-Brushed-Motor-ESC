@@ -23,8 +23,14 @@ except ImportError:
 def main():
     global no_wait
 
+    got_file = False
+    if len(sys.argv) == 2:
+        if os.isfile(sys.argv[1]):
+            got_file = True
+
     parser = argparse.ArgumentParser()
-    parser.add_argument("-f", "--firmware",                         default="",           type=str, help="firmware file")
+    if got_file == False:
+        parser.add_argument("-f", "--firmware",                         default="",           type=str, help="firmware file")
     parser.add_argument("-s", "--serialport",                       default="auto",       type=str, help="serial port name")
     parser.add_argument("-p", "--preserveeeprom",                   action="store_true",            help="preserve eeprom")
     parser.add_argument("-a", "--fwaddr",     metavar="fwaddr",     default="",           type=str, help="firmware start address")
@@ -35,14 +41,18 @@ def main():
     parser.add_argument("-v", "--verbose",                          action="store_true",            help="verbose")
     args = parser.parse_args()
 
+    if got_file:
+        args.firmware = sys.argv[1]
+        if args.verbose:
+            print("dragged in file: \"%s\"" % args.firmware)
+
     no_wait = args.nowait
 
     ports = get_all_comports(False)
     if args.serialport is None or args.serialport == "auto" or args.serialport == "":
         if len(ports) == 1:
             args.serialport = ports[0]
-            if args.verbose:
-                print("auto detected serial port: %s" % args.serialport)
+            print("auto detected serial port: %s" % args.serialport)
         else:
             tries = 2
             while True:
@@ -72,7 +82,11 @@ def main():
 
     while True:
         if args.firmware is None or len(args.firmware) <= 0:
-            args.firmware = input("please enter the path to the firmware *.hex file: ").strip('"')
+            f = try_windows_openfiledialog()
+            if f is None:
+                args.firmware = input("please enter the path to the firmware *.hex file: ").strip('"')
+            else:
+                args.firmware = f
 
         fw_fullpath = os.path.abspath(args.firmware)
         if os.path.isfile(fw_fullpath):
@@ -531,6 +545,48 @@ def format_arr(data):
     s = s.strip()
     s += "]"
     return s
+
+def dialog_thread():
+    #global dialog_file
+    #try:
+    #    from pythonnet import load
+    #    load('netfx')
+    #    import clr
+    #    clr.AddReference('System.Windows.Forms')
+    #    import System.Windows.Forms as WinForms
+    #    from System.Windows.Forms import OpenFileDialog
+    #    clr.AddReference('System.Threading')
+    #    from System.Threading import Thread, ThreadStart, ApartmentState
+    #    file_dialog = OpenFileDialog()
+    #    file_dialog.Title = "Open Firmware File"
+    #    file_dialog.Filter = "HEX file|*.hex"
+    #    if file_dialog.ShowDialog() == WinForms.DialogResult.OK:
+    #        dialog_file = file_dialog.FileName
+    #except Exception as ex:
+    #    print(ex)
+    #    dialog_file = None
+    pass
+
+def try_windows_openfiledialog():
+    #global dialog_file
+    #try:
+    #    from pythonnet import load
+    #    load('netfx')
+    #    import clr
+    #    clr.AddReference('System.Windows.Forms')
+    #    import System.Windows.Forms as WinForms
+    #    from System.Windows.Forms import OpenFileDialog
+    #    clr.AddReference('System.Threading')
+    #    from System.Threading import Thread, ThreadStart, ApartmentState
+    #    thread = Thread(ThreadStart(dialog_thread))
+    #    thread.SetApartmentState(ApartmentState.STA)
+    #    thread.Start()
+    #    thread.Join()
+    #    return dialog_file
+    #except Exception as ex:
+    #    print(ex)
+    #    return None
+    return None
 
 if __name__ == '__main__':
     try:
