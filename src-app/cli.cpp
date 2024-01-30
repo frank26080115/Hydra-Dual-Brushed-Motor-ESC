@@ -211,6 +211,10 @@ void cli_execute(Cereal* cer, char* str)
     else if (item_strcmp("version", str))
     {
         cer->printf("\r\nV %u E %u HW 0x%08lX N:%s\r\n", firmware_info.version_major, firmware_info.version_eeprom, firmware_info.device_code, firmware_info.device_name);
+        cer->printf("input pin is GPIO P%c%u\r\n"
+            , (char)(((uint32_t)'A') + ((firmware_info.device_code & 0xFF) / ((((uint32_t)GPIOB_BASE) - ((uint32_t)GPIOA_BASE)) >> 8)))
+            , (uint8_t)((firmware_info.device_code >> 8) & 0xFF)
+        );
     }
     else if (item_strcmp("hwdebug", str))
     {
@@ -274,6 +278,8 @@ void cli_execute(Cereal* cer, char* str)
                 , duration
                 );
 
+        uint32_t max_current = 0;
+
         pwm_set_all_duty_remapped(pwr, 0, 0);
 
         cer->reset_buffer();
@@ -287,6 +293,10 @@ void cli_execute(Cereal* cer, char* str)
                 cli_reportSensors(cer); // print if new data available
                 if (t == 0) {
                     t = millis();
+                }
+
+                if (sense_current > max_current) {
+                    max_current = sense_current;
                 }
             }
             if (t != 0 && duration > 0 && (millis() - t) >= duration) {
@@ -303,7 +313,7 @@ void cli_execute(Cereal* cer, char* str)
         } while (true);
 
         pwm_set_all_duty_remapped(0, 0, 0); // end
-        cer->printf("\r\ntest end");
+        cer->printf("\r\ntest end, maximum detect current = %ld", max_current);
     }
     else
     {
@@ -389,6 +399,8 @@ void eeprom_print_all(Cereal* cer)
     }
 }
 
+extern uint8_t crsf_inputGuess;
+
 #ifdef DEVELOPMENT_BOARD
 void cliboot_if_key(void)
 {
@@ -404,11 +416,13 @@ void cliboot_if_key(void)
 
 bool cliboot_if_2nd_sig(void)
 {
-    if (inp2_read() != 0
+    bool inp2 = false;
+    if ((inp2 |= inp2_read()) != 0
         #ifdef DEVELOPMENT_BOARD
             || ((cfg.input_mode == INPUTMODE_CRSF_SWCLK || cfg.input_mode == INPUTMODE_RC_SWD) && swclk_read() != 0)
         #endif
          ) {
+        crsf_inputGuess = 2;
         dbg_printf("CLI cancel from 2ndary signal high\r\n");
         return true;
     }
@@ -458,6 +472,7 @@ void cliboot_decide(void)
 
             if (inp_read() != 0)
             {
+                crsf_inputGuess = 1;
                 dbg_printf("CLI cancel from signal high\r\n");
                 return;
             }
@@ -472,6 +487,7 @@ void cliboot_decide(void)
 
             if (inp_read() == 0)
             {
+                crsf_inputGuess = 2;
                 dbg_printf("CLI cancel from signal low\r\n"); // meaning a device is connected but driving it low, CLI requires the signal to be completely unplugged
                 return;
             }
@@ -500,6 +516,7 @@ void cliboot_decide(void)
     }
 
     inp_init();
+    inp_pullDown();
     tstart = millis();
     uint8_t pulse_cnt = 0;
     bool was_high = inp_read();

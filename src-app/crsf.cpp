@@ -19,6 +19,8 @@ crsf_header_t;
 
 uint8_t crsf_crc8(const uint8_t *ptr, uint8_t len);
 
+uint8_t crsf_inputGuess = 0;
+
 static Cereal* cereal;
 static uint16_t crsf_channels[CRSF_CHAN_CNT] = {0};
 static bool     new_flag       = false;

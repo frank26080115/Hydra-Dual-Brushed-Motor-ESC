@@ -387,6 +387,44 @@
     #define LED_GPIO_RED            GPIOA
 #endif
 
+#ifdef GENERIC_F051_PA2_1LED
+    #define FIRMWARE_NAME           "GEN F051 A2 1L"
+    #define DEAD_TIME               25
+    #define HARDWARE_GROUP_F0_A
+    #define HAS_TELEMETRY_PIN
+    #define LED_PIN                 LL_GPIO_PIN_15
+    #define LED_GPIO                GPIOA
+#endif
+
+#ifdef GENERIC_F051_PB4_1LED
+    #define FIRMWARE_NAME           "GEN F051 B4 1L"
+    #define DEAD_TIME               25
+    #define HARDWARE_GROUP_F0_B
+    #define HAS_TELEMETRY_PIN
+    #define LED_PIN                 LL_GPIO_PIN_15
+    #define LED_GPIO                GPIOA
+#endif
+
+#ifdef GENERIC_F051_PA2_RGBLED
+    #define FIRMWARE_NAME           "GEN F051 A2 RGB"
+    #define DEAD_TIME               25
+    #define HARDWARE_GROUP_F0_A
+    #define HAS_TELEMETRY_PIN
+    #define USE_RGB_LED
+    #define LED_PIN_RED2            LL_GPIO_PIN_15
+    #define LED_GPIO_RED2           GPIOA
+#endif
+
+#ifdef GENERIC_F051_PB4_RGBLED
+    #define FIRMWARE_NAME           "GEN F051 B4 RGB"
+    #define DEAD_TIME               25
+    #define HARDWARE_GROUP_F0_B
+    #define HAS_TELEMETRY_PIN
+    #define USE_RGB_LED
+    #define LED_PIN_RED2            LL_GPIO_PIN_15
+    #define LED_GPIO_RED2           GPIOA
+#endif
+
 #ifdef STM32F051DISCO
     #define FIRMWARE_NAME           "STMDISCO"
     #define DEAD_TIME               25
@@ -469,6 +507,36 @@
     #define HAS_TELEMETRY_PIN
     #define SIXTY_FOUR_KB_MEMORY
     #define USE_LED_STRIP
+#endif
+
+#ifdef GENERIC_G071_WSLED
+    #define FIRMWARE_NAME           "GEN G071 WSLED"
+    #define DEAD_TIME               60
+    #define HARDWARE_GROUP_G0_N
+    #define HAS_TELEMETRY_PIN
+    #define SIXTY_FOUR_KB_MEMORY
+    #define USE_LED_STRIP
+#endif
+
+#ifdef GENERIC_G071_1LED
+    #define FIRMWARE_NAME           "GEN G071 1LED"
+    #define DEAD_TIME               60
+    #define HARDWARE_GROUP_G0_N
+    #define HAS_TELEMETRY_PIN
+    #define SIXTY_FOUR_KB_MEMORY
+    #define LED_PIN                 LL_GPIO_PIN_15
+    #define LED_GPIO                GPIOA
+#endif
+
+#ifdef GENERIC_G071_RGBLED
+    #define FIRMWARE_NAME           "GEN G071 RGBLED"
+    #define DEAD_TIME               60
+    #define HARDWARE_GROUP_G0_N
+    #define HAS_TELEMETRY_PIN
+    #define SIXTY_FOUR_KB_MEMORY
+    #define USE_RGB_LED
+    #define LED_PIN_RED2            LL_GPIO_PIN_15
+    #define LED_GPIO_RED2           GPIOA
 #endif
 
 #ifdef STM32G071NUCLEO
@@ -1742,6 +1810,30 @@
     #endif
     #ifndef VOLTAGE_ADC_PORT
         #define VOLTAGE_ADC_PORT    GPIOA
+    #endif
+
+    // note: nearly all G071 targets use WS2821
+
+    #ifndef LED_IS_OPENDRAIN
+    #define LED_IS_OPENDRAIN true
+    #endif
+    #ifndef LED_PIN
+        #define LED_PIN                LL_GPIO_PIN_15
+        #define LED_GPIO               GPIOA
+    #endif
+    #ifdef USE_RGB_LED
+        #ifndef LED_PIN_RED
+            #define LED_PIN_RED        LL_GPIO_PIN_8
+            #define LED_GPIO_RED       GPIOB
+        #endif
+        #ifndef LED_PIN_GREEN
+            #define LED_PIN_GREEN      LL_GPIO_PIN_5
+            #define LED_GPIO_GREEN     GPIOB
+        #endif
+        #ifndef LED_PIN_BLUE
+            #define LED_PIN_BLUE       LL_GPIO_PIN_3
+            #define LED_GPIO_BLUE      GPIOB
+        #endif
     #endif
 #endif
 

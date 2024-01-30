@@ -4,6 +4,9 @@
 extern "C" {
 #endif
 
+#include "conf.h"
+#include "defs.h"
+
 #include <stdint.h>
 
 void eeprom_write(uint8_t* buff, int len, uint32_t addr);

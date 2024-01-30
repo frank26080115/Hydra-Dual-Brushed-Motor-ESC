@@ -28,12 +28,12 @@ static bool    new_pending = false;
 void WS2812_init(void)
 {
     NVIC_SetPriority(DMA1_Ch4_7_DMAMUX1_OVR_IRQn, 3);
-    NVIC_EnableIRQ(DMA1_Ch4_7_DMAMUX1_OVR_IRQn);
+    NVIC_EnableIRQ  (DMA1_Ch4_7_DMAMUX1_OVR_IRQn);
 
-    LL_TIM_InitTypeDef TIM_InitStruct = {0};
-    LL_TIM_OC_InitTypeDef TIM_OC_InitStruct = {0};
+    LL_TIM_InitTypeDef      TIM_InitStruct     = {0};
+    LL_TIM_OC_InitTypeDef   TIM_OC_InitStruct  = {0};
     LL_TIM_BDTR_InitTypeDef TIM_BDTRInitStruct = {0};
-    LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
+    LL_GPIO_InitTypeDef     GPIO_InitStruct    = {0};
 
     LL_DMA_SetPeriphRequest        (WS2812_DMAx, WS2812_DMA_CH, LL_DMAMUX_REQ_TIM16_CH1);
     LL_DMA_SetDataTransferDirection(WS2812_DMAx, WS2812_DMA_CH, LL_DMA_DIRECTION_MEMORY_TO_PERIPH);
@@ -44,43 +44,43 @@ void WS2812_init(void)
     LL_DMA_SetPeriphSize           (WS2812_DMAx, WS2812_DMA_CH, LL_DMA_PDATAALIGN_HALFWORD);
     LL_DMA_SetMemorySize           (WS2812_DMAx, WS2812_DMA_CH, LL_DMA_MDATAALIGN_HALFWORD);
 
-    TIM_InitStruct.Prescaler = 0;
-    TIM_InitStruct.CounterMode = LL_TIM_COUNTERMODE_DOWN;
-    TIM_InitStruct.Autoreload = 79;
-    TIM_InitStruct.ClockDivision = LL_TIM_CLOCKDIVISION_DIV1;
+    TIM_InitStruct.Prescaler         = 0;
+    TIM_InitStruct.CounterMode       = LL_TIM_COUNTERMODE_DOWN;
+    TIM_InitStruct.Autoreload        = 79;
+    TIM_InitStruct.ClockDivision     = LL_TIM_CLOCKDIVISION_DIV1;
     TIM_InitStruct.RepetitionCounter = 0;
-    LL_TIM_Init(WS2812_TIMx, &TIM_InitStruct);
+    LL_TIM_Init            (WS2812_TIMx, &TIM_InitStruct);
     LL_TIM_EnableARRPreload(WS2812_TIMx);
     LL_TIM_OC_EnablePreload(WS2812_TIMx, WS2812_TIM_CH);
-    TIM_OC_InitStruct.OCMode = LL_TIM_OCMODE_PWM1;
-    TIM_OC_InitStruct.OCState = LL_TIM_OCSTATE_DISABLE;
-    TIM_OC_InitStruct.OCNState = LL_TIM_OCSTATE_DISABLE;
+    TIM_OC_InitStruct.OCMode       = LL_TIM_OCMODE_PWM1;
+    TIM_OC_InitStruct.OCState      = LL_TIM_OCSTATE_DISABLE;
+    TIM_OC_InitStruct.OCNState     = LL_TIM_OCSTATE_DISABLE;
     TIM_OC_InitStruct.CompareValue = 0;
-    TIM_OC_InitStruct.OCPolarity = LL_TIM_OCPOLARITY_HIGH;
-    TIM_OC_InitStruct.OCNPolarity = LL_TIM_OCPOLARITY_HIGH;
-    TIM_OC_InitStruct.OCIdleState = LL_TIM_OCIDLESTATE_LOW;
+    TIM_OC_InitStruct.OCPolarity   = LL_TIM_OCPOLARITY_HIGH;
+    TIM_OC_InitStruct.OCNPolarity  = LL_TIM_OCPOLARITY_HIGH;
+    TIM_OC_InitStruct.OCIdleState  = LL_TIM_OCIDLESTATE_LOW;
     TIM_OC_InitStruct.OCNIdleState = LL_TIM_OCIDLESTATE_LOW;
-    LL_TIM_OC_Init(WS2812_TIMx, WS2812_TIM_CH, &TIM_OC_InitStruct);
+    LL_TIM_OC_Init       (WS2812_TIMx, WS2812_TIM_CH, &TIM_OC_InitStruct);
     LL_TIM_OC_DisableFast(WS2812_TIMx, WS2812_TIM_CH);
-    TIM_BDTRInitStruct.OSSRState = LL_TIM_OSSR_DISABLE;
-    TIM_BDTRInitStruct.OSSIState = LL_TIM_OSSI_DISABLE;
-    TIM_BDTRInitStruct.LockLevel = LL_TIM_LOCKLEVEL_OFF;
-    TIM_BDTRInitStruct.DeadTime = 0;
-    TIM_BDTRInitStruct.BreakState = LL_TIM_BREAK_DISABLE;
-    TIM_BDTRInitStruct.BreakPolarity = LL_TIM_BREAK_POLARITY_HIGH;
-    TIM_BDTRInitStruct.BreakFilter = LL_TIM_BREAK_FILTER_FDIV1;
+    TIM_BDTRInitStruct.OSSRState       = LL_TIM_OSSR_DISABLE;
+    TIM_BDTRInitStruct.OSSIState       = LL_TIM_OSSI_DISABLE;
+    TIM_BDTRInitStruct.LockLevel       = LL_TIM_LOCKLEVEL_OFF;
+    TIM_BDTRInitStruct.DeadTime        = 0;
+    TIM_BDTRInitStruct.BreakState      = LL_TIM_BREAK_DISABLE;
+    TIM_BDTRInitStruct.BreakPolarity   = LL_TIM_BREAK_POLARITY_HIGH;
+    TIM_BDTRInitStruct.BreakFilter     = LL_TIM_BREAK_FILTER_FDIV1;
     TIM_BDTRInitStruct.AutomaticOutput = LL_TIM_AUTOMATICOUTPUT_DISABLE;
     LL_TIM_BDTR_Init(WS2812_TIMx, &TIM_BDTRInitStruct);
 
     //  NVIC_SetPriority(TIM16_IRQn, 0);
     //  NVIC_EnableIRQ(TIM16_IRQn);
 
-    GPIO_InitStruct.Pin = LL_GPIO_PIN_8;
-    GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
-    GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
+    GPIO_InitStruct.Pin        = LL_GPIO_PIN_8;
+    GPIO_InitStruct.Mode       = LL_GPIO_MODE_ALTERNATE;
+    GPIO_InitStruct.Speed      = LL_GPIO_SPEED_FREQ_HIGH;
     GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-    GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
-    GPIO_InitStruct.Alternate = LL_GPIO_AF_2;
+    GPIO_InitStruct.Pull       = LL_GPIO_PULL_NO;
+    GPIO_InitStruct.Alternate  = LL_GPIO_AF_2;
     LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
     WS2812_TIMx->CCER |=  1 << 0;
@@ -135,28 +135,29 @@ void TIM16_IRQHandler(void)
 #endif
 
 // this interrupt is actually enabled
+// this won't be too busy, once every 100 milliseconds, with lowest priority
+// it should not cause jitter for the RC input
 void DMA1_Ch4_7_DMAMUX1_OVR_IRQHandler(void)
 {
-    if (LL_DMA_IsActiveFlag_HT6(DMA1)) {
+    if (LL_DMA_IsActiveFlag_HT6(WS2812_DMAx)) {
     }
-    if (LL_DMA_IsActiveFlag_TC6(DMA1) == 1) {
-        LL_DMA_ClearFlag_GI6(DMA1);
+    if (LL_DMA_IsActiveFlag_TC6(WS2812_DMAx) == 1) {
+        LL_DMA_ClearFlag_GI6(WS2812_DMAx);
 
-        LL_DMA_DisableChannel(DMA1, WS2812_DMA_CH);
+        LL_DMA_DisableChannel(WS2812_DMAx, WS2812_DMA_CH);
         // LL_TIM_CC_DisableChannel(WS2812_TIMx, WS2812_DMA_CH);
         LL_TIM_DisableAllOutputs(WS2812_TIMx);
         LL_TIM_DisableCounter(WS2812_TIMx);
-        dma_busy = 0;
+        dma_busy = false;
 
     }
-    else if (LL_DMA_IsActiveFlag_TE6(DMA1) == 1) {
-        LL_DMA_DisableChannel(DMA1, WS2812_DMA_CH);
-        //    update_interupt++;
-        //    LL_TIM_CC_DisableChannel(TIM16, WS2812_DMA_CH);
+    else if (LL_DMA_IsActiveFlag_TE6(WS2812_DMAx) == 1) {
+        LL_DMA_DisableChannel(WS2812_DMAx, WS2812_DMA_CH);
+        // LL_TIM_CC_DisableChannel(TIM16, WS2812_DMA_CH);
         LL_TIM_DisableAllOutputs(WS2812_TIMx);
         LL_TIM_DisableCounter(WS2812_TIMx);
         dma_busy = false;
-        LL_DMA_ClearFlag_GI6(DMA1);
+        LL_DMA_ClearFlag_GI6(WS2812_DMAx);
     }
 }
 

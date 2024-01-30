@@ -34,3 +34,5 @@ class CrsfChannel : public RcChannel
 };
 
 uint16_t crsf_readChan(uint8_t i);
+
+extern uint8_t crsf_inputGuess;

@@ -195,11 +195,7 @@ void eeprom_save(void)
     EEPROM_chksum_t calculated_chksum = eeprom_checksum(start_addr, (int)(((uint32_t)end_addr) - ((uint32_t)start_addr)));
     ptre->chksum = calculated_chksum;
     memcpy(&cfg, &default_eeprom, head_len);                       // ensures header is written
-
-    #ifndef DISABLE_EEPROM
     eeprom_write((uint8_t*)&cfg, sizeof(EEPROM_data_t), cfg_addr); // commit to flash
-    #endif
-
     eeprom_save_time = 0; // remove dirty flag
     dbg_printf("EEPROM saved\r\n");
 }

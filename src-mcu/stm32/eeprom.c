@@ -20,6 +20,14 @@
 
 void eeprom_write(uint8_t* data, int len, uint32_t addr)
 {
+    #ifdef DISABLE_EEPROM
+    volatile char  x = 0;
+    x = 1;
+    if (x) {
+        return;
+    }
+    #endif
+
     WRITE_SIZE_TYPE* ptr_x = (WRITE_SIZE_TYPE*)data;
 
     while ((FLASH->SR & FLASH_SR_BSY) != 0) {

@@ -55,7 +55,9 @@ int main(void)
 {
     mcu_init();
 
+    #ifdef HW_TESTS
     hw_test();
+    #endif
 
     #ifdef DEVELOPMENT_BOARD
     dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false, false);
@@ -80,6 +82,8 @@ int main(void)
 
     #ifdef ENABLE_COMPILE_CLI
     cliboot_decide();
+    inp_pullDown();
+    inp2_pullDown();
     swdpins_deinit();
     #endif
 
@@ -106,6 +110,25 @@ int main(void)
     }
     else if (cfg.input_mode == INPUTMODE_CRSF || cfg.input_mode == INPUTMODE_CRSF_SWCLK)
     {
+        #if INPUT_PIN == LL_GPIO_PIN_2
+        // for ESCs that use PA2 for input, we don't know if the user connected CRSF to PA2 or PB6
+        // so we simply wait for one of the signals to go high
+        // it is also possible that the CLI decision loop already detected a signal
+        while (crsf_inputGuess == 0)
+        {
+            led_task(false);
+            sense_task();
+            current_limit_task();
+            if (inp_read() != 0) {
+                crsf_inputGuess = 1;
+                break;
+            }
+            if (inp2_read() != 0) {
+                crsf_inputGuess = 2;
+                break;
+            }
+        }
+        #endif
         main_cer.init(cfg.input_mode == INPUTMODE_CRSF_SWCLK ? CEREAL_ID_USART_SWCLK : CEREAL_ID_USART_CRSF, cfg.baud == 0 ? CRSF_BAUDRATE : cfg.baud, false, true, false, true);
         crsf_1.init(&main_cer, cfg.channel_1);
         crsf_2.init(&main_cer, cfg.channel_2);
