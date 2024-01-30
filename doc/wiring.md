@@ -1,6 +1,11 @@
 ## Wiring the Motors
 
-Ideally you can put some small connectors on the ESC and on the motor wires. To deliver the full voltage to the motors, they have to be wired in the correct orientation, so it is important to be able to reconnect a motor if it is connected backwards by mistake.
+Ideally you can put some small connectors on the ESC and on the motor wires.
+
+![](imgs/4connectors.jpg)
+![](imgs/examplewiring.jpg)
+
+To deliver the full voltage to the motors, they have to be wired in the correct orientation, so it is important to be able to reconnect a motor if it is connected backwards by mistake.
 
 Two connectors needs to be put on the center common-shared phase. The two side phases only need one connector each.
 
@@ -18,9 +23,13 @@ note: Hydra firmware does not ever actually provide telemetry, this functionalit
 
 The SWD signals are called SWDIO and SWCLK. These either appear as a pair or in a group of 4.
 
+![](imgs/repeatam32pins.jpg)
+
+![](imgs/neutronrcpins.jpg)
+
 ## For RC PWM Pulse Inputs
 
-The first channel input will always be the main input signal. That usually means the signal wire that came pre-soldered with the ESC, or the traditional signal input solder-pad on the ESC (there might be a `S` letter beside it).
+The first channel input will always be the main input signal. That usually means the signal wire that came pre-soldered with the ESC, or the traditional signal input solder-pad on the ESC (there might be a `S` letter beside it, or `RC`).
 
 For the second channel input, ideally there is a telemetry solder-pad that can be used.
 

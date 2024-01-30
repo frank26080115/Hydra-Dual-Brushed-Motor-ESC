@@ -12,6 +12,7 @@ static fifo_t cereal_fifo_tx;
 static fifo_t cereal_fifo_rx;
 static volatile uint32_t last_rx_time = 0;
 static volatile bool tx_is_busy = false;
+static volatile bool rx_is_busy = false;
 static volatile bool idle_flag_cleared = false;
 
 extern void rc_ic_tim_init(void);
@@ -68,6 +69,7 @@ void CerealBitbang_IRQHandler(void)
             return;
         }
 
+        rx_is_busy = false;
         rx_mode();
     }
     else if (LL_TIM_IsActiveFlag_CC1(RC_IC_TIMx) && LL_TIM_IsEnabledIT_CC1(RC_IC_TIMx)) // each period is one bit width
@@ -93,6 +95,7 @@ void CerealBitbang_IRQHandler(void)
             return;
         }
         n = 0;
+        rx_is_busy = false;
         rx_mode();
     }
     else if (LL_TIM_IsActiveFlag_CC2(RC_IC_TIMx) && LL_TIM_IsEnabledIT_CC2(RC_IC_TIMx))
@@ -100,13 +103,15 @@ void CerealBitbang_IRQHandler(void)
         // receiving
         // this event happens on the falling edge of the start bit
         LL_TIM_ClearFlag_CC1(RC_IC_TIMx);
-        LL_TIM_ClearFlag_CC2(RC_IC_TIMx);
         LL_TIM_EnableIT_CC1(RC_IC_TIMx);
         LL_TIM_DisableIT_CC2(RC_IC_TIMx);
+        LL_TIM_ClearFlag_CC2(RC_IC_TIMx);
         LL_TIM_DisableIT_UPDATE(RC_IC_TIMx);
+        LL_TIM_ClearFlag_UPDATE(RC_IC_TIMx);
         RC_IC_TIMx->SMCR = 0; // ignore edges
         RC_IC_TIMx->CCER = 0; // no need for capture
         LL_GPIO_SetPinMode(INPUT_PIN_PORT, INPUT_PIN, LL_GPIO_MODE_INPUT);
+        rx_is_busy = true;
     }
 }
 
@@ -149,8 +154,11 @@ void Cereal_TimerBitbang::init(uint32_t baud)
 void Cereal_TimerBitbang::write(uint8_t x)
 {
     fifo_push(fifo_tx, x);
+    while (rx_is_busy) {
+        // do nothing but wait
+    }
     __disable_irq();
-    if (tx_is_busy == false)
+    if (tx_is_busy == false || LL_TIM_IsEnabledIT_UPDATE(RC_IC_TIMx) == false)
     {
         // trigger the first bit, the interrupt will pop out the byte and start sending
         tx_is_busy = true;
@@ -161,8 +169,10 @@ void Cereal_TimerBitbang::write(uint8_t x)
         RC_IC_TIMx->CCR1 = 0;             // Preload high level
         RC_IC_TIMx->EGR  = TIM_EGR_UG;    // Update registers and trigger UEV
         RC_IC_TIMx->CCER = TIM_CCER_CC1E; // Enable output
-        LL_TIM_EnableIT_UPDATE(RC_IC_TIMx);
+        LL_TIM_DisableIT_CC1(RC_IC_TIMx);
+        LL_TIM_DisableIT_CC2(RC_IC_TIMx);
         LL_TIM_ClearFlag_UPDATE(RC_IC_TIMx);
+        LL_TIM_EnableIT_UPDATE(RC_IC_TIMx);
         LL_TIM_EnableCounter(RC_IC_TIMx);
     }
     __enable_irq();

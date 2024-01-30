@@ -129,8 +129,10 @@ void Cereal_USART::init(uint8_t id, uint32_t baud, bool invert, bool halfdup, bo
     }
     else if (_id == CEREAL_ID_USART_DEBUG) {
         #if defined(STM32F051DISCO)
-        _usart = USART1;
-        _u = CEREAL_ID_USART1;
+        //_usart = USART1;
+        //_u = CEREAL_ID_USART1;
+        _usart = USART2;
+        _u = CEREAL_ID_USART2;
         #elif defined(STM32G071NUCLEO)
         _usart = USART2;
         _u = CEREAL_ID_USART2;
@@ -241,7 +243,8 @@ void Cereal_USART::init(uint8_t id, uint32_t baud, bool invert, bool halfdup, bo
     else if (_id == CEREAL_ID_USART_DEBUG)
     {
         #if defined(STM32F051DISCO)
-        GPIO_InitStruct.Pin        = LL_GPIO_PIN_9 | LL_GPIO_PIN_10;
+        //GPIO_InitStruct.Pin        = LL_GPIO_PIN_9 | LL_GPIO_PIN_10;
+        GPIO_InitStruct.Pin        = LL_GPIO_PIN_2 | LL_GPIO_PIN_3;
         #elif defined(STM32G071NUCLEO)
         GPIO_InitStruct.Pin        = LL_GPIO_PIN_2 | LL_GPIO_PIN_3;
         #endif
