@@ -72,11 +72,10 @@ During operation, if there is a LED, then the LED indicates the ESC's state:
 | state            | LED single colour | LED multi-colour |
 |------------------|-------------------|------------------|
 | disarmed         | solid, no blink   | solid red, no blink |
-| armed <br /> not moving | short slow blink | short slow green blink |
-| armed <br /> yes moving | short fast blink | short fast green blink |
-| current/temperature limit reached | double blink with alternating durations | rapid purple blink |
-| low battery | slow blink with alternating durations | slow blink alternating red and blue |
-| CLI mode         | slow blink        | purple blinks |
+| armed <br /> not moving | ![](doc/imgs/ledblinks/shortslow.png) | ![](doc/imgs/ledblinks/shortslowgreen.png) |
+| armed and moving | ![](doc/imgs/ledblinks/shortfast.png) | ![](doc/imgs/ledblinks/shortfastgreen.png) |
+| current/temperature limit reached | ![](doc/imgs/ledblinks/currentlimit_s.png) | ![](doc/imgs/ledblinks/currentlimit_m.png) |
+| low battery | ![](doc/imgs/ledblinks/lowbatt_s.png) | ![](doc/imgs/ledblinks/lowbatt_m.png) |
 
 (it is not possible to accidentally enter CLI mode, as it checks for input signal pulses)
 
