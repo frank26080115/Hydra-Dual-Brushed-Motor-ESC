@@ -71,7 +71,7 @@ During operation, if there is a LED, then the LED indicates the ESC's state:
 
 | state            | LED single colour | LED multi-colour |
 |------------------|-------------------|------------------|
-| disarmed         | solid, no blink   | solid red, no blink |
+| disarmed         | ![](doc/imgs/ledblinks/redsolid.png) | ![](doc/imgs/ledblinks/redsolid.png) |
 | armed <br /> not moving | ![](doc/imgs/ledblinks/shortslow.png) | ![](doc/imgs/ledblinks/shortslowgreen.png) |
 | armed and moving | ![](doc/imgs/ledblinks/shortfast.png) | ![](doc/imgs/ledblinks/shortfastgreen.png) |
 | current/temperature limit reached | ![](doc/imgs/ledblinks/currentlimit_s.png) | ![](doc/imgs/ledblinks/currentlimit_m.png) |
