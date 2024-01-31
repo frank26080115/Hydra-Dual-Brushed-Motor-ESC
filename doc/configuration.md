@@ -6,7 +6,7 @@ The CLI (command line interface) is how the user can configure the ESC, and also
 
 To install, update, and configure Hydra firmware, you must use a USB-linker meant for communicating with ESCs.
 
-See this [wiki page](../../../wiki/USB-Linker) for a list of linkers you can use. That page also has links to the appropriate USB drivers that you might need to install.
+See this [wiki page](../../../wiki/USB-Linker) for a list of USB-linkers you can use. That page also has links to the appropriate USB drivers that you might need to install.
 
 ![](imgs/usblinkerconnection.jpg)
 
