@@ -202,6 +202,7 @@ void hwtest_rc_crsf(void)
     dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false, false);
     #endif
     eeprom_load_defaults();
+    load_runtime_configs();
     main_cer.init(CEREAL_ID_USART_CRSF, 420000, false, true, false, true);
     crsf_1.init(&main_cer, 1);
     crsf_2.init(&main_cer, 2);

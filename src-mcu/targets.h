@@ -509,15 +509,6 @@
     #define USE_LED_STRIP
 #endif
 
-#ifdef GENERIC_G071_WSLED
-    #define FIRMWARE_NAME           "GEN G071 WSLED"
-    #define DEAD_TIME               60
-    #define HARDWARE_GROUP_G0_N
-    #define HAS_TELEMETRY_PIN
-    #define SIXTY_FOUR_KB_MEMORY
-    #define USE_LED_STRIP
-#endif
-
 #ifdef GENERIC_G071_1LED
     #define FIRMWARE_NAME           "GEN G071 1LED"
     #define DEAD_TIME               60
@@ -534,6 +525,7 @@
     #define HARDWARE_GROUP_G0_N
     #define HAS_TELEMETRY_PIN
     #define SIXTY_FOUR_KB_MEMORY
+    #define USE_LED_STRIP
     #define USE_RGB_LED
     #define LED_PIN_RED2            LL_GPIO_PIN_15
     #define LED_GPIO_RED2           GPIOA
