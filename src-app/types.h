@@ -121,7 +121,7 @@ typedef struct
 {
     uint8_t version_major;
     uint8_t version_eeprom;
-    uint32_t device_code;
+    uint32_t device_code;     // this is metadata that the installer app looks at to verify if the bootloader matches the firmware file
     char device_name[24 - 2]; // size must match allocation in linker script
 }
 __attribute__((packed))

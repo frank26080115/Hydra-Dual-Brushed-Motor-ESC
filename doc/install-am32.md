@@ -11,9 +11,7 @@ It is much easier to just purchase ESCs that already have AM32 installed:
 
 This list does not cover all the options on the market, just the ones I'm aware of. This repo's [wiki has a page with a list](../../../wiki/ESCs-with-AM32-already-installed).
 
-If you want to install AM32 on your own, the original instructions are from the official AM32 project: https://github.com/AlkaMotors/AM32-MultiRotor-ESC-firmware/wiki/Hacking-Guide
-
-My instructions here will reference my own documentation pages.
+If you want to install AM32 on your own, the original instructions are from the official AM32 project: https://github.com/AlkaMotors/AM32-MultiRotor-ESC-firmware/wiki/Hacking-Guide . My instructions below is similar and is focused on the latest software version from ST.
 
 # What is AM32?
 

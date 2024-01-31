@@ -27,7 +27,8 @@ extern void led_set(LED_PORT_TYPE* GPIOx, uint32_t Pin, bool ison, bool opendrai
 void led_blink_set(uint8_t x);
 void led_state_set(bool x);
 
-void ledblink_boot(void);
+void ledblink_cliwait(void);
+void ledblink_cliplug(void);
 void ledblink_disarmed(void);
 void ledblink_armed_stopped(void);
 void ledblink_moving(void);

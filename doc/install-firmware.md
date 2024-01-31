@@ -1,6 +1,6 @@
 # Required: USB Linker
 
-To install, update, and configure Hydra firmware, you must use a USB-linker meant for communicating with ESCs.
+To install, update, and configure Hydra firmware, you must use a USB-linker meant for communicating with ESCs. These are used with AM32, BLHeli_32, and BLHeli_S, for configuration and firmware updating.
 
 See this [wiki page](../../../wiki/USB-Linker) for a list of USB-linkers you can use. That page also has links to the appropriate USB drivers that you might need to install.
 
@@ -38,8 +38,20 @@ Assuming you have Python 3.7 (or later) installed, `cd` navigate to where you've
 
 ## Notes about the tool
 
-There are hidden options that are available, use `hydra-fw-tool.exe --help` or `python hydra-fw-tool.py --help` from a command-line-prompt/terminal to reveal them.
+There are hidden options that are available, use `hydra-fw-tool.exe --help` or `python hydra-fw-tool.py --help` from a command-line-prompt/terminal to reveal them. This will be useful for attempting forms of automation.
 
 The tool will automatically attempt to prevent you from writing the wrong file. This functionality is not perfect. But if it does throw an error, please don't ignore it.
 
 Pressing the key combination `CTRL + C` will interrupt the app and cause it to quit.
+
+## Upgrading Firmware Without Changing Settings
+
+Use from a command line or terminal, the command `hydra-fw-tool.exe --preserveeeprom` or `python hydra-fw-tool.py --preserveeeprom`
+
+## Saving a Backup of Everything
+
+Use from a command line or terminal, the command `hydra-fw-tool.exe --fullsave` or `python hydra-fw-tool.py --fullsave`
+
+The file that this saves will contain both the bootloader and the EEPROM (settings) memory region. You can also use ST-Link to flash this full file and it would be immediately ready to use without bootloading or reconfiguring.
+
+This is useful for rapidly preparing spare ESCs before a competition.

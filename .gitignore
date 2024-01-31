@@ -40,6 +40,8 @@ tools/build
 __pycache__
 *.pyc
 tools/*.spec
+downloaded_bootloaders
+release
 
 *.log
 .settings

@@ -80,7 +80,7 @@ void hwtest_gpio(GPIO_TypeDef* gpio, uint32_t pin)
 void hwtest_led(void)
 {
     led_init();
-    ledblink_boot();
+    ledblink_cliplug();
     while (true)
     {
         led_task(false);

@@ -14,6 +14,7 @@
     .fool_am32_name           = {'H', 'Y', 'D', 'R', 'A', '\0', }, \
 
 // this stores a default settings copy in flash, somewhere inside the application flash memory
+// this is read-only, and can never be corrupted. it is used for factory-reset
 const EEPROM_data_t default_eeprom = {
     FOOL_AM32
 
@@ -59,10 +60,11 @@ const EEPROM_data_t default_eeprom = {
     .currlim_kd         = 1000,
 };
 
-// this stores a copy in the flash region allocated for EEPROM, this is writable
+// this stores a copy in the flash region allocated for EEPROM, this is writable (but not like RAM)
 __attribute__((__section__(".eeprom")))
 const EEPROM_data_t cfge = {
     FOOL_AM32
+    .magic              = 0xDEADBEEF,
 };
 uint32_t cfg_addr = (uint32_t)(&cfge);
 

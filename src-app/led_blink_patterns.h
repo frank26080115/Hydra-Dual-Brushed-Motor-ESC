@@ -26,7 +26,14 @@
 
 #if defined(USE_RGB_LED) || defined(USE_LED_STRIP)
 
-const uint8_t blinkpattern_boot[] = {
+const uint8_t blinkpattern_cliwait[] = {
+    // like disarmed but with a pause
+    BLINK_RGB_TIME(1, 0, 0, 8),
+    BLINK_OFF_TIME(1),
+    BLINK_LOOP,
+};
+
+const uint8_t blinkpattern_cliplug[] = {
     // rapid multi-coloured blink
     BLINK_RGB_TIME(1, 0, 0, 1),
     BLINK_OFF_TIME(1),
@@ -88,7 +95,13 @@ const uint8_t blinkpattern_lowbatt[] = {
 
 #else
 
-const uint8_t blinkpattern_boot[] = {
+const uint8_t blinkpattern_cliwait[] = {
+    BLINK_ON_TIME(8),
+    BLINK_OFF_TIME(1),
+    BLINK_LOOP,
+};
+
+const uint8_t blinkpattern_cliplug[] = {
     BLINK_ON_TIME(5),
     BLINK_OFF_TIME(1),
     BLINK_ON_TIME(2),

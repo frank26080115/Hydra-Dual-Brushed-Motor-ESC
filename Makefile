@@ -57,7 +57,7 @@ clean :
 cleanobjs:
 	rm -rf $(OBJ_DIR)/*
 
-binary : $(TARGET_BASENAME).bin
+binary : $(TARGET_BASENAME).hex
 	@$(ECHO) $@ $< done
 
 $(TARGETS_F051) :
@@ -96,7 +96,6 @@ $(TARGET_BASENAME).elf: $(ALL_OBJS)
 	@arm-none-eabi-objdump -t $@ >> $@.size
 	@arm-none-eabi-objdump -D $@ > $@.lst
 
-$(TARGET_BASENAME).bin: $(TARGET_BASENAME).elf
+$(TARGET_BASENAME).hex: $(TARGET_BASENAME).elf
 	@$(ECHO) Generating $(notdir $@)
-	$(QUIET)$(OC) --add-section EEPROM=$(<) -O binary $(<) $@
-	$(QUIET)$(OC) --add-section EEPROM=$(<) $(<) -O ihex $(@:.bin=.hex)
+	$(QUIET)$(OC) --add-section EEPROM=$< -O ihex $< $@

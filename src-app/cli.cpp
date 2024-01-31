@@ -443,7 +443,7 @@ void cliboot_decide(void)
         swclk_init(LL_GPIO_PULL_DOWN);
     }
 
-    ledblink_disarmed();
+    ledblink_cliwait();
 
     uint32_t tstart = millis();
     while ((millis() - tstart) < 2) {
@@ -493,7 +493,7 @@ void cliboot_decide(void)
             }
         }
         dbg_printf("CLI stage - long unplug criteria passed\r\n");
-        ledblink_boot();
+        ledblink_cliplug();
     }
     else
     {

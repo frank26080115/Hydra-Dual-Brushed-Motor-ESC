@@ -137,8 +137,12 @@ void led_set_pattern_secondary(const uint8_t* pattern)
     }
 }
 
-void ledblink_boot(void) {
-    led_set_pattern_primary(blinkpattern_boot);
+void ledblink_cliwait(void) {
+    led_set_pattern_primary(blinkpattern_cliwait);
+}
+
+void ledblink_cliplug(void) {
+    led_set_pattern_primary(blinkpattern_cliplug);
 }
 
 void ledblink_cli(void) {

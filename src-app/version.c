@@ -6,7 +6,7 @@ __attribute__((section(".firmware_info")))
 const firmware_info_s firmware_info = {
     version_major  : VERSION_MAJOR,
     version_eeprom : VERSION_EEPROM,
-    device_code    :
+    device_code    : // this is metadata that the installer app looks at to verify if the bootloader matches the firmware file
         ((((uint32_t)INPUT_PIN_PORT) >> 8) & 0xFF)
         | (
         #if INPUT_PIN == LL_GPIO_PIN_0
