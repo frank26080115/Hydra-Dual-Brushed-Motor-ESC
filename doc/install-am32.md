@@ -15,6 +15,14 @@ If you want to install AM32 on your own, the original instructions are from the 
 
 My instructions here will reference my own documentation pages.
 
+# What is AM32?
+
+[AM32 firmware](https://github.com/AlkaMotors/AM32-MultiRotor-ESC-firmware/) is firmware for brushless ESCs that are using 32-bit microcontrollers. It has a few advantages over other ESC firmwares, and it is completely open source. Because it is open source, it can be used with a lot of existing ESCs, and it can also be used when somebody wants to design an entirely new ESC.
+
+There are a few ESCs sold with AM32 pre-installed, and with some hacking, people can also install AM32 on some ESCs that are already using BLHeli_32 firmware.
+
+AM32 has two parts, the first part is the AM32 bootloader. The bootloader is what allows AM32 to update firmware later. Hydra firmware is written so that the AM32 bootloader can load Hydra firmware into ESCs. It is more convenient (and maybe cheaper) than other methods of installing Hydra firmware.
+
 # Step 0: Tools and Requirements
 
 You will need:
