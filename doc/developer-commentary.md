@@ -135,3 +135,11 @@ However, since there are many variations of hardware, there are many variations 
 My firmware builds have additional embedded metadata that also identifies which microcontroller and what pin is being used.
 
 My PC app does do a check to see if the firmware file's embedded metadata does match. This will at least guarantee that the user can use the CLI after flashing. The CLI has functionality that allows the user to perform further hardware tests as well.
+
+# Other: Why CRSF and not SBUS or IBUS
+
+CRSF is awesome, it is used by ExpressLRS because it is high speed, high precision, and it incorporates a CRC for data integrity. The radio receivers that output CRSF are the tiniest on the market.
+
+SBUS is horrible, FrSky products use SBUS and FrSky made it difficult to work with by making it an inverted signal, it was nearly impossible to work with using a 8-bit microcontroller. And then FrSky pulled very anti-consumer moves because the community figured out how to make open source versions of their products, and the market started getting much cheaper 3rd party products. They released new radio transmitters that were straight up not backwards compatible with their older radio receivers, and then they discontinued all of their older receiver products overnight. Their new radio transmitter isn't even that premium and they are charging premium prices for them.
+
+I can't use IBUS, used by FlySky products, simply because I don't have the hardware. Also, the IBUS port only exist on large sized receivers, which defeats the purpose of trying to use less wires.
