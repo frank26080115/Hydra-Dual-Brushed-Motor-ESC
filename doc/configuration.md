@@ -62,9 +62,11 @@ NOTE: the CLI will never exit until you reboot the entire ESC with the USB linke
 
 ## Reading current settings
 
-The command is `list`
+The command is `read`
 
 It will output a giant list of all of the settings.
+
+![](imgs/listallsettings.png)
 
 You can copy this block of text into a text file for safekeeping.
 

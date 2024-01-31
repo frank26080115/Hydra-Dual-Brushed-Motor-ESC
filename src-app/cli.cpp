@@ -201,7 +201,7 @@ void cli_enter(void)
 void cli_execute(Cereal* cer, char* str)
 {
     int argc;
-    if (item_strcmp("list", str))
+    if (item_strcmp("read", str))
     {
         cer->printf("all settings:\r\n\r\n");
         eeprom_print_all(cer);
