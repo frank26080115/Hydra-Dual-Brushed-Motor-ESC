@@ -155,8 +155,12 @@ The test can be stopped at any time by entering keystrokes into the serial termi
 
 During the test, sensor values will be displayed, which can help with finding current sensor values while running a motor.
 
+I wrote another guide on how to use the `testpwm` function for checking phase mapping, and for calibrating the current sensor. [Please see this guide](other-hardware-hacking.md)
+
 ## Debugging Hardware
 
 The command is `hwdebug`, using it will toggle ON or OFF sensor value output to the serial terminal.
 
 This is useful for tuning the voltage limit and voltage divider value.
+
+I wrote another guide on how to use the `hwdebug` function for calibrating sensors. [Please see this guide](other-hardware-hacking.md)
