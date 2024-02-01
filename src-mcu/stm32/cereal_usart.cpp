@@ -1,4 +1,4 @@
-#include "cereal_usart.h"
+#include "cereal.h"
 
 #define CEREAL_DMAx        DMA1
 #define CEREAL_DMA_CHAN    LL_DMA_CHANNEL_5
@@ -213,41 +213,31 @@ void Cereal_USART::init(uint8_t id, uint32_t baud, bool invert, bool halfdup, bo
     _usart->CR1 = cr1;
 
     LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
+    GPIO_InitStruct.Mode       = LL_GPIO_MODE_ALTERNATE;
+    GPIO_InitStruct.Speed      = LL_GPIO_SPEED_FREQ_HIGH;
+    GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+    GPIO_InitStruct.Pull       = LL_GPIO_PULL_UP;
     if (_id == CEREAL_ID_USART1)
     {
         GPIO_InitStruct.Pin        = LL_GPIO_PIN_6;
-        GPIO_InitStruct.Mode       = LL_GPIO_MODE_ALTERNATE;
-        GPIO_InitStruct.Speed      = LL_GPIO_SPEED_FREQ_HIGH;
-        GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-        GPIO_InitStruct.Pull       = LL_GPIO_PULL_UP;
         GPIO_InitStruct.Alternate  = LL_GPIO_AF_0;
         LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
     }
     else if (_id == CEREAL_ID_USART2)
     {
         GPIO_InitStruct.Pin        = LL_GPIO_PIN_2;
-        GPIO_InitStruct.Mode       = LL_GPIO_MODE_ALTERNATE;
-        GPIO_InitStruct.Speed      = LL_GPIO_SPEED_FREQ_HIGH;
-        GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-        GPIO_InitStruct.Pull       = LL_GPIO_PULL_UP;
         GPIO_InitStruct.Alternate  = LL_GPIO_AF_1;
         LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
     }
     else if (_id == CEREAL_ID_USART_SWCLK)
     {
         GPIO_InitStruct.Pin        = GPIO_PIN_SWCLK;
-        GPIO_InitStruct.Mode       = LL_GPIO_MODE_ALTERNATE;
-        GPIO_InitStruct.Speed      = LL_GPIO_SPEED_FREQ_HIGH;
-        GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-        GPIO_InitStruct.Pull       = LL_GPIO_PULL_UP;
         GPIO_InitStruct.Alternate  = LL_GPIO_AF_1;
         LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
         // initialize the SWDIO pin as a floating input, which means the user can solder to both pads
         GPIO_InitStruct.Pin        = GPIO_PIN_SWDIO;
         GPIO_InitStruct.Mode       = LL_GPIO_MODE_INPUT;
-        GPIO_InitStruct.Speed      = LL_GPIO_SPEED_FREQ_HIGH;
-        GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
         GPIO_InitStruct.Pull       = LL_GPIO_PULL_NO;
         GPIO_InitStruct.Alternate  = 0;
         LL_GPIO_Init(GPIOA, &GPIO_InitStruct);

@@ -60,6 +60,8 @@ For STM32F051, download [one of the two bootloaders here](https://github.com/Alk
 
 For STM32G071, download [this bootloader (64K version)](https://github.com/AlkaMotors/g071Bootloader/releases/tag/v7)
 
+For AT32F421, go to [this page](https://github.com/AlkaMotors/AT32F421_AM32_Bootloader/tree/main/Objects) and download either `F421_PA2_BOOTLOADER_V2.hex` or `F421_PB4_BOOTLOADER_V2.hex` depending on which signal input pin
+
 # Step 4: Run STM32CubeProgrammer
 
 With everything connected, power on the ESC. Run `STM32CubeProgrammer`. Make sure that `ST-Link` is selected and then click `Connect`. (make sure the settings on the right side of the screen match what is shown in this screenshot)

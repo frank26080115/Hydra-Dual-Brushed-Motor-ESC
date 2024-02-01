@@ -7,70 +7,6 @@ void led_init_gpio(GPIO_TypeDef *GPIOx, uint32_t Pin, bool opendrain)
 {
     LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
 
-    #if 0
-    #if defined(GPIOA)
-    if (GPIOx == GPIOA) {
-        #ifdef LL_AHB1_GRP1_PERIPH_GPIOA
-        LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
-        #endif
-        #ifdef LL_IOP_GRP1_PERIPH_GPIOA
-        LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOA);
-        #endif
-    }
-    #endif
-    #if defined(GPIOB)
-    if (GPIOx == GPIOB) {
-        #ifdef LL_AHB1_GRP1_PERIPH_GPIOB
-        LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
-        #endif
-        #ifdef LL_IOP_GRP1_PERIPH_GPIOB
-        LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOB);
-        #endif
-    }
-    #endif
-    #if defined(GPIOC)
-    if (GPIOx == GPIOC) {
-        #ifdef LL_AHB1_GRP1_PERIPH_GPIOC
-        LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOC);
-        #endif
-        #ifdef LL_IOP_GRP1_PERIPH_GPIOC
-        LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOC);
-        #endif
-    }
-    #endif
-    #if defined(GPIOD)
-    if (GPIOx == GPIOD) {
-        #ifdef LL_AHB1_GRP1_PERIPH_GPIOD
-        LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOD);
-        #endif
-        #ifdef LL_IOP_GRP1_PERIPH_GPIOD
-        LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOD);
-        #endif
-    }
-    #endif
-    #if defined(GPIOE)
-    if (GPIOx == GPIOE) {
-        #ifdef LL_AHB1_GRP1_PERIPH_GPIOE
-        LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOE);
-        #endif
-        #ifdef LL_IOP_GRP1_PERIPH_GPIOE
-        LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOE);
-        #endif
-    }
-    #endif
-    #if defined(GPIOF)
-    if (GPIOx == GPIOF) {
-        #ifdef LL_AHB1_GRP1_PERIPH_GPIOF
-        LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOF);
-        #endif
-        #ifdef LL_IOP_GRP1_PERIPH_GPIOF
-        LL_IOP_GRP1_EnableClock(LL_IOP_GRP1_PERIPH_GPIOF);
-        #endif
-    }
-    #endif
-    // TODO: add more clock initialization when required
-    #endif
-
     GPIO_InitStruct.Pin        = Pin;
     GPIO_InitStruct.Mode       = LL_GPIO_MODE_OUTPUT;
     GPIO_InitStruct.Speed      = LL_GPIO_SPEED_FREQ_LOW;
@@ -102,6 +38,9 @@ void ledhw_init(void)
 #endif
 #ifdef USE_RGB_LED
     led_init_gpio(LED_GPIO_RED  , LED_PIN_RED  , LED_IS_OPENDRAIN);
+    #ifdef LED_GPIO_RED2
+    led_init_gpio(LED_GPIO_RED2 , LED_PIN_RED2 , LED_IS_OPENDRAIN);
+    #endif
     led_init_gpio(LED_GPIO_GREEN, LED_PIN_GREEN, LED_IS_OPENDRAIN);
     led_init_gpio(LED_GPIO_BLUE , LED_PIN_BLUE , LED_IS_OPENDRAIN);
 #elif defined(LED_GPIO) && defined(LED_PIN)

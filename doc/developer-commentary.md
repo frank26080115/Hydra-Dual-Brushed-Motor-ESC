@@ -136,6 +136,14 @@ My firmware builds have additional embedded metadata that also identifies which 
 
 My PC app does do a check to see if the firmware file's embedded metadata does match. This will at least guarantee that the user can use the CLI after flashing. The CLI has functionality that allows the user to perform further hardware tests as well.
 
+# Feburary 1 2024 - Repeat Robotics Dual Brushless ESC
+
+Repeat Robotics has released a new dual ESC for brushless motors. Everybody in the robotics hobby wanted a 2-in-1 ESC, much like how drone hobbyists use 4-in-1 ESCs. Repeat Robotics is filling this gap!
+
+Today I received mine, and to my horro, it uses a AT32F421 microcontroller. At the time of writing, the Hydra firmware does not support AT32 microcontrollers.
+
+I really want to unveil Hydra firmware to the world by turning this dual ESC into a 3-in-1 so now I'm putting in the effort to support AT32F421 microcontrollers, maybe even AT32F415 later.
+
 # Other: Why CRSF and not SBUS or IBUS
 
 CRSF is awesome, it is used by ExpressLRS because it is high speed, high precision, and it incorporates a CRC for data integrity. The radio receivers that output CRSF are the tiniest on the market.

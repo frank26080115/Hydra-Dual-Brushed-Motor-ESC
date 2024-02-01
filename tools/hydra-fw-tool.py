@@ -203,6 +203,8 @@ def main():
     mcuid_g071_128k = [0x34, 0x37, 0x31, 0x64, 0x2B, 0x06, 0x06, 0x01, 0x30]
     # https://github.com/AlkaMotors/AM32_Bootloader_F051/blob/9976cd7fe3dd12d012b0e86e0b2787b3cb7ae159/Core/Src/main.c#L74
     # https://github.com/AlkaMotors/g071Bootloader/blob/f86fc79a05c7ddcc25d598f4b2c952204c98c674/Core/Src/main.c#L62
+    mcuid_at32f421  = [0x34, 0x37, 0x31, 0x00, 0x1f, 0x06, 0x06, 0x01, 0x30]
+    # https://github.com/AlkaMotors/AT32F421_AM32_Bootloader/blob/922493dd0e54bae1c92cecdd9fd5472ce099dd21/Src/main.c#L99
 
     if args.fullsave == False:
         bypass_mismatch = False
@@ -217,11 +219,18 @@ def main():
             addr_multi = 1
         elif (fwfile_id & 0x00FF0000) == 0x00710000:
             should_be.append(mcuid_g071_64k)
-            should_be.append(mcuid_g071_128k)            
+            should_be.append(mcuid_g071_128k)
             if args.verbose:
                 print("firmware file metadata claims MCU = G071")
             fwaddr     = 0x08001000
             eep_addr   = 0xF800
+            addr_multi = 1
+        elif (fwfile_id & 0x00FF0000) == 0x00210000:
+            should_be.append(mcuid_at32f421)
+            if args.verbose:
+                print("firmware file metadata claims  MCU = AT32F421")
+            fwaddr     = 0x08001000
+            eep_addr   = 0x7C00
             addr_multi = 1
         else:
             print("ERROR: firmware file cannot be verified, the embedded metadata cannot be parsed (0x%08X)" % fwfile_id)
@@ -265,7 +274,7 @@ def main():
                 quit_nicely(-1)
 
     else: # full save
-        should_be = [mcuid_f051, mcuid_g071_64k, mcuid_g071_128k]
+        should_be = [mcuid_f051, mcuid_g071_64k, mcuid_g071_128k, mcuid_g071_128k, mcuid_at32f421]
         match_res = bootloader_match(bootloader_id, should_be)
         if match_res < 0:
             print("ERROR: hardware bootloader identity cannot be verified: { %s }" % hex_id)
@@ -277,7 +286,10 @@ def main():
             addr_multi = 1
         elif match_res == 2:
             fw_size = 1024 * 128
-            addr_multi = 2
+            addr_multi = 4
+        elif match_res == 3:
+            fw_size = 1024 * 32
+            addr_multi = 1
         else:
             print("assuming large size of 64K")
             fw_size = 1024 * 64

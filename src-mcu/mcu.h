@@ -9,8 +9,10 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#ifdef STMICRO
+#if defined(STMICRO)
 #include "stm32.h"
+#elif defined(ARTERY)
+#include "at32.h"
 #endif
 
 #ifdef __cplusplus

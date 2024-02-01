@@ -115,24 +115,22 @@ def proc_hex_file(fpath):
                 bootloader_file = "bootloader_g071_64k.bin"
                 fwaddr     = 0x08001000
                 eep_addr   = 0xF800
-            if bootloader_file is None:
-                print("ERROR: the embedded metadata cannot be parsed (0x%08X)" % fwfile_id)
-                return
 
-            bootloader_file = os.path.join(dl_dir, bootloader_file)
-            if verbose:
-                print("desired bootloader file is \"%s\"" % bootloader_file)
+            if bootloader_file is not None:
+                bootloader_file = os.path.join(dl_dir, bootloader_file)
+                if verbose:
+                    print("desired bootloader file is \"%s\"" % bootloader_file)
 
-            flash_start = 0x08000000
-            with open(bootloader_file, "rb") as blf:
-                ba = bytearray(blf.read())
-                faddr = flash_start
-                for d in ba:
-                    fw_ihex[faddr] = d
-                    faddr += 1
+                flash_start = 0x08000000
+                with open(bootloader_file, "rb") as blf:
+                    ba = bytearray(blf.read())
+                    faddr = flash_start
+                    for d in ba:
+                        fw_ihex[faddr] = d
+                        faddr += 1
 
-            fw_ihex.tofile(fw_new_path, format='hex')
-            print("saved new file: \"%s\"" % fw_new_path)
+                fw_ihex.tofile(fw_new_path, format='hex')
+                print("saved new file: \"%s\"" % fw_new_path)
 
     else:
         print("ERROR: the file \"%s\" does not exist" % fw_fullpath)

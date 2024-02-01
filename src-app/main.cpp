@@ -34,12 +34,12 @@ Cereal_USART     main_cer;
 //
 #elif INPUT_PIN == LL_GPIO_PIN_4
 #ifdef ENABLE_COMPILE_CLI
-Cereal_TimerBitbang cli_cer(0);
+Cereal_TimerBitbang cli_cer;
 #endif
 #else
 //
 #ifdef ENABLE_COMPILE_CLI
-Cereal_TimerBitbang cli_cer(0);
+Cereal_TimerBitbang cli_cer;
 #endif
 #endif
 #else

@@ -1,4 +1,4 @@
-#include "cereal_timer.h"
+#include "cereal.h"
 
 #ifdef ENABLE_COMPILE_CLI
 
@@ -119,9 +119,9 @@ void CerealBitbang_IRQHandler(void)
 }
 #endif
 
-Cereal_TimerBitbang::Cereal_TimerBitbang(uint8_t id)
+Cereal_TimerBitbang::Cereal_TimerBitbang(void)
 {
-    _id = id;
+    _id = 0;
 }
 
 void Cereal_TimerBitbang::init(uint32_t baud)
