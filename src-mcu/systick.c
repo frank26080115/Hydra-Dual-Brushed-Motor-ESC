@@ -1,5 +1,5 @@
 #include "systick.h"
-#include "stm32.h"
+#include "mcu.h"
 
 volatile uint32_t systick_cnt;
 

@@ -70,6 +70,7 @@ class Cereal_USART : public Cereal
 {
     public:
         Cereal_USART(void);
+        void sw_init(uint8_t id);
         virtual void init(uint8_t id, uint32_t baud, bool invert, bool halfdup, bool swap, bool dma = false);
         virtual void write(uint8_t x);
         virtual void flush(void);

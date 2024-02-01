@@ -3,8 +3,6 @@
 #include "at32.h"
 #include "at32f421_flash.h"
 
-#include <string.h>
-
 #if defined(MCU_AT421)
 #define EEPROM_PAGE_SIZE 0x400
 #define WRITE_SIZE_TYPE  uint32_t
