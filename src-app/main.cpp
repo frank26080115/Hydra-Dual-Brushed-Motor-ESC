@@ -2,6 +2,7 @@
 #include "userconfig.h"
 #include "version.h"
 #include "inputpin.h"
+#include "swd_pins.h"
 #include "phaseout.h"
 #include "sense.h"
 #include "rc.h"
@@ -10,13 +11,6 @@
 #include "hw_tests.h"
 #include <math.h>
 
-#ifdef STMICRO
-#include "rc_stm32.h"
-#include "cereal_timer.h"
-#include "cereal_usart.h"
-#include "swd_pins.h"
-#endif
-
 RcChannel* rc1 = NULL;
 RcChannel* rc2 = NULL;
 
@@ -24,15 +18,14 @@ RcChannel* rc2 = NULL;
 Cereal_USART dbg_cer;
 #endif
 
-#ifdef STMICRO
 RcPulse_InputCap rc_pulse_1(IC_TIMER_REGISTER, INPUT_PIN_PORT, INPUT_PIN, IC_TIMER_CHANNEL);
 RcPulse_GpioIsr  rc_pulse_2;
 CrsfChannel      crsf_1;
 CrsfChannel      crsf_2;
 Cereal_USART     main_cer;
-#if INPUT_PIN == LL_GPIO_PIN_2
+#if defined(MAIN_SIGNAL_PA2)
 //
-#elif INPUT_PIN == LL_GPIO_PIN_4
+#elif defined(MAIN_SIGNAL_PB4)
 #ifdef ENABLE_COMPILE_CLI
 Cereal_TimerBitbang cli_cer;
 #endif
@@ -41,9 +34,6 @@ Cereal_TimerBitbang cli_cer;
 #ifdef ENABLE_COMPILE_CLI
 Cereal_TimerBitbang cli_cer;
 #endif
-#endif
-#else
-#error unsupported
 #endif
 
 #ifdef ENABLE_COMPILE_CLI
@@ -110,7 +100,7 @@ int main(void)
     }
     else if (cfg.input_mode == INPUTMODE_CRSF || cfg.input_mode == INPUTMODE_CRSF_SWCLK)
     {
-        #if INPUT_PIN == LL_GPIO_PIN_2
+        #if defined(MAIN_SIGNAL_PA2)
         // for ESCs that use PA2 for input, we don't know if the user connected CRSF to PA2 or PB6
         // so we simply wait for one of the signals to go high
         // it is also possible that the CLI decision loop already detected a signal

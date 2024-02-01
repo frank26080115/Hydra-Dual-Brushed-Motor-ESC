@@ -13,6 +13,8 @@ void systick_init(void);
 
 #if defined(STMICRO)
 #define millis() systick_cnt
+#elif defined(ARTERY)
+#define millis() systick_cnt
 #else
 uint32_t millis(void);
 #endif

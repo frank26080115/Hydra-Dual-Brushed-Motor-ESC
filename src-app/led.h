@@ -14,8 +14,10 @@
 extern "C" {
 #endif
 
-#ifdef STMICRO
+#if defined(STMICRO)
 #define LED_PORT_TYPE GPIO_TypeDef
+#elif defined(ARTERY)
+#define LED_PORT_TYPE gpio_type
 #endif
 
 void led_init(void); // call to initialize IO and state machine

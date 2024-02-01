@@ -4,6 +4,16 @@
 #include "mcu.h"
 #include "debug_tools.h"
 
+#define GPIOEXTI_TIMx              TMR6
+#define GPIOEXTI_Pin               GPIO_PINS_6
+#define GPIOEXTI_GPIO              GPIOB
+#define GPIOEXTI_IRQHandler        EXINT15_4_IRQHandler
+#define GPIOEXTI_IRQn              EXINT15_4_IRQn
+#define GPIOEXTI_Port              SCFG_PORT_SOURCE_GPIOB
+#define GPIOEXTI_Line              EXINT_LINE_6
+#define GPIOEXTI_SYSCFG_Line       SCFG_PINS_SOURCE6
+#define GPIOEXTI_TIM_IRQHandler    TMR6_GLOBAL_IRQHandler
+#define GPIOEXTI_TIM_IRQn          TMR6_GLOBAL_IRQn
 #define GPIO_RC_PULSE_OFFSET       0
 
 class RcPulse_InputCap : public RcChannel

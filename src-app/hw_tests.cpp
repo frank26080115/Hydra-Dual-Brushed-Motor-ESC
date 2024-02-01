@@ -6,25 +6,17 @@
 #include "led.h"
 #include "crsf.h"
 #include "userconfig.h"
-
-#ifdef STMICRO
-#include "rc_stm32.h"
-#include "cereal_timer.h"
-#include "cereal_usart.h"
 #include "swd_pins.h"
-#endif
 
 #ifdef DEVELOPMENT_BOARD
 extern Cereal_USART dbg_cer;
 #endif
 
-#ifdef STMICRO
 extern RcPulse_InputCap rc_pulse_1;
 extern RcPulse_GpioIsr  rc_pulse_2;
 extern CrsfChannel      crsf_1;
 extern CrsfChannel      crsf_2;
 extern Cereal_USART     main_cer;
-#endif
 
 extern RcChannel* rc1;
 extern RcChannel* rc2;
@@ -53,8 +45,15 @@ void hw_test(void)
 }
 #endif
 
-void hwtest_gpio(GPIO_TypeDef* gpio, uint32_t pin)
+void hwtest_gpio(
+    #if defined(STMICRO)
+        GPIO_TypeDef
+    #elif defined(ARTERY)
+        gpio_type
+    #endif
+        * gpio, uint32_t pin)
 {
+    #if defined(STMICRO)
     LL_GPIO_InitTypeDef GPIO_InitStruct    = {0};
 
     GPIO_InitStruct.Pin        = pin;
@@ -63,16 +62,29 @@ void hwtest_gpio(GPIO_TypeDef* gpio, uint32_t pin)
     GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
     GPIO_InitStruct.Pull       = LL_GPIO_PULL_NO;
     LL_GPIO_Init(gpio, &GPIO_InitStruct);
+    #elif defined(ARTERY)
+    gpio_mode_QUICK(gpio, GPIO_MODE_OUTPUT, GPIO_PULL_NONE, pin);
+    #endif
 
     while (true)
     {
         uint32_t t = millis();
         t %= 2000;
         if (t < 1000) {
-            LL_GPIO_SetOutputPin(gpio, pin);
+            #if defined(STMICRO)
+                LL_GPIO_SetOutputPin
+            #elif defined(ARTERY)
+                gpio_bits_set
+            #endif
+                (gpio, pin);
         }
         else {
-            LL_GPIO_ResetOutputPin(gpio, pin);
+            #if defined(STMICRO)
+                LL_GPIO_ResetOutputPin
+            #elif defined(ARTERY)
+                gpio_bits_reset
+            #endif
+                (gpio, pin);
         }
     }
 }

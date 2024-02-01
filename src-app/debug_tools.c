@@ -46,6 +46,7 @@ void dbg_printf(const char* fmt, ...)
 
 void dbg_button_init(void)
 {
+    #ifdef DEVELOPMENT_BOARD
     #if defined(MCU_F051)
     #define DBG_BUTTON_PIN   LL_GPIO_PIN_0
     #define DBG_BUTTON_PORT  GPIOA
@@ -54,7 +55,9 @@ void dbg_button_init(void)
     #define DBG_BUTTON_PIN   LL_GPIO_PIN_13
     #define DBG_BUTTON_PORT  GPIOC
     #define DBG_BUTTON_PULL  LL_GPIO_PULL_UP
+    #elif defined(MCU_AT421)
     #endif
+    #if defined(STMICRO)
     LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
     GPIO_InitStruct.Pin = DBG_BUTTON_PIN;
     GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
@@ -66,14 +69,24 @@ void dbg_button_init(void)
     GPIO_InitStruct.Pull = DBG_BUTTON_PULL;
     #endif
     LL_GPIO_Init(DBG_BUTTON_PORT, &GPIO_InitStruct);
+    #elif defined(ARTERY)
+    //gpio_mode_QUICK(DBG_BUTTON_PORT, GPIO_MODE_INPUT, GPIO_PULL_NONE, DBG_BUTTON_PIN); // TODO change pull
+    #endif
+    #endif
 }
 
 bool dbg_read_btn(void)
 {
+    #ifdef DEVELOPMENT_BOARD
+    #if defined(STMICRO)
     #if DBG_BUTTON_PULL == LL_GPIO_PULL_UP
     return LL_GPIO_IsInputPinSet(DBG_BUTTON_PORT, DBG_BUTTON_PIN) == 0;
     #else
     return LL_GPIO_IsInputPinSet(DBG_BUTTON_PORT, DBG_BUTTON_PIN) != 0;
+    #endif
+    #endif
+    #else
+    return false;
     #endif
 }
 
@@ -99,6 +112,7 @@ static volatile bool was_high[2];
 
 void dbg_pintoggle_init(void)
 {
+    #ifdef DEVELOPMENT_BOARD
     LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
     GPIO_InitStruct.Pin = LL_GPIO_PIN_3 | LL_GPIO_PIN_5;
     GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
@@ -108,16 +122,19 @@ void dbg_pintoggle_init(void)
     LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
     dbg_pinset(0, false);
     dbg_pinset(1, false);
+    #endif
 }
 
 void dbg_pinset(uint8_t p, bool high)
 {
+    #ifdef DEVELOPMENT_BOARD
     if (high) {
         LL_GPIO_SetOutputPin(GPIOB, p == 0 ? LL_GPIO_PIN_3 : LL_GPIO_PIN_5);
     }
     else {
         LL_GPIO_ResetOutputPin(GPIOB, p == 0 ? LL_GPIO_PIN_3 : LL_GPIO_PIN_5);
     }
+    #endif
     was_high[p] = high;
 }
 

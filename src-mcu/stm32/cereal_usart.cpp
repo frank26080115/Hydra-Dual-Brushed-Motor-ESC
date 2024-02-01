@@ -110,7 +110,7 @@ void Cereal_USART::init(uint8_t id, uint32_t baud, bool invert, bool halfdup, bo
     _id = id;
     if (id == CEREAL_ID_USART_CRSF)
     {
-        #if INPUT_PIN == LL_GPIO_PIN_2
+        #if defined(MAIN_SIGNAL_PA2)
         if (crsf_inputGuess == 1)
         {
             _usart = USART1;
@@ -122,7 +122,10 @@ void Cereal_USART::init(uint8_t id, uint32_t baud, bool invert, bool halfdup, bo
             _u = CEREAL_ID_USART2;
         }
         // the main loop will never let crsf_inputGuess be zero
-        #elif INPUT_PIN == LL_GPIO_PIN_4
+        #elif defined(MAIN_SIGNAL_PB4)
+        _usart = USART1;
+        _u = CEREAL_ID_USART1;
+        #elif defined(MAIN_SIGNAL_PA6)
         _usart = USART1;
         _u = CEREAL_ID_USART1;
         #else

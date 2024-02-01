@@ -32,6 +32,11 @@ static volatile uint32_t jitter = 0;
 extern "C" {
 #endif
 
+#ifdef USE_LED_STRIP
+extern void WS2812_onIrq(void);
+extern volatile bool WS2812_sendOccured;
+#endif
+
 void EXINT15_4_IRQHandler(void)
 {
     uint32_t t = tmr_counter_value_get(rc_tim);
@@ -41,29 +46,35 @@ void EXINT15_4_IRQHandler(void)
         dbg_evntcnt_add(DBGEVNTID_GPIOTMR_FALL);
         if (was_high)
         {
-            if (overflow_cnt == 0 && t >= (RC_INPUT_VALID_MIN * RC_MEASURE_MULTIPLIER) && t <= (RC_INPUT_VALID_MAX * RC_MEASURE_MULTIPLIER)
-                )
+            #ifdef USE_LED_STRIP
+            if (WS2812_sendOccured == false) // if this is true, then the send came from the overflow interrupt unexpectedly
+            #endif
             {
-                pulse_width = t;
+                if (overflow_cnt == 0 && t >= (RC_INPUT_VALID_MIN * RC_MEASURE_MULTIPLIER) && t <= (RC_INPUT_VALID_MAX * RC_MEASURE_MULTIPLIER)
+                    )
+                {
+                    pulse_width = t;
 
-                RCPULSE_LOGJITTER();
+                    RCPULSE_LOGJITTER();
 
-                rc_register_good_pulse(
-                    pulse_width
-                    , arming_val_min, arming_val_max
-                    , (uint32_t*)&last_good_time
-                    , (uint8_t*)&good_pulse_cnt, (uint8_t*)&bad_pulse_cnt, (uint32_t*)&arm_pulse_cnt
-                    , (bool*)&new_flag, (bool*)&armed
-                );
-            }
-            else
-            {
-                rc_register_bad_pulse((uint8_t*)&good_pulse_cnt, (uint8_t*)&bad_pulse_cnt, (uint32_t*)&arm_pulse_cnt);
+                    rc_register_good_pulse(
+                        pulse_width
+                        , arming_val_min, arming_val_max
+                        , (uint32_t*)&last_good_time
+                        , (uint8_t*)&good_pulse_cnt, (uint8_t*)&bad_pulse_cnt, (uint32_t*)&arm_pulse_cnt
+                        , (bool*)&new_flag, (bool*)&armed
+                    );
+                }
+                else
+                {
+                    rc_register_bad_pulse((uint8_t*)&good_pulse_cnt, (uint8_t*)&bad_pulse_cnt, (uint32_t*)&arm_pulse_cnt);
+                }
             }
         }
         was_high = false;
         #ifdef USE_LED_STRIP
         WS2812_onIrq();
+        WS2812_sendOccured = false;
         #endif
     }
     else
@@ -78,10 +89,6 @@ void EXINT15_4_IRQHandler(void)
         was_high = true;
     }
 }
-
-#ifdef USE_LED_STRIP
-extern WS2812_onIrq(void);
-#endif
 
 // note: the overflow occurs every 16 milliseconds, which means it does occur at least once during one period of RC signaling
 void TIM6_GLOBAL_IRQHandler(void)
@@ -101,13 +108,25 @@ void TIM6_GLOBAL_IRQHandler(void)
     }
 }
 
+#ifdef USE_LED_STRIP
+void WS2812_startTmr6Anyways(void)
+{
+    tmr_clock_source_div_set(TMR6, TMR_CLOCK_DIV1);
+    TMR6->div = (SystemCoreClock / (1000000 * RC_MEASURE_MULTIPLIER)) - 1; // 0.25us resolution
+    TMR6->pr = -1;
+    tmr_interrupt_enable(TMR6, TMR_OVF_INT, TRUE);
+    tmr_counter_enable(TMR6, TRUE);
+    NVIC_SetPriority(TMR6_GLOBAL_IRQn, 1);
+    NVIC_EnableIRQ  (TMR6_GLOBAL_IRQn);
+}
+#endif
+
 #ifdef __cplusplus
 }
 #endif
 
 RcPulse_GpioIsr::RcPulse_GpioIsr(void)
 {
-
 }
 
 void RcPulse_GpioIsr::init(tmr_type* TIMx, gpio_type* GPIOx, uint32_t pin)
@@ -129,16 +148,15 @@ void RcPulse_GpioIsr::init(tmr_type* TIMx, gpio_type* GPIOx, uint32_t pin)
     cfg.line_mode     = EXINT_LINE_INTERRUPUT;
     cfg.line_select   = rc_exti_line;
     cfg.line_polarity = EXINT_TRIGGER_BOTH_EDGE;
-    cfg.line_enable   = 0;
+    cfg.line_enable   = FALSE;
     exint_init(&cfg);
-    scfg_exint_line_config(rc_exti_port, rc_exti_sysline);
+    scfg_exint_line_config((scfg_port_source_type)rc_exti_port, (scfg_pins_source_type)rc_exti_sysline);
 
     tmr_clock_source_div_set(rc_tim, TMR_CLOCK_DIV1);
     rc_tim->div = (SystemCoreClock / (1000000 * RC_MEASURE_MULTIPLIER)) - 1; // 0.25us resolution
     rc_tim->pr = -1;
-
-    tmr_interrupt_enable(rc_tim, TMR_OVF_INT, true);
-    tmr_counter_enable(rc_tim);
+    tmr_interrupt_enable(rc_tim, TMR_OVF_INT, TRUE);
+    tmr_counter_enable(rc_tim, TRUE);
 
     gpio_init_type GPIO_InitStruct = { 0 };
     GPIO_InitStruct.gpio_mode           = GPIO_MODE_INPUT;

@@ -6,13 +6,7 @@
 #include <stdio.h>
 
 #include "cereal.h"
-
-#ifdef STMICRO
-#include "rc_stm32.h"
-#include "cereal_timer.h"
-#include "cereal_usart.h"
 #include "swd_pins.h"
-#endif
 
 #include "inputpin.h"
 #include "led.h"
@@ -35,12 +29,12 @@ extern RcChannel* rc1;
 extern RcChannel* rc2;
 #endif
 
-#ifdef STMICRO
+#if defined(STMICRO) || defined(ARTERY)
 extern Cereal_USART main_cer;
 
-#if INPUT_PIN == LL_GPIO_PIN_2
+#if defined(MAIN_SIGNAL_PA2)
 //
-#elif INPUT_PIN == LL_GPIO_PIN_4
+#elif defined(MAIN_SIGNAL_PB4)
 
 #ifdef ENABLE_COMPILE_CLI
 extern Cereal_TimerBitbang cli_cer;
@@ -80,10 +74,10 @@ void cli_enter(void)
         rc1->init();
         rc2->init();
     }
-    #elif INPUT_PIN == LL_GPIO_PIN_2
+    #elif defined(MAIN_SIGNAL_PA2)
     Cereal_USART* cer = &main_cer;
     cer->init(CEREAL_ID_USART2, CLI_BAUD, false, true, false);
-    #elif INPUT_PIN == LL_GPIO_PIN_4
+    #elif defined(MAIN_SIGNAL_PB4)
     Cereal_TimerBitbang* cer = &cli_cer;
     cer->init(CLI_BAUD);
     #else
@@ -215,6 +209,7 @@ void cli_execute(Cereal* cer, char* str)
             , (char)(((uint32_t)'A') + ((firmware_info.device_code & 0xFF) / ((((uint32_t)GPIOB_BASE) - ((uint32_t)GPIOA_BASE)) >> 8)))
             , (uint8_t)((firmware_info.device_code >> 8) & 0xFF)
         );
+        cer->printf("CPU frequency %lu\r\n", (uint32_t)SystemCoreClock);
     }
     else if (item_strcmp("hwdebug", str))
     {
@@ -449,7 +444,7 @@ void cliboot_decide(void)
     while ((millis() - tstart) < 2) {
         // wait for pull resistors to take effect
         if (inp_read() == 0
-         #if INPUT_PIN == LL_GPIO_PIN_4
+         #if defined(MAIN_SIGNAL_PB4)
          && ((cfg.input_mode == INPUTMODE_CRSF && inp2_read() == 0) || cfg.input_mode != INPUTMODE_CRSF)
          #endif
          && ((cfg.input_mode == INPUTMODE_CRSF_SWCLK && swclk_read() == 0) || cfg.input_mode != INPUTMODE_CRSF_SWCLK)

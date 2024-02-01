@@ -92,7 +92,7 @@ def proc_hex_file(fpath):
             if verbose:
                 print("firmware loaded - addr from 0x%08X to 0x%08X" % (fw_ihex.minaddr(), fw_ihex.maxaddr()))
 
-            fwfile_id_addr = 0x080010C2 # reference the file `version.c` and the linker script
+            fwfile_id_addr = 0x08001102 # reference the file `version.c` and the linker script
             fwfile_id = 0
             fwfile_id      += int(fw_ihex[fwfile_id_addr])
             fwfile_id_addr += 1

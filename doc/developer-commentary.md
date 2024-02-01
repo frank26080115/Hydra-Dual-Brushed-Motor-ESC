@@ -144,6 +144,10 @@ Today I received mine, and to my horro, it uses a AT32F421 microcontroller. At t
 
 I really want to unveil Hydra firmware to the world by turning this dual ESC into a 3-in-1 so now I'm putting in the effort to support AT32F421 microcontrollers, maybe even AT32F415 later.
 
+The AT32F421 has peripherals nearly identical to the STM32 microcontrollers already being used, but is a M4 core instead of M0, runs faster, and there are still tiny tiny differences that make it not practical to simply load a STM32 firmware on it.
+
+Another annoying thing: the few ESCs on the market with the AT32F421 microcontroller also use the WS2812 LED, which requires tightly timed pulses to control. On STM32G071 based ESCs, this is taken care of by a timer output generator assisted by a DMA so the timing is always perfect. On AT32F421 based ESCs, the pin appears to be an ordinary GPIO. In the original AM32 source code, timing is handled with a hard-coded wait-loop while interrupts are globally disabled (but AM32 does not actually use the LEDs for anything complicated, it's a fancy power indicator). Since my Hydra code has timing sensitive measurements, I chose to make sure data is only being sent to the WS2812 only on the falling edge of the signal being measured, as in, when the measurement is already finished.
+
 # Other: Why CRSF and not SBUS or IBUS
 
 CRSF is awesome, it is used by ExpressLRS because it is high speed, high precision, and it incorporates a CRC for data integrity. The radio receivers that output CRSF are the tiniest on the market.

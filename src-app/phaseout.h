@@ -49,3 +49,11 @@ void pwm_set_braking(bool);     // set from application
 #ifdef __cplusplus
 }
 #endif
+
+#include "mcu.h"
+
+#if defined(STMICRO)
+#include "phaseout_stm32.h"
+#elif defined(ARTERY)
+#include "phaseout_at32.h"
+#endif

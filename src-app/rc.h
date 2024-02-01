@@ -29,3 +29,11 @@ bool rc_find_arming_vals(int32_t multi, int32_t offset, uint16_t* out_min, uint1
 
 void rc_register_good_pulse(uint16_t pw, uint16_t arm_thresh_min, uint16_t arm_thresh_max, uint32_t* timestamp, uint8_t* good_cnt, uint8_t* bad_cnt, uint32_t* arm_cnt, bool* nflag, bool* armed);
 void rc_register_bad_pulse(uint8_t* good_cnt, uint8_t* bad_cnt, uint32_t* arm_cnt);
+
+#include "mcu.h"
+
+#if defined(STMICRO)
+#include "rc_stm32.h"
+#elif defined(ARTERY)
+#include "rc_at32.h"
+#endif

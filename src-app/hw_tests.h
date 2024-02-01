@@ -14,7 +14,13 @@ void hwtest_sense(void);
 void hwtest_uart(void);
 void hwtest_cli(void);
 
-void hwtest_gpio(GPIO_TypeDef* gpio, uint32_t pin);
+void hwtest_gpio(
+    #if defined(STMICRO)
+        GPIO_TypeDef
+    #elif defined(ARTERY)
+        gpio_type
+    #endif
+        * gpio, uint32_t pin);
 
 #ifdef ENABLE_COMPILE_CLI
 void hwtest_bbcer(void);

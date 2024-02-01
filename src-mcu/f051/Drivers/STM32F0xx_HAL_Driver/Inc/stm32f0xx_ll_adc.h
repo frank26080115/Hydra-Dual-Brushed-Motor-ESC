@@ -2085,7 +2085,7 @@ __STATIC_INLINE void LL_ADC_REG_SetSequencerChannels(ADC_TypeDef *ADCx, uint32_t
   *           (channel 0 fixed on rank 0, channel 1 fixed on rank1, ...).
   *         - Set channels selected by adding them to the current sequencer
   *           configuration.
-  * @note   On this STM32 serie, ADC group regular sequencer is
+  * @note   On this STM32 series, ADC group regular sequencer is
   *         not fully configurable: sequencer length and each rank
   *         affectation to a channel are fixed by channel HW number.
   * @note   Depending on devices and packages, some channels may not be available.
@@ -2094,7 +2094,7 @@ __STATIC_INLINE void LL_ADC_REG_SetSequencerChannels(ADC_TypeDef *ADCx, uint32_t
   *         TempSensor, ...), measurement paths to internal channels must be
   *         enabled separately.
   *         This can be done using function @ref LL_ADC_SetCommonPathInternalCh().
-  * @note   On this STM32 serie, setting of this feature is conditioned to
+  * @note   On this STM32 series, setting of this feature is conditioned to
   *         ADC state:
   *         ADC must be disabled or enabled without conversion on going
   *         on group regular.

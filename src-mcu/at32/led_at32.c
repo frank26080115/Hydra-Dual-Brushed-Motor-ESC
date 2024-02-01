@@ -5,6 +5,7 @@
 
 void led_init_gpio(gpio_type *GPIOx, uint32_t Pin, bool opendrain)
 {
+    #ifndef DISABLE_LED
     gpio_init_type gpio_init_struct;
     gpio_default_para_init(&gpio_init_struct);
 
@@ -22,20 +23,24 @@ void led_init_gpio(gpio_type *GPIOx, uint32_t Pin, bool opendrain)
     else {
         gpio_bits_reset(GPIOx, Pin);
     }
+    #endif
 }
 
 void led_set(gpio_type* GPIOx, uint32_t Pin, bool ison, bool opendrain)
 {
+    #ifndef DISABLE_LED
     if ((ison && opendrain) || (!ison && !opendrain)) {
         gpio_bits_reset(GPIOx, Pin);
     }
     else {
         gpio_bits_set(GPIOx, Pin);
     }
+    #endif
 }
 
 void ledhw_init(void)
 {
+#ifndef DISABLE_LED
 #ifdef USE_LED_STRIP
     WS2812_init();
 #endif
@@ -48,5 +53,6 @@ void ledhw_init(void)
     led_init_gpio(LED_GPIO_BLUE , LED_PIN_BLUE , LED_IS_OPENDRAIN);
 #elif defined(LED_GPIO) && defined(LED_PIN)
     led_init_gpio(LED_GPIO, LED_PIN, LED_IS_OPENDRAIN);
+#endif
 #endif
 }

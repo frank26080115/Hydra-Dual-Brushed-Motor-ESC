@@ -64,6 +64,35 @@
     #define HAS_TELEMETRY_PIN
 #endif
 
+#ifdef REPEAT_DUALDRIVE_F421
+    #define TARGET_NAME             "REPEAT_DUAL_F421"
+    #define DEAD_TIME               60
+    #define HARDWARE_GROUP_AT_B
+    #define HARDWARE_GROUP_AT_045
+    #define HAS_TELEMETRY_PIN
+    #define DISABLE_LED
+#endif
+
+#ifdef GENERIC_F421_PB4_RGB
+    #define TARGET_NAME             "GEN_F421_B4_RGB"
+    #define DEAD_TIME               60
+    #define HARDWARE_GROUP_AT_B
+    #define HARDWARE_GROUP_AT_045   // only affects comparators, no effect on Hydra
+    #define HAS_TELEMETRY_PIN
+    #define USE_LED_STRIP
+    #define USE_RGB_LED
+#endif
+
+#ifdef GENERIC_F421_PA2_RGB
+    #define TARGET_NAME             "GEN_F421_A2_RGB"
+    #define DEAD_TIME               60
+    #define HARDWARE_GROUP_AT_C
+    #define HARDWARE_GROUP_AT_045   // only affects comparators, no effect on Hydra
+    #define HAS_TELEMETRY_PIN
+    #define USE_LED_STRIP
+    #define USE_RGB_LED
+#endif
+
 #ifdef AT32SLOTCAR_F421
     #define FIRMWARE_NAME           "AT32_SC     "
     #define TARGET_NAME             "AT32SLOTCAR_F421"
@@ -159,6 +188,7 @@
     #define DEAD_TIME               45
     #define HARDWARE_GROUP_F0_A
     #define TARGET_VOLTAGE_DIVIDER  65
+    #define DISABLE_LED
 #endif
 
 #ifdef IFLIGHT_F051
@@ -667,6 +697,7 @@
     #define USE_TIMER_15_CHANNEL_1
     #define INPUT_PIN               LL_GPIO_PIN_2
     #define INPUT_PIN_PORT          GPIOA
+    #define MAIN_SIGNAL_PA2
     #define IC_TIMER_CHANNEL        LL_TIM_CHANNEL_CH1
     #define IC_TIMER_REGISTER       TIM15
     #define IC_TIMER_POINTER        htim15
@@ -701,6 +732,7 @@
     #define USE_TIMER_3_CHANNEL_1
     #define INPUT_PIN               LL_GPIO_PIN_4
     #define INPUT_PIN_PORT          GPIOB
+    #define MAIN_SIGNAL_PB4
     #define IC_TIMER_CHANNEL        LL_TIM_CHANNEL_CH1
     #define IC_TIMER_REGISTER       TIM3
     #define IC_TIMER_POINTER        htim3
@@ -735,6 +767,7 @@
     #define USE_TIMER_15_CHANNEL_1
     #define INPUT_PIN               LL_GPIO_PIN_2
     #define INPUT_PIN_PORT          GPIOA
+    #define MAIN_SIGNAL_PA2
     #define IC_TIMER_CHANNEL        LL_TIM_CHANNEL_CH1
     #define IC_TIMER_REGISTER       TIM15
     #define IC_TIMER_POINTER        htim15
@@ -769,6 +802,7 @@
     #define USE_TIMER_15_CHANNEL_1
     #define INPUT_PIN               LL_GPIO_PIN_2
     #define INPUT_PIN_PORT          GPIOA
+    #define MAIN_SIGNAL_PA2
     #define IC_TIMER_CHANNEL        LL_TIM_CHANNEL_CH1
     #define IC_TIMER_REGISTER       TIM15
     #define IC_TIMER_POINTER        htim15
@@ -803,6 +837,7 @@
     #define USE_TIMER_3_CHANNEL_1
     #define INPUT_PIN               LL_GPIO_PIN_4
     #define INPUT_PIN_PORT          GPIOB
+    #define MAIN_SIGNAL_PB4
     #define IC_TIMER_CHANNEL        LL_TIM_CHANNEL_CH1
     #define IC_TIMER_REGISTER       TIM3
     #define IC_TIMER_POINTER        htim3
@@ -837,6 +872,7 @@
     #define USE_TIMER_3_CHANNEL_1
     #define INPUT_PIN               LL_GPIO_PIN_4
     #define INPUT_PIN_PORT          GPIOB
+    #define MAIN_SIGNAL_PB4
     #define IC_TIMER_CHANNEL        LL_TIM_CHANNEL_CH1
     #define IC_TIMER_REGISTER       TIM3
     #define IC_TIMER_POINTER        htim3
@@ -876,6 +912,7 @@
     #define USE_TIMER_3_CHANNEL_1
     #define INPUT_PIN               LL_GPIO_PIN_4
     #define INPUT_PIN_PORT          GPIOB
+    #define MAIN_SIGNAL_PB4
     #define IC_TIMER_CHANNEL        LL_TIM_CHANNEL_CH1
     #define IC_TIMER_REGISTER       TIM3
     #define IC_TIMER_POINTER        htim3
@@ -912,6 +949,7 @@
     #define USE_TIMER_3_CHANNEL_1
     #define INPUT_PIN                      LL_GPIO_PIN_4
     #define INPUT_PIN_PORT                 GPIOB
+    #define MAIN_SIGNAL_PB4
     #define IC_TIMER_CHANNEL               LL_TIM_CHANNEL_CH1
     #define IC_TIMER_REGISTER              TIM3
     #define IC_TIMER_POINTER               htim3
@@ -948,6 +986,7 @@
     #define USE_TIMER_3_CHANNEL
     #define INPUT_PIN                      LL_GPIO_PIN_4
     #define INPUT_PIN_PORT                 GPIOB
+    #define MAIN_SIGNAL_PB4
     #define IC_TIMER_CHANNEL               LL_TIM_CHANNEL_CH1
     #define IC_TIMER_REGISTER              TIM3
     #define IC_TIMER_POINTER               hti
@@ -984,6 +1023,7 @@
     #define USE_TIMER_3_CHANNEL
     #define INPUT_PIN                      LL_GPIO_PIN_4
     #define INPUT_PIN_PORT                 GPIOB
+    #define MAIN_SIGNAL_PB4
     #define IC_TIMER_CHANNEL               LL_TIM_CHANNEL_CH1
     #define IC_TIMER_REGISTER              TIM3
     #define IC_TIMER_POINTER               hti
@@ -1020,6 +1060,7 @@
     #define USE_TIMER_3_CHANNEL
     #define INPUT_PIN                      LL_GPIO_PIN_4
     #define INPUT_PIN_PORT                 GPIOB
+    #define MAIN_SIGNAL_PB4
     #define IC_TIMER_CHANNEL               LL_TIM_CHANNEL_CH1
     #define IC_TIMER_REGISTER              TIM3
     #define IC_TIMER_POINTER               hti
@@ -1053,6 +1094,7 @@
     #define USE_TIMER_3_CHANNEL_1
     #define INPUT_PIN                      LL_GPIO_PIN_4
     #define INPUT_PIN_PORT                 GPIOB
+    #define MAIN_SIGNAL_PB4
     #define IC_TIMER_CHANNEL               LL_TIM_CHANNEL_CH1
     #define IC_TIMER_REGISTER              TIM3
     #define IC_TIMER_POINTER               hti
@@ -1088,6 +1130,7 @@
     #define USE_TIMER_16_CHANNEL_1
     #define INPUT_PIN                      LL_GPIO_PIN_6
     #define INPUT_PIN_PORT                 GPIOA
+    #define MAIN_SIGNAL_PA6
     #define IC_TIMER_CHANNEL               LL_TIM_CHANNEL_CH1
     #define IC_TIMER_REGISTER              TIM16
     #define IC_TIMER_POINTER               htim
@@ -1138,6 +1181,7 @@
     #define USE_TIMER_16_CHANNEL_1
     #define INPUT_PIN                      LL_GPIO_PIN_6
     #define INPUT_PIN_PORT                 GPIOA
+    #define MAIN_SIGNAL_PA6
     #define IC_TIMER_CHANNEL               LL_TIM_CHANNEL_CH1
     #define IC_TIMER_REGISTER              TIM16
     #define IC_TIMER_POINTER               htim
@@ -1187,6 +1231,7 @@
     #define USE_TIMER_3_CHANNEL_1
     #define INPUT_PIN                      LL_GPIO_PIN_4
     #define INPUT_PIN_PORT                 GPIOB
+    #define MAIN_SIGNAL_PB4
     #define IC_TIMER_CHANNEL               LL_TIM_CHANNEL_CH1
     #define IC_TIMER_REGISTER              TIM3
     #define IC_TIMER_POINTER               hti
@@ -1227,6 +1272,7 @@
     #define USE_TIMER_3_CHANNEL_1
     #define INPUT_PIN                      LL_GPIO_PIN_4
     #define INPUT_PIN_PORT                 GPIOB
+    #define MAIN_SIGNAL_PB4
     #define IC_TIMER_CHANNEL               LL_TIM_CHANNEL_CH1
     #define IC_TIMER_REGISTER              TIM3
     #define IC_TIMER_POINTER               hti
@@ -1271,6 +1317,7 @@
 
     #define INPUT_PIN                      LL_GPIO_PIN_2
     #define INPUT_PIN_PORT                 GPIOA
+    #define MAIN_SIGNAL_PA2
     #define IC_TIMER_CHANNEL               LL_TIM_CHANNEL_CH3
     #define IC_TIMER_REGISTER              TIM2
     #define IC_TIMER_POINTER               htim2
@@ -1333,6 +1380,7 @@
 
     #define USE_TIMER_2_CHANNEL_3
     #define INPUT_PIN                      LL_GPIO_PIN_2
+    #define MAIN_SIGNAL_PA2
     #define IC_TIMER_CHANNEL               LL_TIM_CHANNEL_CH3
     #define IC_TIMER_REGISTER              TIM2
     #define IC_TIMER_POINTER               htim2
@@ -1399,6 +1447,7 @@
     #define USE_TIMER_3_CHANNEL_1
     #define INPUT_PIN               GPIO_PIN_4
     #define INPUT_PIN_PORT          GPIOB
+    #define MAIN_SIGNAL_PB4
     #define IC_TIMER_CHANNEL        TIMER_CH_0
     #define IC_TIMER_REGISTER       TIMER2
     #define INPUT_DMA_CHANNEL       DMA_CH3
@@ -1431,6 +1480,7 @@
     #define USE_TIMER_3_CHANNEL_1
     #define INPUT_PIN                   GPIO_PIN_4
     #define INPUT_PIN_PORT              GPIOB
+    #define MAIN_SIGNAL_PB4
     #define IC_TIMER_CHANNEL            TIMER_CH_0
     #define IC_TIMER_REGISTER           TIMER2
     #define INPUT_DMA_CHANNEL           DMA_CH3
@@ -1464,6 +1514,7 @@
     #define INPUT_PIN                   GPIO_PINS_4
     #define INPUT_PIN_SOURCE            GPIO_PINS_SOURCE4
     #define INPUT_PIN_PORT              GPIOB
+    #define MAIN_SIGNAL_PB4
     #define IC_TIMER_CHANNEL            TMR_SELECT_CHANNEL_1
     #define IC_TIMER_REGISTER           TMR3
     #define INPUT_DMA_CHANNEL           DMA1_CHANNEL4
@@ -1499,6 +1550,7 @@
     #define INPUT_PIN                   GPIO_PINS_2
     #define INPUT_PIN_SOURCE            GPIO_PINS_SOURCE2
     #define INPUT_PIN_PORT              GPIOA
+    #define MAIN_SIGNAL_PA2
     #define IC_TIMER_CHANNEL            TMR_SELECT_CHANNEL_1
     #define IC_TIMER_REGISTER           TMR15
     #define INPUT_DMA_CHANNEL           DMA1_CHANNEL5
@@ -1533,6 +1585,7 @@
     #define USE_TIMER_3_CHANNEL_1
     #define INPUT_PIN                   GPIO_PINS_4
     #define INPUT_PIN_PORT              GPIOB
+    #define MAIN_SIGNAL_PB4
     #define IC_TIMER_CHANNEL            TMR_SELECT_CHANNEL_1
     #define IC_TIMER_REGISTER           TMR3
     #define INPUT_DMA_CHANNEL           DMA1_CHANNEL6
@@ -1578,6 +1631,7 @@
     #define INPUT_PIN                   GPIO_PINS_2
     #define INPUT_PIN_SOURCE            GPIO_PINS_SOURCE2
     #define INPUT_PIN_PORT              GPIOA
+    #define MAIN_SIGNAL_PA2
     #define IC_TIMER_CHANNEL            TMR_SELECT_CHANNEL_1
     #define IC_TIMER_REGISTER           TMR15
     #define INPUT_DMA_CHANNEL           DMA1_CHANNEL5
@@ -1615,6 +1669,7 @@
     #define INPUT_PIN                   GPIO_PINS_2
     #define INPUT_PIN_SOURCE            GPIO_PINS_SOURCE2
     #define INPUT_PIN_PORT              GPIOA
+    #define MAIN_SIGNAL_PA2
     #define IC_TIMER_CHANNEL            TMR_SELECT_CHANNEL_1
     #define IC_TIMER_REGISTER           TMR15
     #define INPUT_DMA_CHANNEL           DMA1_CHANNEL5
@@ -1840,6 +1895,7 @@
     #define UTILITY_TIMER           TIMER16
     #define COM_TIMER               TIMER15
     #define TIM1_AUTORELOAD         3000
+    #define PWM_DEFAULT_AUTORELOAD  TIM1_AUTORELOAD
     #define APPLICATION_ADDRESS     0x08001000
     #define EXTI_LINE   EXTI_21
     #define TARGET_MIN_BEMF_COUNTS  4
@@ -1856,6 +1912,7 @@
     #define UTILITY_TIMER            TMR17
     #define COM_TIMER                TMR16
     #define TIM1_AUTORELOAD          5000
+    #define PWM_DEFAULT_AUTORELOAD   TIM1_AUTORELOAD
     #define APPLICATION_ADDRESS      0x08001000
     #define EXTI_LINE                EXINT_LINE_21
     #define TARGET_MIN_BEMF_COUNTS   12
@@ -1870,6 +1927,30 @@
     #ifndef ADC_CHANNEL_TEMP
         #define ADC_CHANNEL_TEMP     ADC_CHANNEL_16
     #endif
+
+    // note: nearly all AT421 targets use WS2821
+
+    #ifndef LED_IS_OPENDRAIN
+    #define LED_IS_OPENDRAIN true
+    #endif
+    #ifndef LED_PIN
+        #define LED_PIN                GPIO_PINS_15
+        #define LED_GPIO               GPIOA
+    #endif
+    #ifdef USE_RGB_LED
+        #ifndef LED_PIN_RED
+            #define LED_PIN_RED        GPIO_PINS_8
+            #define LED_GPIO_RED       GPIOB
+        #endif
+        #ifndef LED_PIN_GREEN
+            #define LED_PIN_GREEN      GPIO_PINS_5
+            #define LED_GPIO_GREEN     GPIOB
+        #endif
+        #ifndef LED_PIN_BLUE
+            #define LED_PIN_BLUE       GPIO_PINS_3
+            #define LED_GPIO_BLUE      GPIOB
+        #endif
+    #endif
 #endif
 
 #ifdef MCU_AT415
@@ -1881,10 +1962,33 @@
     #define UTILITY_TIMER            TMR10
     #define COM_TIMER                TMR11
     #define TIM1_AUTORELOAD          6000
+    #define PWM_DEFAULT_AUTORELOAD   TIM1_AUTORELOAD
     #define APPLICATION_ADDRESS      0x08001000
     #define EXTI_LINE                EXINT_LINE_19
     #define TARGET_MIN_BEMF_COUNTS   8
     #define USE_ADC
     #define COMPARATOR_IRQ           CMP1_IRQn
     #define DSHOT_PRE                95
+
+    #ifndef LED_IS_OPENDRAIN
+    #define LED_IS_OPENDRAIN true
+    #endif
+    #ifndef LED_PIN
+        #define LED_PIN                GPIO_PINS_15
+        #define LED_GPIO               GPIOA
+    #endif
+    #ifdef USE_RGB_LED
+        #ifndef LED_PIN_RED
+            #define LED_PIN_RED        GPIO_PINS_8
+            #define LED_GPIO_RED       GPIOB
+        #endif
+        #ifndef LED_PIN_GREEN
+            #define LED_PIN_GREEN      GPIO_PINS_5
+            #define LED_GPIO_GREEN     GPIOB
+        #endif
+        #ifndef LED_PIN_BLUE
+            #define LED_PIN_BLUE       GPIO_PINS_3
+            #define LED_GPIO_BLUE      GPIOB
+        #endif
+    #endif
 #endif

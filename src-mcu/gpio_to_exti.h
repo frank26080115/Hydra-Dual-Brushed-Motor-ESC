@@ -11,7 +11,7 @@ static inline uint32_t gpio_to_exti_line(uint32_t x)
         case LL_GPIO_PIN_6 : return LL_EXTI_LINE_6;
         case LL_GPIO_PIN_13: return LL_EXTI_LINE_13;
         case LL_GPIO_PIN_14: return LL_EXTI_LINE_14;
-        #elif defined(MCU_F421)
+        #elif defined(MCU_AT421)
         case GPIO_PINS_6 : return EXINT_LINE_6;
         case GPIO_PINS_13: return EXINT_LINE_13;
         case GPIO_PINS_14: return EXINT_LINE_14;
@@ -34,7 +34,7 @@ static inline uint32_t gpio_to_exti_sys_line(uint32_t x)
         case LL_GPIO_PIN_13: return LL_EXTI_CONFIG_LINE13;
         case LL_GPIO_PIN_14: return LL_EXTI_CONFIG_LINE14;
         #endif
-        #if defined(MCU_F421)
+        #if defined(MCU_AT421)
         case GPIO_PINS_6 : return SCFG_PINS_SOURCE6;
         case GPIO_PINS_13: return SCFG_PINS_SOURCE13;
         case GPIO_PINS_14: return SCFG_PINS_SOURCE14;
@@ -57,7 +57,7 @@ static inline uint32_t gpio_to_exti_port(uint32_t x)
         case LL_GPIO_PIN_13: return LL_EXTI_CONFIG_PORTA;
         case LL_GPIO_PIN_14: return LL_EXTI_CONFIG_PORTA;
         #endif
-        #if defined(MCU_F421)
+        #if defined(MCU_AT421)
         case GPIO_PINS_6 : return SCFG_PORT_SOURCE_GPIOB;
         case GPIO_PINS_13: return SCFG_PORT_SOURCE_GPIOA;
         case GPIO_PINS_14: return SCFG_PORT_SOURCE_GPIOA;

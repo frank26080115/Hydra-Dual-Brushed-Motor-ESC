@@ -4,7 +4,9 @@
 
 void led_init(void)
 {
+    #ifndef DISABLE_LED
     ledhw_init();
+    #endif
 }
 
 #include "led_blink_patterns.h"
@@ -24,6 +26,7 @@ static uint8_t led_state = 0;
 
 void led_blink_set(uint8_t x)
 {
+    #ifndef DISABLE_LED
     #ifdef USE_RGB_LED
     led_set(LED_GPIO_RED  , LED_PIN_RED  , BLINK_IS_RED(x)  , LED_IS_OPENDRAIN);
     #ifdef LED_PIN_RED2
@@ -40,6 +43,7 @@ void led_blink_set(uint8_t x)
     #ifdef ENABLE_LED_BLINK
     blink_span = BLINK_GET_TIME(x);
     #endif
+    #endif
 }
 
 void led_state_set(bool x)
@@ -49,6 +53,7 @@ void led_state_set(bool x)
 
 void led_task(bool halt)
 {
+    #ifndef DISABLE_LED
     #ifdef USE_LED_STRIP
     WS2812_task(); // this sets the next color if DMA is not busy
     #endif
@@ -90,7 +95,7 @@ void led_task(bool halt)
         }
         led_blink_set(x);
     }
-    #else
+    #else // ENABLE_LED_BLINK
     #if !defined(USE_RGB_LED) && defined(LED_GPIO) && defined(LED_PIN)
     if (led_state == 0) {
         led_set(LED_GPIO, LED_PIN, 0, LED_IS_OPENDRAIN);
@@ -105,7 +110,8 @@ void led_task(bool halt)
         led_set(LED_GPIO, LED_PIN, (millis() % 500) <= 400 ? 0xFF : 0, LED_IS_OPENDRAIN);
     }
     #endif
-    #endif
+    #endif // ENABLE_LED_BLINK
+    #endif // DISABLE_LED
 }
 
 #ifdef ENABLE_LED_BLINK

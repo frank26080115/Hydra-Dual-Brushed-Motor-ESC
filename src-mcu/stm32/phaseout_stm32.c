@@ -1,5 +1,4 @@
 #include "phaseout.h"
-#include "phaseout_stm32.h"
 
 bool complementary_pwm;
 

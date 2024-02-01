@@ -5,7 +5,7 @@
 
 #include <string.h>
 
-#if defined(MCU_F421)
+#if defined(MCU_AT421)
 #define EEPROM_PAGE_SIZE 0x400
 #define WRITE_SIZE_TYPE  uint32_t
 #endif

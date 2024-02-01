@@ -2,6 +2,18 @@
 #include "mcu.h"
 #include "version.h"
 
+#ifndef FIRMWARE_NAME
+#ifdef FILE_NAME
+#define FIRMWARE_NAME FILE_NAME
+#endif
+#endif
+
+#ifndef FIRMWARE_NAME
+#ifdef TARGET_NAME
+#define FIRMWARE_NAME TARGET_NAME
+#endif
+#endif
+
 __attribute__((section(".firmware_info")))
 const firmware_info_s firmware_info = {
     version_major  : VERSION_MAJOR,
@@ -50,7 +62,7 @@ const firmware_info_s firmware_info = {
         (0x51 << 16)
         #elif defined(MCU_G071)
         (0x71 << 16)
-        #elif defined(MCU_F421)
+        #elif defined(MCU_AT421)
         (0x21 << 16)
         #else
         #error

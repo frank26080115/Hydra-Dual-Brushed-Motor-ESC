@@ -1,7 +1,4 @@
 #include "phaseout.h"
-#ifdef STMICRO
-#include "phaseout_stm32.h"
-#endif
 
 #include "userconfig.h"
 

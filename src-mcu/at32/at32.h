@@ -2,7 +2,7 @@
 
 #include "targets.h"
 
-#if defined(MCU_F421)
+#if defined(MCU_AT421)
 #include "at32f421.h"
 #include "at32f421_adc.h"
 #include "at32f421_cmp.h"
@@ -26,10 +26,21 @@
 #include "at32f421_wwdt.h"
 #endif
 
-#define GPIO_PIN_SWDIO LL_GPIO_PIN_13
-#define GPIO_PIN_SWCLK LL_GPIO_PIN_14
+#define GPIO_PIN_SWDIO GPIO_PINS_13
+#define GPIO_PIN_SWCLK GPIO_PINS_14
 
-#define CLK_CNT(rate) ((SystemCoreClock + ((rate) >> 1)) / (rate))
+#define is_in_isr()    ((SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk) != 0)
+#define CLK_CNT(rate)  ((SystemCoreClock + ((rate) >> 1)) / (rate))
+
+#ifndef LL_GPIO_PULL_DOWN
+#define LL_GPIO_PULL_DOWN    GPIO_PULL_DOWN
+#endif
+#ifndef LL_GPIO_PULL_UP
+#define LL_GPIO_PULL_UP      GPIO_PULL_UP
+#endif
+#ifndef LL_GPIO_PULL_NO
+#define LL_GPIO_PULL_NO      GPIO_PULL_NONE
+#endif
 
 #ifdef __cplusplus
 extern "C" {

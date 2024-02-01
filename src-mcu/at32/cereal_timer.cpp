@@ -29,7 +29,7 @@ static void rx_mode(void)
     RC_IC_TIMx->stctrl = (0x4 << 0) | (0x4 << 4);           // Reset on any edge on TI1
     RC_IC_TIMx->cctrl  = (1 << 4) | (1 << 5);               // IC2 on falling edge on TI1
     tmr_flag_clear(RC_IC_TIMx, TMR_C2_FLAG);                // Clear flag
-    tmr_interrupt_enable(RC_IC_TIMx, TMR_C2_INT, true);     // Enable capture/compare 2 interrupt
+    tmr_interrupt_enable(RC_IC_TIMx, TMR_C2_INT, TRUE);     // Enable capture/compare 2 interrupt
     RC_IC_TIMx->c1dt = CLK_CNT(cereal_baud * 2);            // Half-bit time
     tmr_event_sw_trigger(RC_IC_TIMx, TMR_OVERFLOW_SWTRIG);  // Reinitialize the counter and generates an update of the registers
 }
@@ -105,13 +105,13 @@ void CerealBitbang_IRQHandler(void)
         // receiving
         // this event happens on the falling edge of the start bit
         tmr_flag_clear(RC_IC_TIMx, TMR_C1_FLAG);
-        tmr_interrupt_enable(RC_IC_TIMx, TMR_C1_INT, true);
-        tmr_interrupt_enable(RC_IC_TIMx, TMR_C2_INT, false);
+        tmr_interrupt_enable(RC_IC_TIMx, TMR_C1_INT, TRUE);
+        tmr_interrupt_enable(RC_IC_TIMx, TMR_C2_INT, FALSE);
         tmr_flag_clear(RC_IC_TIMx, TMR_C2_FLAG);
-        tmr_interrupt_enable(RC_IC_TIMx, TMR_OVF_INT, false);
+        tmr_interrupt_enable(RC_IC_TIMx, TMR_OVF_INT, TRUE);
         tmr_flag_clear(RC_IC_TIMx, TMR_OVF_FLAG);
-        RC_IC_TIMx->SMCR = 0; // ignore edges
-        RC_IC_TIMx->CCER = 0; // no need for capture
+        RC_IC_TIMx->stctrl = 0;
+        RC_IC_TIMx->cctrl = 0;
         gpio_mode_QUICK(INPUT_PIN_PORT, GPIO_MODE_INPUT, GPIO_PULL_UP, INPUT_PIN);
         rx_is_busy = true;
     }
@@ -155,22 +155,22 @@ void Cereal_TimerBitbang::write(uint8_t x)
         // do nothing but wait
     }
     __disable_irq();
-    if (tx_is_busy == false || LL_TIM_IsEnabledIT_UPDATE(RC_IC_TIMx) == false)
+    if (tx_is_busy == false || ((RC_IC_TIMx->iden & (TMR_OVF_INT)) == 0))
     {
         // trigger the first bit, the interrupt will pop out the byte and start sending
         tx_is_busy = true;
         gpio_mode_QUICK(INPUT_PIN_PORT, GPIO_MODE_MUX, GPIO_PULL_UP, INPUT_PIN);
-        tmr_counter_enable(RC_IC_TIMx, false);
+        tmr_counter_enable(RC_IC_TIMx, FALSE);
         tmr_counter_value_set(RC_IC_TIMx, 0);
-        RC_IC_TIMx->SMCR = stctrl;
+        RC_IC_TIMx->stctrl = 0;
         RC_IC_TIMx->c1dt = 0;             // Preload high level
         tmr_event_sw_trigger(RC_IC_TIMx, TMR_OVERFLOW_SWTRIG); // Update registers and trigger UEV
         RC_IC_TIMx->cctrl = (1 << 0);     // Enable output
-        tmr_interrupt_enable(RC_IC_TIMx, TMR_C1_INT, true);
-        tmr_interrupt_enable(RC_IC_TIMx, TMR_C2_INT, true);
-        tmr_clear_flag(RC_IC_TIMx, TMR_OVF_FLAG);
-        tmr_interrupt_enable(RC_IC_TIMx, TMR_OVF_INT, true);
-        tmr_counter_enable(RC_IC_TIMx, true);
+        tmr_interrupt_enable(RC_IC_TIMx, TMR_C1_INT, TRUE);
+        tmr_interrupt_enable(RC_IC_TIMx, TMR_C2_INT, TRUE);
+        tmr_flag_clear(RC_IC_TIMx, TMR_OVF_FLAG);
+        tmr_interrupt_enable(RC_IC_TIMx, TMR_OVF_INT, TRUE);
+        tmr_counter_enable(RC_IC_TIMx, TRUE);
     }
     __enable_irq();
     if (x == '\n') {

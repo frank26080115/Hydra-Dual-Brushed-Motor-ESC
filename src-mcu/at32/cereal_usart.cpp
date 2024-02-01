@@ -25,20 +25,20 @@ static uint8_t dma_buff[CEREAL_DMA_SIZE];
 void cereal_dmaRestart(void)
 {
     // reset the DMA buffer completely or else CRSF parsing will fail
-    LL_DMA_DisableChannel(CEREAL_DMAx, CEREAL_DMA_CHAN);
-    LL_DMA_SetDataLength(CEREAL_DMAx, CEREAL_DMA_CHAN, 0);
+    dma_channel_enable (CEREAL_DMA_CHAN, FALSE);
+    dma_data_number_set(CEREAL_DMA_CHAN, 0);
     dma_buff[0] = 0; // invalidate the packet
     dma_buff[1] = 0; // invalidate the packet
     dma_buff[2] = 0; // invalidate the packet
     dma_buff[3] = 0; // invalidate the packet
-    LL_DMA_SetDataLength(CEREAL_DMAx, CEREAL_DMA_CHAN, CEREAL_DMA_SIZE);
+    dma_data_number_set(CEREAL_DMA_CHAN, CEREAL_DMA_SIZE);
     if (use_dma_on == CEREAL_ID_USART1) {
-        LL_USART_EnableDMAReq_RX(USART1);
+        usart_dma_receiver_enable(USART1, TRUE);
     }
     else if (use_dma_on == CEREAL_ID_USART2) {
-        LL_USART_EnableDMAReq_RX(USART2);
+        usart_dma_receiver_enable(USART2, TRUE);
     }
-    LL_DMA_EnableChannel(CEREAL_DMAx, CEREAL_DMA_CHAN);
+    dma_channel_enable(CEREAL_DMA_CHAN, TRUE);
 }
 
 void USARTx_IRQHandler(uint8_t _u, usart_type* usart, fifo_t* fifo_rx, fifo_t* fifo_tx, volatile bool* is_idle, volatile uint32_t* timestamp, volatile bool* had_1st)
@@ -80,17 +80,13 @@ extern "C" {
 void USART1_IRQHandler(void)
 {
     USARTx_IRQHandler(CEREAL_ID_USART1, USART1, &fifo_rx_1, &fifo_tx_1, (volatile bool*)&is_idle_1, (volatile uint32_t*)&last_rx_time_1, (volatile bool*)&had_first_byte_1);
-    #ifdef MCU_F051
-    NVIC_ClearPendingIRQ(USART1_IRQn);
-    #endif
+    // NVIC_ClearPendingIRQ(USART1_IRQn);
 }
 
 void USART2_IRQHandler(void)
 {
     USARTx_IRQHandler(CEREAL_ID_USART2, USART2, &fifo_rx_2, &fifo_tx_2, (volatile bool*)&is_idle_2, (volatile uint32_t*)&last_rx_time_2, (volatile bool*)&had_first_byte_2);
-    #ifdef MCU_F051
-    NVIC_ClearPendingIRQ(USART2_IRQn);
-    #endif
+    // NVIC_ClearPendingIRQ(USART2_IRQn);
 }
 
 #ifdef __cplusplus
@@ -109,7 +105,7 @@ void Cereal_USART::init(uint8_t id, uint32_t baud, bool invert, bool halfdup, bo
     _id = id;
     if (id == CEREAL_ID_USART_CRSF)
     {
-        #if INPUT_PIN == GPIO_PINS_2
+        #if defined(MAIN_SIGNAL_PA2)
         if (crsf_inputGuess == 1)
         {
             _usart = USART1;
@@ -121,7 +117,7 @@ void Cereal_USART::init(uint8_t id, uint32_t baud, bool invert, bool halfdup, bo
             _u = CEREAL_ID_USART2;
         }
         // the main loop will never let crsf_inputGuess be zero
-        #elif INPUT_PIN == GPIO_PINS_4
+        #elif defined(MAIN_SIGNAL_PB4)
         _usart = USART1;
         _u = CEREAL_ID_USART1;
         #else
@@ -160,88 +156,55 @@ void Cereal_USART::init(uint8_t id, uint32_t baud, bool invert, bool halfdup, bo
         fifo_tx = &fifo_tx_2;
     }
 
-    _usart->BRR = CLK_CNT(baud);
+    _usart->baudr = CLK_CNT(baud);
+    uint32_t tmpreg;
 
+    tmpreg = (1 << 3);
     if (halfdup) {
-        _usart->CR3 |= USART_CR3_HDSEL;
+        _usart->ctrl3 |= tmpreg;
     }
     else {
-        _usart->CR3 &= ~USART_CR3_HDSEL;
+        _usart->ctrl3 &= ~tmpreg;
     }
 
-    uint32_t cr2 = _usart->CR2;
-    if (invert) {
-        cr2 |= USART_CR2_RXINV | USART_CR2_TXINV;
-    }
-    else {
-        cr2 &= ~(USART_CR2_RXINV | USART_CR2_TXINV);
-    }
+    uint32_t cr2 = _usart->ctrl2;
+    tmpreg = (1 << 15);
     if (swap) {
-        cr2 |= USART_CR2_SWAP;
+        cr2 |= tmpreg;
     }
     else {
-        cr2 &= ~USART_CR2_SWAP;
+        cr2 &= ~tmpreg;
     }
-    _usart->CR2 = cr2;
+    _usart->ctrl2 = cr2;
 
-    uint32_t cr1 = _usart->CR1;
+    // NOTE: AT32 does not have the invert function
+
+    uint32_t cr1 = _usart->ctrl1;
 
     if (dma) {
-        cr1 |= USART_CR1_RE | USART_CR1_IDLEIE;
+        cr1 |= (1 << 2) | (1 << 4); // receiver enable, idle interrupt enable
     }
     else
     {
-        cr1 |= USART_CR1_TE | USART_CR1_TCIE | USART_CR1_RE |
-        #if defined(MCU_F051)
-            USART_CR1_RXNEIE
-        #elif defined(MCU_G071)
-            USART_CR1_RXNEIE_RXFNEIE
-        #else
-        #error
-        #endif
-            ;
+        cr1 |= (1 << 3) | (1 << 6) | (1 << 2) | (1 << 5); // tx enable, tx-complete interrupt enable, rx enable, rx buffer-not-empty interrupt enable
     }
-    _usart->CR1 = cr1;
+    _usart->ctrl1 = cr1;
 
-    LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
     if (_id == CEREAL_ID_USART1)
     {
-        GPIO_InitStruct.Pin        = LL_GPIO_PIN_6;
-        GPIO_InitStruct.Mode       = LL_GPIO_MODE_ALTERNATE;
-        GPIO_InitStruct.Speed      = LL_GPIO_SPEED_FREQ_HIGH;
-        GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-        GPIO_InitStruct.Pull       = LL_GPIO_PULL_UP;
-        GPIO_InitStruct.Alternate  = LL_GPIO_AF_0;
-        LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+        gpio_mode_QUICK    (GPIOB, GPIO_MODE_MUX, GPIO_PULL_UP, GPIO_PINS_6);
+        gpio_pin_mux_config(GPIOB, GPIO_PINS_SOURCE6, GPIO_MUX_0);
     }
     else if (_id == CEREAL_ID_USART2)
     {
-        GPIO_InitStruct.Pin        = LL_GPIO_PIN_2;
-        GPIO_InitStruct.Mode       = LL_GPIO_MODE_ALTERNATE;
-        GPIO_InitStruct.Speed      = LL_GPIO_SPEED_FREQ_HIGH;
-        GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-        GPIO_InitStruct.Pull       = LL_GPIO_PULL_UP;
-        GPIO_InitStruct.Alternate  = LL_GPIO_AF_1;
-        LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+        gpio_mode_QUICK    (GPIOA, GPIO_MODE_MUX, GPIO_PULL_UP, GPIO_PINS_2);
+        gpio_pin_mux_config(GPIOA, GPIO_PINS_SOURCE2, GPIO_MUX_1);
     }
     else if (_id == CEREAL_ID_USART_SWCLK)
     {
-        GPIO_InitStruct.Pin        = GPIO_PIN_SWCLK;
-        GPIO_InitStruct.Mode       = LL_GPIO_MODE_ALTERNATE;
-        GPIO_InitStruct.Speed      = LL_GPIO_SPEED_FREQ_HIGH;
-        GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-        GPIO_InitStruct.Pull       = LL_GPIO_PULL_UP;
-        GPIO_InitStruct.Alternate  = LL_GPIO_AF_1;
-        LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-        // initialize the SWDIO pin as a floating input, which means the user can solder to both pads
-        GPIO_InitStruct.Pin        = GPIO_PIN_SWDIO;
-        GPIO_InitStruct.Mode       = LL_GPIO_MODE_INPUT;
-        GPIO_InitStruct.Speed      = LL_GPIO_SPEED_FREQ_HIGH;
-        GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
-        GPIO_InitStruct.Pull       = LL_GPIO_PULL_NO;
-        GPIO_InitStruct.Alternate  = 0;
-        LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+        gpio_mode_QUICK    (GPIOA, GPIO_MODE_MUX, GPIO_PULL_UP, GPIO_PIN_SWCLK);
+        gpio_pin_mux_config(GPIOA, GPIO_PINS_SOURCE14, GPIO_MUX_1);
+        gpio_mode_QUICK    (GPIOA, GPIO_MODE_INPUT, GPIO_PULL_NONE, GPIO_PIN_SWDIO); // initialize the SWDIO pin as a floating input, which means the user can solder to both pads
     }
     #if defined(DEVELOPMENT_BOARD)
     else if (_id == CEREAL_ID_USART_DEBUG)
@@ -262,18 +225,18 @@ void Cereal_USART::init(uint8_t id, uint32_t baud, bool invert, bool halfdup, bo
         dmacfg.memory_base_addr       = (uint32_t)dma_buff;
         dmacfg.direction              = DMA_DIR_PERIPHERAL_TO_MEMORY;
         dmacfg.buffer_size            = CEREAL_DMA_SIZE;
-        dmacfg.peripheral_inc_enable  = DMA_PERIPHERAL_INC_DISABLE;
-        dmacfg.memory_inc_enable      = DMA_MEMORY_INC_ENABLE;
+        dmacfg.peripheral_inc_enable  = FALSE;
+        dmacfg.memory_inc_enable      = TRUE;
         dmacfg.peripheral_data_width  = DMA_PERIPHERAL_DATA_WIDTH_BYTE;
         dmacfg.memory_data_width      = DMA_MEMORY_DATA_WIDTH_BYTE;
-        dmacfg.loop_mode_enable       = 0;
+        dmacfg.loop_mode_enable       = FALSE;
         dmacfg.priority               = DMA_PRIORITY_HIGH;
         dma_init(CEREAL_DMA_CHAN, &dmacfg);
 
         cereal_dmaRestart();
     }
 
-    usart_enable(_usart, true);
+    usart_enable(_usart, TRUE);
 
     IRQn_Type irqn = _u == CEREAL_ID_USART2 ? USART2_IRQn : USART1_IRQn;
 

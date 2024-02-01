@@ -68,13 +68,13 @@ void rc_ic_tim_init_2(void)
     GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
     GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
 
-    #if INPUT_PIN == LL_GPIO_PIN_4 || INPUT_PIN == LL_GPIO_PIN_6
+    #if defined(MAIN_SIGNAL_PB4) || INPUT_PIN == LL_GPIO_PIN_6
     GPIO_InitStruct.Pin = INPUT_PIN;
     GPIO_InitStruct.Alternate = LL_GPIO_AF_1;
     LL_GPIO_Init(INPUT_PIN_PORT, &GPIO_InitStruct); // GPIOB
     NVIC_SetPriority(TIM3_IRQn, 1);
     NVIC_EnableIRQ(TIM3_IRQn);
-    #elif INPUT_PIN == LL_GPIO_PIN_2
+    #elif defined(MAIN_SIGNAL_PA2)
     GPIO_InitStruct.Pin = INPUT_PIN;
     GPIO_InitStruct.Alternate = LL_GPIO_AF_0;
     LL_GPIO_Init(INPUT_PIN_PORT, &GPIO_InitStruct); // GPIOA
@@ -93,9 +93,9 @@ bool ictimer_modeIsPulse;
 extern "C" {
 #endif
 
-#if INPUT_PIN == LL_GPIO_PIN_4 || INPUT_PIN == LL_GPIO_PIN_6
+#if defined(MAIN_SIGNAL_PB4) || INPUT_PIN == LL_GPIO_PIN_6
 #define RcPulse_IQRHandler TIM3_IRQHandler
-#elif INPUT_PIN == LL_GPIO_PIN_2
+#elif defined(MAIN_SIGNAL_PA2)
 #define RcPulse_IQRHandler TIM15_IRQHandler
 #endif
 

@@ -1,4 +1,4 @@
-#include "rc_stm32.h"
+#include "rc.h"
 
 #define RC_IC_TIMx IC_TIMER_REGISTER
 
@@ -48,13 +48,13 @@ void rc_ic_tim_init_2(void)
     GPIO_InitStruct.gpio_out_type       = GPIO_OUTPUT_PUSH_PULL;
     GPIO_InitStruct.gpio_pull           = GPIO_PULL_NONE;
 
-    #if INPUT_PIN == GPIO_PINS_4
+    #if defined(MAIN_SIGNAL_PB4)
     GPIO_InitStruct.gpio_pins = INPUT_PIN;
     gpio_init(INPUT_PIN_PORT, &GPIO_InitStruct); // GPIOB
     gpio_pin_mux_config(INPUT_PIN_PORT, GPIO_PINS_SOURCE4, GPIO_MUX_1);
     NVIC_SetPriority(TMR3_GLOBAL_IRQn, 1);
     NVIC_EnableIRQ(TMR3_GLOBAL_IRQn);
-    #elif INPUT_PIN == GPIO_PINS_2
+    #elif defined(MAIN_SIGNAL_PA2)
     GPIO_InitStruct.gpio_pins = INPUT_PIN;
     gpio_init(INPUT_PIN_PORT, &GPIO_InitStruct); // GPIOA
     gpio_pin_mux_config(INPUT_PIN_PORT, GPIO_PINS_SOURCE2, GPIO_MUX_0);
@@ -62,7 +62,7 @@ void rc_ic_tim_init_2(void)
     NVIC_EnableIRQ(TMR15_GLOBAL_IRQn);
     #endif
 
-    tmr_counter_enable(RC_IC_TIMx, true);
+    tmr_counter_enable(RC_IC_TIMx, TRUE);
 }
 
 #ifdef ENABLE_COMPILE_CLI
@@ -73,9 +73,9 @@ bool ictimer_modeIsPulse;
 extern "C" {
 #endif
 
-#if INPUT_PIN == LL_GPIO_PIN_4 || INPUT_PIN == LL_GPIO_PIN_6
+#if defined(MAIN_SIGNAL_PB4) || INPUT_PIN == LL_GPIO_PIN_6
 #define RcPulse_IQRHandler TMR3_GLOBAL_IRQHandler
-#elif INPUT_PIN == LL_GPIO_PIN_2
+#elif defined(MAIN_SIGNAL_PA2)
 #define RcPulse_IQRHandler TMR15_GLOBAL_IRQHandler
 #endif
 

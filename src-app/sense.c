@@ -38,7 +38,13 @@ bool sense_task(void)
 
         uint16_t filter_const = cfg.adc_filter;
 
-        uint16_t tempC = __LL_ADC_CALC_TEMPERATURE(3300, adc_raw_temperature, LL_ADC_RESOLUTION_12B);
+        uint16_t tempC =
+            #if defined(STMICRO)
+                __LL_ADC_CALC_TEMPERATURE(3300, adc_raw_temperature, LL_ADC_RESOLUTION_12B)
+            #elif defined(ARTERY)
+                (12600 - (int32_t)adc_raw_temperature * 33000 / 4096) / - 42 + 15
+            #endif
+                ;
         if (sense_temperatureC == 0) {
             sense_temperatureC = tempC;
         }
