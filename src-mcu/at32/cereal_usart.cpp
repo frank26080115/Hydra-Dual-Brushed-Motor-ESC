@@ -76,7 +76,7 @@ void USART2_IRQHandler(void)
 }
 #endif
 
-void Cereal_USART::init(uint8_t id, uint32_t baud, bool invert, bool halfdup, bool swap, bool dma)
+void Cereal_USART::init(uint8_t id, uint32_t baud, bool halfdup, bool swap, bool dma, bool invert)
 {
     sw_init(id);
 

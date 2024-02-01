@@ -108,12 +108,7 @@ void CerealBitbang_IRQHandler(void)
 
 void Cereal_TimerBitbang::init(uint32_t baud)
 {
-    fifo_init(&cereal_fifo_rx, cer_buff_1, CEREAL_BUFFER_SIZE);
-    fifo_init(&cereal_fifo_tx, cer_buff_2, CEREAL_BUFFER_SIZE);
-    fifo_tx = &cereal_fifo_tx;
-    fifo_rx = &cereal_fifo_rx;
-    cereal_baud = baud;
-    rc_ic_tim_init();
+    sw_init(baud);
     RC_IC_TIMx->cctrl = 0;
     RC_IC_TIMx->cm1   = (1 << 3) | (0x07 << 4) | (0x2 << 8) | (0x03 << 12);
     RC_IC_TIMx->div   = 0;

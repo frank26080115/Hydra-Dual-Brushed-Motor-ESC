@@ -71,7 +71,7 @@ class Cereal_USART : public Cereal
     public:
         Cereal_USART(void);
         void sw_init(uint8_t id);
-        virtual void init(uint8_t id, uint32_t baud, bool invert, bool halfdup, bool swap, bool dma = false);
+        virtual void init(uint8_t id, uint32_t baud, bool halfdup, bool swap, bool dma = false, bool invert = false);
         virtual void write(uint8_t x);
         virtual void flush(void);
         virtual uint8_t* get_buffer(void);
@@ -95,6 +95,7 @@ class Cereal_TimerBitbang : public Cereal
     public:
         Cereal_TimerBitbang(void);
 
+        void sw_init(uint32_t baud);
         virtual void init(uint32_t baud);
         virtual void write(uint8_t x);
         virtual void flush(void);

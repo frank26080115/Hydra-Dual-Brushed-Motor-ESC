@@ -127,7 +127,7 @@ void hwtest_pwm(void)
 void hwtest_adc(void)
 {
     #ifdef DEVELOPMENT_BOARD
-    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false, false);
+    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false);
     #endif
     sense_init();
     uint32_t t = millis();
@@ -145,7 +145,7 @@ void hwtest_adc(void)
 void hwtest_sense(void)
 {
     #ifdef DEVELOPMENT_BOARD
-    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false, false);
+    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false);
     #endif
     eeprom_load_defaults();
     sense_init();
@@ -164,7 +164,7 @@ void hwtest_sense(void)
 void hwtest_uart(void)
 {
     #ifdef DEVELOPMENT_BOARD
-    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false, false);
+    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false);
     while (true)
     {
         //if (dbg_cer.get_idle_flag(false))
@@ -193,7 +193,7 @@ void hwtest_rcx_print(RcChannel* rcx, uint8_t idx);
 void hwtest_rc1(void)
 {
     #ifdef DEVELOPMENT_BOARD
-    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false, false);
+    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false);
     #endif
     rc_pulse_1.init();
     hwtest_rcx(&rc_pulse_1, 1);
@@ -202,7 +202,7 @@ void hwtest_rc1(void)
 void hwtest_rc2(void)
 {
     #ifdef DEVELOPMENT_BOARD
-    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false, false);
+    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false);
     #endif
     rc_pulse_2.init(GPIOEXTI_TIMx, GPIOEXTI_GPIO, GPIOEXTI_Pin);
     hwtest_rcx(&rc_pulse_2, 2);
@@ -211,11 +211,11 @@ void hwtest_rc2(void)
 void hwtest_rc_crsf(void)
 {
     #ifdef DEVELOPMENT_BOARD
-    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false, false);
+    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false);
     #endif
     eeprom_load_defaults();
     load_runtime_configs();
-    main_cer.init(CEREAL_ID_USART_CRSF, 420000, false, true, false, true);
+    main_cer.init(CEREAL_ID_USART_CRSF, 420000, true, false, true);
     crsf_1.init(&main_cer, 1);
     crsf_2.init(&main_cer, 2);
     uint32_t t = millis();
@@ -271,7 +271,7 @@ void hwtest_rcx(RcChannel* rcx, uint8_t idx)
 void hwtest_bbcer(void)
 {
     #ifdef DEVELOPMENT_BOARD
-    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false, false);
+    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false);
     #endif
     cli_cer.init(CLI_BAUD);
     uint32_t t = millis();
@@ -301,7 +301,7 @@ void hwtest_bbcer(void)
 void hwtest_eeprom(void)
 {
     #ifdef DEVELOPMENT_BOARD
-    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false, false);
+    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false);
     dbg_button_init();
     uint32_t t = millis();
     uint32_t i, j;
@@ -362,7 +362,7 @@ void hwtest_cli(void)
     sense_init();
     pwm_init();
     #ifdef DEVELOPMENT_BOARD
-    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false, false);
+    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false);
     rc_pulse_1.init();
     rc_pulse_2.init(GPIOEXTI_TIMx, GPIOEXTI_GPIO, GPIOEXTI_Pin);
     rc1 = &rc_pulse_1;

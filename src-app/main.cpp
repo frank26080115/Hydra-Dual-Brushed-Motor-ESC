@@ -50,7 +50,7 @@ int main(void)
     #endif
 
     #ifdef DEVELOPMENT_BOARD
-    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false, false);
+    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false);
     #endif
 
     ENSURE_VERSION_DATA_IS_KEPT();
@@ -87,9 +87,7 @@ int main(void)
             rc_pulse_2.init(GPIOEXTI_TIMx, GPIOEXTI_GPIO, GPIOEXTI_Pin);
         }
         else if (cfg.input_mode == INPUTMODE_RC_SWD) {
-            #ifdef STMICRO
             swclk_init(LL_GPIO_PULL_DOWN);
-            #endif
             rc_pulse_2.init(GPIOEXTI_TIMx, GPIOA, GPIO_PIN_SWCLK);
         }
 

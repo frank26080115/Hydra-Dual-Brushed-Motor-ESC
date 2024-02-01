@@ -20,6 +20,16 @@ Cereal_TimerBitbang::Cereal_TimerBitbang(void)
     _id = 0;
 }
 
+void Cereal_TimerBitbang::sw_init(uint32_t baud)
+{
+    fifo_init(&cereal_fifo_rx, cer_buff_1, CEREAL_BUFFER_SIZE);
+    fifo_init(&cereal_fifo_tx, cer_buff_2, CEREAL_BUFFER_SIZE);
+    fifo_tx = &cereal_fifo_tx;
+    fifo_rx = &cereal_fifo_rx;
+    cereal_baud = baud;
+    rc_ic_tim_init();
+}
+
 void Cereal_TimerBitbang::flush(void)
 {
     while (

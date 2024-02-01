@@ -106,12 +106,7 @@ void CerealBitbang_IRQHandler(void)
 
 void Cereal_TimerBitbang::init(uint32_t baud)
 {
-    fifo_init(&cereal_fifo_rx, cer_buff_1, CEREAL_BUFFER_SIZE);
-    fifo_init(&cereal_fifo_tx, cer_buff_2, CEREAL_BUFFER_SIZE);
-    fifo_tx = &cereal_fifo_tx;
-    fifo_rx = &cereal_fifo_rx;
-    cereal_baud = baud;
-    rc_ic_tim_init();
+    sw_init(baud);
     RC_IC_TIMx->CCER  = 0;
     RC_IC_TIMx->SMCR  = TIM_SMCR_SMS_RM | TIM_SMCR_TS_TI1F_ED; // Reset on any edge on TI1
     RC_IC_TIMx->CCMR1 = TIM_CCMR1_OC1PE | TIM_CCMR1_OC1M_PWM2 | TIM_CCMR1_CC2S_IN_TI1 | TIM_CCMR1_IC2F_CK_INT_N_8;
