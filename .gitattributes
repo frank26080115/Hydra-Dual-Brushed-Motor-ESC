@@ -1,5 +1,6 @@
 release export-ignore
 doc/imgs export-ignore
+doc/datasheets export-ignore
 bin export-ignore
 obj export-ignore
 tools/make-release.bat export-ignore
