@@ -64,10 +64,10 @@ bool rc_find_arming_vals(int32_t multi, int32_t offset, uint16_t* out_min, uint1
     for (test_arming_val = 1250 * multi; test_arming_val < 1750 * multi; test_arming_val++) {
         int v = rc_pulse_map((test_arming_val + offset) / multi);
         if (v == 0 && last_v < 0 && (*out_min) == 0) {
-            (*out_min) = test_arming_val - 1;
+            (*out_min) = test_arming_val;
         }
-        if (v == 0 && last_v > 0 && (*out_max) == 0) {
-            (*out_max) = test_arming_val;
+        if (v > 0 && last_v <= 0 && (*out_min) != 0) {
+            (*out_max) = test_arming_val - 1;
             return true;
         }
         last_v = v;

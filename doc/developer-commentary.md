@@ -148,6 +148,8 @@ The AT32F421 has peripherals nearly identical to the STM32 microcontrollers alre
 
 Another annoying thing: the few ESCs on the market with the AT32F421 microcontroller also use the WS2812 LED, which requires tightly timed pulses to control. On STM32G071 based ESCs, this is taken care of by a timer output generator assisted by a DMA so the timing is always perfect. On AT32F421 based ESCs, the pin appears to be an ordinary GPIO. In the original AM32 source code, timing is handled with a hard-coded wait-loop while interrupts are globally disabled (but AM32 does not actually use the LEDs for anything complicated, it's a fancy power indicator). Since my Hydra code has timing sensitive measurements, I chose to make sure data is only being sent to the WS2812 only on the falling edge of the signal being measured, as in, when the measurement is already finished.
 
+I used object class inheritance and a "compatibility layer" to make sure I don't have too much repeated code between platforms. The compatibility layer simply means a giant header file where I remap STM32's HAL calls to AT32's HAL calls.
+
 # Other: Why CRSF and not SBUS or IBUS
 
 CRSF is awesome, it is used by ExpressLRS because it is high speed, high precision, and it incorporates a CRC for data integrity. The radio receivers that output CRSF are the tiniest on the market.

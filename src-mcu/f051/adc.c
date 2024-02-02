@@ -20,6 +20,7 @@ void adc_init()
     GPIO_InitStruct.Pin = VOLTAGE_ADC_PIN;
     LL_GPIO_Init(VOLTAGE_ADC_PORT, &GPIO_InitStruct);
 
+    LL_SYSCFG_SetRemapDMA_ADC(LL_SYSCFG_ADC1_RMP_DMA1_CH1);
     LL_DMA_SetDataTransferDirection(ADC_DMAx, ADC_DMA_CHAN, LL_DMA_DIRECTION_PERIPH_TO_MEMORY);
     LL_DMA_SetChannelPriorityLevel (ADC_DMAx, ADC_DMA_CHAN, LL_DMA_PRIORITY_LOW);
     LL_DMA_SetMode                 (ADC_DMAx, ADC_DMA_CHAN, LL_DMA_MODE_CIRCULAR);

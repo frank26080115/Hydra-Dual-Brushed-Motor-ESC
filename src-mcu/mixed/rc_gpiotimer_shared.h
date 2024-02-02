@@ -157,10 +157,11 @@ EXINT15_4_IRQHandler
                     , (bool*)&new_flag, (bool*)&armed
                 );
             }
-            else
-            {
-                rc_register_bad_pulse((uint8_t*)&good_pulse_cnt, (uint8_t*)&bad_pulse_cnt, (uint32_t*)&arm_pulse_cnt);
-            }
+            //else
+            //{
+            //    rc_register_bad_pulse((uint8_t*)&good_pulse_cnt, (uint8_t*)&bad_pulse_cnt, (uint32_t*)&arm_pulse_cnt);
+            //}
+            // false pulses happen too frequently for arming to be effective
         }
         was_high = false;
         #if defined(USE_LED_STRIP) && defined(MCU_AT421)
@@ -191,7 +192,7 @@ EXINT15_4_IRQHandler
 }
 
 // note: the overflow occurs every 16 milliseconds, which means it does occur at least once during one period of RC signaling
-void 
+void
 #if defined(MCU_F051)
 TIM6_IRQHandler
 #elif defined(MCU_G071)
@@ -210,7 +211,8 @@ TMR6_GLOBAL_IRQHandler
         LL_TIM_ClearFlag_UPDATE(rc_tim);
         if (overflow_cnt < 8) {
             overflow_cnt++;
-            arm_pulse_cnt = 0;
+            //arm_pulse_cnt = 0;
+            // overflow happens too frequently for arming to be reliable
         }
         #if defined(USE_LED_STRIP) && defined(MCU_AT421)
         WS2812_onIrq();

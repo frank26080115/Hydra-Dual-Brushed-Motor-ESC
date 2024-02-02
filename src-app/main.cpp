@@ -117,7 +117,7 @@ int main(void)
             }
         }
         #endif
-        main_cer.init(cfg.input_mode == INPUTMODE_CRSF_SWCLK ? CEREAL_ID_USART_SWCLK : CEREAL_ID_USART_CRSF, cfg.baud == 0 ? CRSF_BAUDRATE : cfg.baud, false, true, false, true);
+        main_cer.init(cfg.input_mode == INPUTMODE_CRSF_SWCLK ? CEREAL_ID_USART_SWCLK : CEREAL_ID_USART_CRSF, cfg.baud == 0 ? CRSF_BAUDRATE : cfg.baud, false, true, true);
         crsf_1.init(&main_cer, cfg.channel_1);
         crsf_2.init(&main_cer, cfg.channel_2);
         rc1 = &crsf_1;

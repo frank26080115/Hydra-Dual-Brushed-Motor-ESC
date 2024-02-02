@@ -65,16 +65,7 @@ void cli_enter(void)
     swdpins_deinit();
     dbg_printf("CLI entered at %u\r\n", millis());
 
-    #if defined(DEVELOPMENT_BOARD)
-    Cereal_USART* cer = &dbg_cer;
-    // init already called on dbg_cer
-    // since we are using the debugging UART, the two pins can be used for testing RC inputs
-    if (rc1 != NULL && rc2 != NULL)
-    {
-        rc1->init();
-        rc2->init();
-    }
-    #elif defined(MAIN_SIGNAL_PA2)
+    #if defined(MAIN_SIGNAL_PA2)
     Cereal_USART* cer = &main_cer;
     cer->init(CEREAL_ID_USART2, CLI_BAUD, false, true, false);
     #elif defined(MAIN_SIGNAL_PB4)
@@ -367,11 +358,9 @@ void cli_reportSensors(Cereal* cer)
         }
     }
     #endif
-    #ifdef STMICRO
     // for ESCs without a telemetry pad, enable the reading of the SWD pins
     // these will be pulled-up, and the user can short them to ground to see which pad responds
     cer->printf("SWDIO=%d, SWCLK=%d, ", swdio_read() ? 1 : 0, swclk_read() ? 1 : 0);
-    #endif
     cer->printf("T=%ld, V=%ld, C=%ld, Currlim=%d, \r\n", sense_temperatureC, sense_voltage, sense_current, current_limit_val);
 }
 

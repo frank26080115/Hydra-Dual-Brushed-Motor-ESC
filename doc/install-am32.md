@@ -7,6 +7,7 @@ It is much easier to just purchase ESCs that already have AM32 installed:
 | Repeat Robotics AM32 35A | 35A | 15A | 7A | 6S | https://repeat-robotics.com/buy/am32/ |
 | Repeat Robotics AM32 NeutronRC 70A | 70A | 30A | 15A | 8S | https://repeat-robotics.com/buy/ |neutronrc-70a-g071-beetle-weapon-esc/ |
 | Just Cuz Robotics Pariah 70A AM32 | 70A | 30A | 15A | 6S | https://justcuzrobotics.com/products/pariah-70a-am32-weapon-esc |
+| Ranglebox Mars AM32 35A | 35A | 15A | 7A | 5S | https://ranglebox.com/shop/product/mars-am32-controller/ |
 | SEQURE 70A with AM32 | 70A | 30A | 15A | 6S | https://www.amazon.com/SEQURE-Brushless-Electric-Controller-Airplanes/dp/B0CN6NB8CB/ |
 
 This list does not cover all the options on the market, just the ones I'm aware of. This repo's [wiki has a page with a list](../../../wiki/ESCs-with-AM32-already-installed).

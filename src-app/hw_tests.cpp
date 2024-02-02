@@ -38,10 +38,11 @@ void hw_test(void)
     //hwtest_pwm();
     //hwtest_rc1();
     //hwtest_rc2();
-    hwtest_rc_crsf();
+    //hwtest_rc12();
+    //hwtest_rc_crsf();
     //hwtest_bbcer();
     //hwtest_eeprom();
-    //hwtest_cli();
+    hwtest_cli();
 }
 #endif
 
@@ -187,7 +188,7 @@ void hwtest_uart(void)
     #endif
 }
 
-void hwtest_rcx(RcChannel* rcx, uint8_t idx);
+void hwtest_rcx(RcChannel* rcx, RcChannel* rcx2, uint8_t idx);
 void hwtest_rcx_print(RcChannel* rcx, uint8_t idx);
 
 void hwtest_rc1(void)
@@ -195,8 +196,10 @@ void hwtest_rc1(void)
     #ifdef DEVELOPMENT_BOARD
     dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false);
     #endif
+    eeprom_load_defaults();
+    load_runtime_configs();
     rc_pulse_1.init();
-    hwtest_rcx(&rc_pulse_1, 1);
+    hwtest_rcx(&rc_pulse_1, NULL, 1);
 }
 
 void hwtest_rc2(void)
@@ -204,8 +207,22 @@ void hwtest_rc2(void)
     #ifdef DEVELOPMENT_BOARD
     dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false);
     #endif
+    eeprom_load_defaults();
+    load_runtime_configs();
     rc_pulse_2.init(GPIOEXTI_TIMx, GPIOEXTI_GPIO, GPIOEXTI_Pin);
-    hwtest_rcx(&rc_pulse_2, 2);
+    hwtest_rcx(&rc_pulse_2, NULL, 2);
+}
+
+void hwtest_rc12(void)
+{
+    #ifdef DEVELOPMENT_BOARD
+    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false);
+    #endif
+    eeprom_load_defaults();
+    load_runtime_configs();
+    rc_pulse_1.init();
+    rc_pulse_2.init(GPIOEXTI_TIMx, GPIOEXTI_GPIO, GPIOEXTI_Pin);
+    hwtest_rcx(&rc_pulse_1, &rc_pulse_2, 1);
 }
 
 void hwtest_rc_crsf(void)
@@ -218,21 +235,7 @@ void hwtest_rc_crsf(void)
     main_cer.init(CEREAL_ID_USART_CRSF, 420000, true, false, true);
     crsf_1.init(&main_cer, 1);
     crsf_2.init(&main_cer, 2);
-    uint32_t t = millis();
-    while (true)
-    {
-        crsf_1.task();
-        crsf_2.task();
-        if ((millis() - t) >= 200)
-        {
-            t = millis();
-            dbg_printf("[%u] ", millis());
-            hwtest_rcx_print(&crsf_1, 1);
-            dbg_printf("  ;  ");
-            hwtest_rcx_print(&crsf_2, 2);
-            dbg_printf("\r\n");
-        }
-    }
+    hwtest_rcx(&crsf_1, &crsf_2, 1);
 }
 
 void hwtest_rcx_print(RcChannel* rcx, uint8_t idx)
@@ -251,17 +254,24 @@ void hwtest_rcx_print(RcChannel* rcx, uint8_t idx)
             );
 }
 
-void hwtest_rcx(RcChannel* rcx, uint8_t idx)
+void hwtest_rcx(RcChannel* rcx, RcChannel* rcx2, uint8_t idx)
 {
     uint32_t t = millis();
     while (true)
     {
         rcx->task();
+        if (rcx2 != NULL) {
+            rcx2->task();
+        }
         if ((millis() - t) >= 200)
         {
             t = millis();
             dbg_printf("[%u] ", millis());
             hwtest_rcx_print(rcx, idx);
+            if (rcx2 != NULL) {
+                dbg_printf("  ;  ");
+                hwtest_rcx_print(rcx2, idx + 1);
+            }
             dbg_printf("\r\n");
         }
     }

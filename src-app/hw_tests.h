@@ -8,6 +8,7 @@ void hwtest_pwm(void);
 void hwtest_adc(void);
 void hwtest_rc1(void);
 void hwtest_rc2(void);
+void hwtest_rc12(void);
 void hwtest_rc_crsf(void);
 void hwtest_eeprom(void);
 void hwtest_sense(void);
