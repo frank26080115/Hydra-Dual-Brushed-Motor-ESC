@@ -38,15 +38,18 @@ Also, when used for brushless motors, each MOSFET is only turned on for a brief 
 
 The hardware that are fully supported are the ones I personally own and use
 
-| Name | Brushless Rating | Brushed Rating 1 Motor | Brushed Rating 2 Motors | Max Voltage | URL |
+| Name | Brushless Rating | Brushed Rating<br />1x Motor | Brushed Rating<br />2x Motors | Max Voltage | URL |
 |------|------------------|------------------------|-------------------------|-------------|-----|
 | Repeat Robotics AM32 35A | 35A | 15A | 7A | 6S | https://repeat-robotics.com/buy/am32/ |
-| Repeat Robotics AM32 NeutronRC 70A | 70A | 30A | 15A | 8S | https://repeat-robotics.com/buy/neutronrc-70a-g071-beetle-weapon-esc/ |
-| Just Cuz Robotics Pariah 70A AM32 | 70A | 30A | 15A | 6S | https://justcuzrobotics.com/products/pariah-70a-am32-weapon-esc |
+| Repeat Robotics AM32 NeutronRC | 70A | 30A | 15A | 8S | https://repeat-robotics.com/buy/neutronrc-70a-g071-beetle-weapon-esc/ |
+| Repeat Robotics Dual Drive | ? | ? | ? | 6S | https://repeat-robotics.com/buy/repeat-am32-dual-brushless-drive-esc/ |
+| Just Cuz Robotics Pariah 70A | 70A | 30A | 15A | 6S | https://justcuzrobotics.com/products/pariah-70a-am32-weapon-esc |
+| Just Cuz Robotics 35A AM32 | 35A | 15A | 7A | 6S | https://justcuzrobotics.com/products/jcr-35a-am32 |
 | Ranglebox Mars AM32 35A | 35A | 15A | 7A | 5S | https://ranglebox.com/shop/product/mars-am32-controller/ |
-| SEQURE 70A with AM32 | 70A | 30A | 15A | 6S | https://www.amazon.com/SEQURE-Brushless-Electric-Controller-Airplanes/dp/B0CN6NB8CB/ |
+| SEQURE 70A with AM32 | 70A | 30A | 15A | 6S | [https://www.amazon.com/SEQURE-Bru...](https://www.amazon.com/SEQURE-Brushless-Electric-Controller-Airplanes/dp/B0CN6NB8CB/) |
+| SEQURE 12200 with AM32 | 200A | 86A | 43A | 15S | [https://sequremall.com/products/seq...](https://sequremall.com/products/sequre-12200-brushless-electric-speed-controller-5-12s-power-supply-200a-blheli_32-am32-firmware-support-128khz-pwm-frequency-suitable-for-multi-rotor-aircrafts-airplane-models-plant-protection-machine-boat-models-rc-car-models?variant=43118618902716) |
 
-The EMAX Formula 45A ([official link](https://emax-usa.com/collections/electronic-speed-controller/products/emax-formula-series-45a-esc-support-blheli-32-2-5s), [store link](https://pyrodrone.com/collections/individual/products/emax-formula-series-45a-esc-support-blheli_32-2-5s)) will get full support but only with CRSF input mode, just because I own them and I do want to use them since they are small. This does not come with AM32 preinstalled and will require advanced tools to install AM32.
+The EMAX Formula 45A ([official link](https://emax-usa.com/collections/electronic-speed-controller/products/emax-formula-series-45a-esc-support-blheli-32-2-5s), [store link](https://pyrodrone.com/collections/individual/products/emax-formula-series-45a-esc-support-blheli_32-2-5s)) will get full support because I own them and I do want to use them since they are small. This does not come with AM32 preinstalled and will require advanced tools to install AM32. (this EMAX model can only support CRSF input)
 
 Other models potentially will work if they meet the following criteria:
 
