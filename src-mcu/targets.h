@@ -198,6 +198,14 @@
     #define HAS_TELEMETRY_PIN
 #endif
 
+#ifdef RANGLEBOXMARS35A_F051
+    #define FIRMWARE_NAME           "RANGLEBOXMARS35A"
+    #define DEAD_TIME               45
+    #define HARDWARE_GROUP_F0_B
+    #define HAS_TELEMETRY_PIN
+    #define DISABLE_LED
+#endif
+
 #ifdef MP6531_F051
     #define FIRMWARE_NAME           "MP6531_F051"
     #define DEAD_TIME               45

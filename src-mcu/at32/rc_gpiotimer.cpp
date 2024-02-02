@@ -1,88 +1,12 @@
 #include "rc.h"
 #include "rc_at32.h"
 #include "gpio_to_exti.h"
-
+#include "stm32_at32_compat.h"
 #include "rc_gpiotimer_shared.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#ifdef USE_LED_STRIP
-extern void WS2812_onIrq(void);
-extern volatile bool WS2812_sendOccured;
-#endif
-
-void EXINT15_4_IRQHandler(void)
-{
-    uint32_t t = tmr_counter_value_get(rc_tim);
-    exint_flag_clear(rc_exti_line);
-    if (gpio_input_data_bit_read(rc_gpio, rc_pin) == 0)
-    {
-        dbg_evntcnt_add(DBGEVNTID_GPIOTMR_FALL);
-        if (was_high)
-        {
-            #ifdef USE_LED_STRIP
-            if (WS2812_sendOccured == false) // if this is true, then the send came from the overflow interrupt unexpectedly
-            #endif
-            {
-                if (overflow_cnt == 0 && t >= (RC_INPUT_VALID_MIN * RC_MEASURE_MULTIPLIER) && t <= (RC_INPUT_VALID_MAX * RC_MEASURE_MULTIPLIER)
-                    )
-                {
-                    pulse_width = t;
-
-                    RCPULSE_LOGJITTER();
-
-                    rc_register_good_pulse(
-                        pulse_width
-                        , arming_val_min, arming_val_max
-                        , (uint32_t*)&last_good_time
-                        , (uint8_t*)&good_pulse_cnt, (uint8_t*)&bad_pulse_cnt, (uint32_t*)&arm_pulse_cnt
-                        , (bool*)&new_flag, (bool*)&armed
-                    );
-                }
-                else
-                {
-                    rc_register_bad_pulse((uint8_t*)&good_pulse_cnt, (uint8_t*)&bad_pulse_cnt, (uint32_t*)&arm_pulse_cnt);
-                }
-            }
-        }
-        was_high = false;
-        #ifdef USE_LED_STRIP
-        WS2812_onIrq();
-        WS2812_sendOccured = false;
-        #endif
-    }
-    else
-    {
-        dbg_evntcnt_add(DBGEVNTID_GPIOTMR_RISE);
-        // reset counter on rising edge
-        if (was_high == false)
-        {
-            tmr_counter_value_set(rc_tim, 0);
-            overflow_cnt = 0;
-        }
-        was_high = true;
-    }
-}
-
-// note: the overflow occurs every 16 milliseconds, which means it does occur at least once during one period of RC signaling
-void TIM6_GLOBAL_IRQHandler(void)
-{
-    dbg_evntcnt_add(DBGEVNTID_GPIOTMR_OVERFLOW);
-    if (tmr_flag_get(rc_tim, TMR_OVF_FLAG))
-    {
-        dbg_evntcnt_add(DBGEVNTID_GPIOTMR_OVERFLOW);
-        tmr_flag_clear(rc_tim, TMR_OVF_FLAG);
-        if (overflow_cnt < 8) {
-            overflow_cnt++;
-            arm_pulse_cnt = 0;
-        }
-        #ifdef USE_LED_STRIP
-        WS2812_onIrq();
-        #endif
-    }
-}
 
 #ifdef USE_LED_STRIP
 void WS2812_startTmr6Anyways(void)

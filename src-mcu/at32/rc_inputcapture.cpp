@@ -1,5 +1,5 @@
 #include "rc.h"
-
+#include "stm32_at32_compat.h"
 #include "rc_inputcapture_shared.h"
 
 void rc_ic_tim_init(void)
@@ -50,60 +50,6 @@ void rc_ic_tim_init_2(void)
 
     tmr_counter_enable(RC_IC_TIMx, TRUE);
 }
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#if defined(MAIN_SIGNAL_PB4) || INPUT_PIN == LL_GPIO_PIN_6
-#define RcPulse_IQRHandler TMR3_GLOBAL_IRQHandler
-#elif defined(MAIN_SIGNAL_PA2)
-#define RcPulse_IQRHandler TMR15_GLOBAL_IRQHandler
-#endif
-
-void RcPulse_IQRHandler(void)
-{
-    #ifdef ENABLE_COMPILE_CLI
-    if (ictimer_modeIsPulse)
-    #endif
-    {
-        dbg_evntcnt_add(DBGEVNTID_ICTIMER);
-
-        uint32_t p = RC_IC_TIMx->c1dt;   // Pulse period
-        uint32_t w = RC_IC_TIMx->c2dt;   // Pulse width
-
-        // reading the registers should automatically clear the interrupt flags
-
-        if (p < RC_INPUT_VALID_MAX || w < RC_INPUT_VALID_MIN || w > RC_INPUT_VALID_MAX) // out of range
-        {
-            rc_register_bad_pulse((uint8_t*)&good_pulse_cnt, (uint8_t*)&bad_pulse_cnt, (uint32_t*)&arm_pulse_cnt);
-        }
-        else
-        {
-            pulse_width = w;
-
-            RCPULSE_LOGJITTER();
-
-            rc_register_good_pulse(
-                pulse_width
-                , arming_val_min, arming_val_max
-                , (uint32_t*)&last_good_time
-                , (uint8_t*)&good_pulse_cnt, (uint8_t*)&bad_pulse_cnt, (uint32_t*)&arm_pulse_cnt
-                , (bool*)&new_flag, (bool*)&armed
-            );
-        }
-    }
-    #ifdef ENABLE_COMPILE_CLI
-    else
-    {
-        CerealBitbang_IRQHandler();
-    }
-    #endif
-}
-
-#ifdef __cplusplus
-}
-#endif
 
 RcPulse_InputCap::RcPulse_InputCap(tmr_type* TIMx, gpio_type* GPIOx, uint32_t pin, uint32_t chan)
 {

@@ -14,7 +14,7 @@ enum
 };
 
 bool braking;
-extern bool complementary_pwm;
+bool complementary_pwm;
 static uint8_t phase_remap = 0;
 static bool load_balance = false;
 #ifdef DEBUG_PRINT

@@ -32,16 +32,6 @@
 #define is_in_isr()    ((SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk) != 0)
 #define CLK_CNT(rate)  ((SystemCoreClock + ((rate) >> 1)) / (rate))
 
-#ifndef LL_GPIO_PULL_DOWN
-#define LL_GPIO_PULL_DOWN    GPIO_PULL_DOWN
-#endif
-#ifndef LL_GPIO_PULL_UP
-#define LL_GPIO_PULL_UP      GPIO_PULL_UP
-#endif
-#ifndef LL_GPIO_PULL_NO
-#define LL_GPIO_PULL_NO      GPIO_PULL_NONE
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "mcu.h"
+#include "stm32_at32_compat.h"
 
 #ifdef __cplusplus
 extern "C" {

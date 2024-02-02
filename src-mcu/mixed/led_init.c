@@ -2,10 +2,12 @@
 #ifdef USE_LED_STRIP
 #include "ws2812.h"
 #endif
+#include "stm32_at32_compat.h"
 
 void led_init_gpio(GPIO_TypeDef *GPIOx, uint32_t Pin, bool opendrain)
 {
 #ifndef DISABLE_LED
+    #if defined(STMICRO)
     LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
 
     GPIO_InitStruct.Pin        = Pin;
@@ -20,6 +22,25 @@ void led_init_gpio(GPIO_TypeDef *GPIOx, uint32_t Pin, bool opendrain)
     else {
         LL_GPIO_ResetOutputPin(GPIOx, Pin);
     }
+    #elif defined(ARTERY)
+    gpio_init_type gpio_init_struct;
+    gpio_default_para_init(&gpio_init_struct);
+
+    gpio_init_struct.gpio_pins = Pin;
+    gpio_init_struct.gpio_out_type = opendrain ? GPIO_OUTPUT_OPEN_DRAIN : GPIO_OUTPUT_PUSH_PULL;
+    gpio_init_struct.gpio_pull = GPIO_PULL_NONE;
+    gpio_init_struct.gpio_mode = GPIO_MODE_OUTPUT;
+    gpio_init_struct.gpio_drive_strength = GPIO_DRIVE_STRENGTH_STRONGER;
+
+    gpio_init(GPIOx, &gpio_init_struct);
+
+    if (opendrain) {
+        gpio_bits_set(GPIOx, Pin);
+    }
+    else {
+        gpio_bits_reset(GPIOx, Pin);
+    }
+    #endif
 #endif
 }
 

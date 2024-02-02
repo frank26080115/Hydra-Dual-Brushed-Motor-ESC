@@ -87,3 +87,71 @@ void RcPulse_InputCap::disarm(void)
 #ifdef RC_LOG_JITTER
 RCPULSE_READJITTER(RcPulse_InputCap);
 #endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void
+#if defined(MAIN_SIGNAL_PB4) || defined(MAIN_SIGNAL_PA6)
+#if defined(STMICRO)
+TIM3_IRQHandler
+#elif defined(ARTERY)
+TMR3_GLOBAL_IRQHandler
+#else
+#error
+#endif
+#elif defined(MAIN_SIGNAL_PA2)
+#if defined(STMICRO)
+TIM15_IRQHandler
+#elif defined(ARTERY)
+TMR15_GLOBAL_IRQHandler
+#else
+#error
+#endif
+#else
+#error
+#endif
+(void)
+{
+    #ifdef ENABLE_COMPILE_CLI
+    if (ictimer_modeIsPulse)
+    #endif
+    {
+        dbg_evntcnt_add(DBGEVNTID_ICTIMER);
+
+        uint32_t p = RC_IC_TIMx->CCR1;   // Pulse period
+        uint32_t w = RC_IC_TIMx->CCR2;   // Pulse width
+
+        // reading the registers should automatically clear the interrupt flags
+
+        if (p < RC_INPUT_VALID_MAX || w < RC_INPUT_VALID_MIN || w > RC_INPUT_VALID_MAX) // out of range
+        {
+            rc_register_bad_pulse((uint8_t*)&good_pulse_cnt, (uint8_t*)&bad_pulse_cnt, (uint32_t*)&arm_pulse_cnt);
+        }
+        else
+        {
+            pulse_width = w;
+
+            RCPULSE_LOGJITTER();
+
+            rc_register_good_pulse(
+                pulse_width
+                , arming_val_min, arming_val_max
+                , (uint32_t*)&last_good_time
+                , (uint8_t*)&good_pulse_cnt, (uint8_t*)&bad_pulse_cnt, (uint32_t*)&arm_pulse_cnt
+                , (bool*)&new_flag, (bool*)&armed
+            );
+        }
+    }
+    #ifdef ENABLE_COMPILE_CLI
+    else
+    {
+        CerealBitbang_IRQHandler();
+    }
+    #endif
+}
+
+#ifdef __cplusplus
+}
+#endif

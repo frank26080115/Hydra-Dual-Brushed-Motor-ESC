@@ -1,5 +1,5 @@
 #include "rc_stm32.h"
-
+#include "stm32_at32_compat.h"
 #include "rc_inputcapture_shared.h"
 
 void rc_ic_tim_init(void)
@@ -54,7 +54,7 @@ void rc_ic_tim_init_2(void)
     GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
     GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
 
-    #if defined(MAIN_SIGNAL_PB4) || INPUT_PIN == LL_GPIO_PIN_6
+    #if defined(MAIN_SIGNAL_PB4) || defined(MAIN_SIGNAL_PA6)
     GPIO_InitStruct.Pin = INPUT_PIN;
     GPIO_InitStruct.Alternate = LL_GPIO_AF_1;
     LL_GPIO_Init(INPUT_PIN_PORT, &GPIO_InitStruct); // GPIOB
@@ -70,60 +70,6 @@ void rc_ic_tim_init_2(void)
 
     RC_IC_TIMx->CR1 |= TIM_CR1_CEN; // enable timer
 }
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#if defined(MAIN_SIGNAL_PB4) || INPUT_PIN == LL_GPIO_PIN_6
-#define RcPulse_IQRHandler TIM3_IRQHandler
-#elif defined(MAIN_SIGNAL_PA2)
-#define RcPulse_IQRHandler TIM15_IRQHandler
-#endif
-
-void RcPulse_IQRHandler(void)
-{
-    #ifdef ENABLE_COMPILE_CLI
-    if (ictimer_modeIsPulse)
-    #endif
-    {
-        dbg_evntcnt_add(DBGEVNTID_ICTIMER);
-
-        uint32_t p = RC_IC_TIMx->CCR1;   // Pulse period
-        uint32_t w = RC_IC_TIMx->CCR2;   // Pulse width
-
-        // reading the registers should automatically clear the interrupt flags
-
-        if (p < RC_INPUT_VALID_MAX || w < RC_INPUT_VALID_MIN || w > RC_INPUT_VALID_MAX) // out of range
-        {
-            rc_register_bad_pulse((uint8_t*)&good_pulse_cnt, (uint8_t*)&bad_pulse_cnt, (uint32_t*)&arm_pulse_cnt);
-        }
-        else
-        {
-            pulse_width = w;
-
-            RCPULSE_LOGJITTER();
-
-            rc_register_good_pulse(
-                pulse_width
-                , arming_val_min, arming_val_max
-                , (uint32_t*)&last_good_time
-                , (uint8_t*)&good_pulse_cnt, (uint8_t*)&bad_pulse_cnt, (uint32_t*)&arm_pulse_cnt
-                , (bool*)&new_flag, (bool*)&armed
-            );
-        }
-    }
-    #ifdef ENABLE_COMPILE_CLI
-    else
-    {
-        CerealBitbang_IRQHandler();
-    }
-    #endif
-}
-
-#ifdef __cplusplus
-}
-#endif
 
 RcPulse_InputCap::RcPulse_InputCap(TIM_TypeDef* TIMx, GPIO_TypeDef* GPIOx, uint32_t pin, uint32_t chan)
 {

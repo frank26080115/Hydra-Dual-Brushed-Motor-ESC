@@ -1,7 +1,9 @@
 #include "inputpin.h"
+#include "stm32_at32_compat.h"
 
 void inp_init(void)
 {
+    #if defined(STMICRO)
     LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
     GPIO_InitStruct.Pin = INPUT_PIN;
     GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
@@ -9,6 +11,11 @@ void inp_init(void)
     GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
     GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
     LL_GPIO_Init(INPUT_PIN_PORT, &GPIO_InitStruct);
+    #elif defined(ARTERY)
+    gpio_mode_QUICK(INPUT_PIN_PORT, GPIO_MODE_INPUT, GPIO_PULL_NONE, INPUT_PIN);
+    #else
+    #error
+    #endif
 }
 
 void inp_pullUp(void) {
@@ -28,6 +35,7 @@ bool inp_read(void) {
 
 void inp2_init(void)
 {
+    #if defined(STMICRO)
     LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
     GPIO_InitStruct.Pin = INP2_PIN;
     GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
@@ -35,6 +43,11 @@ void inp2_init(void)
     GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
     GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
     LL_GPIO_Init(INP2_GPIO, &GPIO_InitStruct);
+    #elif defined(ARTERY)
+    gpio_mode_QUICK(INP2_GPIO, GPIO_MODE_INPUT, GPIO_PULL_NONE, INP2_PIN);
+    #else
+    #error
+    #endif
 }
 
 void inp2_pullUp(void) {

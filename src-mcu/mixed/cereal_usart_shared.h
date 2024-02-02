@@ -19,6 +19,8 @@ static uint8_t dma_buff[CEREAL_DMA_SIZE];
 
 extern uint8_t crsf_inputGuess;
 
+void cereal_dmaRestart(void);
+
 Cereal_USART::Cereal_USART(void)
 {
 
@@ -139,6 +141,92 @@ bool Cereal_USART::get_idle_flag(bool clr)
     __enable_irq();
     return x;
 }
+
+void Cereal_USART::write(uint8_t x)
+{
+    fifo_push(fifo_tx, x);
+    if (LL_USART_IsActiveFlag_TXE(_usart)) {
+        uint8_t y = fifo_pop(fifo_tx);
+        LL_USART_TransmitData8(_usart, y);
+    }
+    if (x == '\n') {
+        flush();
+    }
+}
+
+void cereal_dmaRestart(void)
+{
+    // reset the DMA buffer completely or else CRSF parsing will fail
+    LL_DMA_DisableChannel(CEREAL_DMAx, CEREAL_DMA_CHAN);
+    LL_DMA_SetDataLength(CEREAL_DMAx, CEREAL_DMA_CHAN, 0);
+    dma_buff[0] = 0; // invalidate the packet
+    dma_buff[1] = 0; // invalidate the packet
+    dma_buff[2] = 0; // invalidate the packet
+    dma_buff[3] = 0; // invalidate the packet
+    LL_DMA_SetDataLength(CEREAL_DMAx, CEREAL_DMA_CHAN, CEREAL_DMA_SIZE);
+    if (use_dma_on == CEREAL_ID_USART1) {
+        LL_USART_EnableDMAReq_RX(USART1);
+    }
+    else if (use_dma_on == CEREAL_ID_USART2) {
+        LL_USART_EnableDMAReq_RX(USART2);
+    }
+    LL_DMA_EnableChannel(CEREAL_DMAx, CEREAL_DMA_CHAN);
+}
+
+void USARTx_IRQHandler(uint8_t _u, USART_TypeDef* usart, fifo_t* fifo_rx, fifo_t* fifo_tx, volatile bool* is_idle, volatile uint32_t* timestamp, volatile bool* had_1st)
+{
+    if (LL_USART_IsActiveFlag_RXNE(usart))
+    {
+        dbg_evntcnt_add(DBGEVNTID_USART_RX);
+        volatile uint8_t x = LL_USART_ReceiveData8(usart);
+        if ((x < 0x80 && x != 0x00) || (*had_1st) != false) { // this prevents the first junk character from entering the FIFO
+            fifo_push(fifo_rx, x);
+            *had_1st = true;
+        }
+        *timestamp = millis();
+    }
+    if (LL_USART_IsActiveFlag_TC(usart))
+    {
+        dbg_evntcnt_add(DBGEVNTID_USART_TX);
+        LL_USART_ClearFlag_TC(usart);
+        if (fifo_available(fifo_tx))
+        {
+            uint8_t x = fifo_pop(fifo_tx);
+            LL_USART_TransmitData8(usart, x);
+        }
+    }
+    if (LL_USART_IsActiveFlag_IDLE(usart))
+    {
+        dbg_evntcnt_add(DBGEVNTID_USART_IDLE);
+        LL_USART_ClearFlag_IDLE(usart);
+        *is_idle = true;
+        *timestamp = millis();
+    }
+}
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void USART1_IRQHandler(void)
+{
+    USARTx_IRQHandler(CEREAL_ID_USART1, USART1, &fifo_rx_1, &fifo_tx_1, (volatile bool*)&is_idle_1, (volatile uint32_t*)&last_rx_time_1, (volatile bool*)&had_first_byte_1);
+    #ifdef MCU_F051
+    NVIC_ClearPendingIRQ(USART1_IRQn);
+    #endif
+}
+
+void USART2_IRQHandler(void)
+{
+    USARTx_IRQHandler(CEREAL_ID_USART2, USART2, &fifo_rx_2, &fifo_tx_2, (volatile bool*)&is_idle_2, (volatile uint32_t*)&last_rx_time_2, (volatile bool*)&had_first_byte_2);
+    #ifdef MCU_F051
+    NVIC_ClearPendingIRQ(USART2_IRQn);
+    #endif
+}
+
+#ifdef __cplusplus
+}
+#endif
 
 #if defined(DEBUG_PRINT)
 

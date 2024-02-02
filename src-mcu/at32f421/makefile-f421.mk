@@ -10,12 +10,14 @@ LDSCRIPT_F421 := $(HAL_FOLDER_F421)/AT32F421x6_FLASH.ld
 
 SRC_DIR_F421 += \
 	$(SRC_HAL_DIR)/at32 \
+	$(SRC_HAL_DIR)/mixed \
 	$(HAL_FOLDER_F421) \
 	$(HAL_FOLDER_F421)/Drivers/src \
 
 
 CFLAGS_F421 := -Os \
 	-I$(SRC_HAL_DIR)/at32 \
+	-I$(SRC_HAL_DIR)/mixed \
 	-I$(HAL_FOLDER_F421) \
 	-I$(HAL_FOLDER_F421)/Drivers/inc \
 	-I$(HAL_FOLDER_F421)/Drivers/CMSIS \
