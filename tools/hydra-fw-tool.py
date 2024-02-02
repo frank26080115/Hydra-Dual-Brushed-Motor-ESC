@@ -44,7 +44,7 @@ def main():
 
     if args.verbose:
         print("verbose output is ON")
-        print("version: V1")
+        print("version: V1.0")
 
     if got_file:
         args.firmware = sys.argv[1]
@@ -270,6 +270,26 @@ def main():
             print("ERROR: hardware bootloader identity cannot be verified: { %s }" % hex_id)
             if ask_user_confirm("continue anyways?"):
                 bypass_mismatch = True
+                should_be = [mcuid_f051, mcuid_g071_64k, mcuid_g071_128k, mcuid_g071_128k, mcuid_at32f421]
+                match_res = bootloader_match(bootloader_id, should_be)
+                fwaddr = 0x08001000
+                addr_multi = 1
+                if match_res == 0:
+                    fw_size = 1024 * 32
+                    eep_addr = 0x7C00
+                    addr_multi = 1
+                elif match_res == 1:
+                    fw_size = 1024 * 64
+                    eep_addr = 0xF800
+                    addr_multi = 1
+                elif match_res == 2:
+                    fw_size = 1024 * 128
+                    eep_addr = 0xF800
+                    addr_multi = 4
+                elif match_res == 3:
+                    fw_size = 1024 * 32
+                    eep_addr = 0x7C00
+                    addr_multi = 1
             else:
                 quit_nicely(-1)
 

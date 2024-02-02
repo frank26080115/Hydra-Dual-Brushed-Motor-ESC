@@ -66,11 +66,12 @@
 
 #ifdef REPEAT_DUALDRIVE_F421
     #define TARGET_NAME             "REPEAT_DUAL_F421"
-    #define DEAD_TIME               60
-    #define HARDWARE_GROUP_AT_B
+    #define DEAD_TIME               50
+    #define HARDWARE_GROUP_AT_C
     #define HARDWARE_GROUP_AT_045
-    #define HAS_TELEMETRY_PIN
-    #define DISABLE_LED
+    #define USE_SERIAL_TELEMETRY
+    #define VOLTAGE_BASED_RAMP
+    #define MILLIVOLT_PER_AMP  12
 #endif
 
 #ifdef GENERIC_F421_PB4_RGB
@@ -484,7 +485,7 @@
     #define DEAD_TIME               30
     #define TARGET_VOLTAGE_DIVIDER  110
     #define MILLIVOLT_PER_AMP       10
-    #define CURRENT_OFFSET          1010   // millivolts
+    #define CURRENT_OFFSET          1010
     #define HARDWARE_GROUP_F0_A
     #define HAS_TELEMETRY_PIN
 #endif
@@ -510,8 +511,8 @@
     #define SIXTY_FOUR_KB_MEMORY
 #endif
 
-#ifdef  SEQURE_G071
-    #define FIRMWARE_NAME            "SEQURE G071 "
+#ifdef SEQURE_G071
+    #define FIRMWARE_NAME           "SEQURE G071 "
     #define DEAD_TIME               60
     #define MILLIVOLT_PER_AMP       33
     #define CURRENT_OFFSET          0
@@ -522,6 +523,21 @@
     #define SIXTY_FOUR_KB_MEMORY
     #define CURRENT_ADC_CHANNEL     LL_ADC_CHANNEL_4
     #define CURRENT_ADC_PIN         LL_GPIO_PIN_4
+    #define USE_LED_STRIP
+#endif
+
+#ifdef SEQURE_12S_G071
+    #define FIRMWARE_NAME           "SEQURE PRO  "
+    #define DEAD_TIME               60
+    #define MILLIVOLT_PER_AMP       10
+    #define CURRENT_OFFSET          0
+    #define TARGET_STALL_PROTECTION_INTERVAL 9000
+    #define TARGET_VOLTAGE_DIVIDER  210
+    #define HARDWARE_GROUP_G0_A
+    #define USE_SERIAL_TELEMETRY
+    #define SIXTY_FOUR_KB_MEMORY
+    #define CURRENT_ADC_CHANNEL      LL_ADC_CHANNEL_4
+    #define CURRENT_ADC_PIN          LL_GPIO_PIN_4
     #define USE_LED_STRIP
 #endif
 
