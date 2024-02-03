@@ -91,6 +91,11 @@ typedef struct
     uint32_t useless; // just a test pattern that can be written and used to change the chksum
 
     EEPROM_chksum_t chksum;
+
+    // any data after the checksum can still be saved but won't be protected
+
+    uint8_t tone_volume;
+
 } __attribute__((packed))
 EEPROM_data_t;
 
@@ -119,10 +124,12 @@ typedef struct {
 
 typedef struct
 {
-    uint8_t version_major;
-    uint8_t version_eeprom;
     uint32_t device_code;     // this is metadata that the installer app looks at to verify if the bootloader matches the firmware file
-    char device_name[24 - 2]; // size must match allocation in linker script
+    uint8_t version_major;
+    uint8_t version_minor;
+    uint8_t version_eeprom;
+    char device_name[33];     // size must match allocation in linker script
+    // size is 40
 }
 __attribute__((packed))
 firmware_info_s;

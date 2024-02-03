@@ -65,13 +65,32 @@
 #endif
 
 #ifdef REPEAT_DUALDRIVE_F421
-    #define TARGET_NAME             "REPEAT_DUAL_F421"
+    #define TARGET_NAME             "REPEATDUALF421"
     #define DEAD_TIME               50
     #define HARDWARE_GROUP_AT_C
     #define HARDWARE_GROUP_AT_045
     #define USE_SERIAL_TELEMETRY
     #define VOLTAGE_BASED_RAMP
     #define MILLIVOLT_PER_AMP  12
+    #define DISABLE_LED
+#endif
+
+#ifdef GENERIC_F421_PB4_NOLED
+    #define TARGET_NAME             "GEN_F421_B4_0L"
+    #define DEAD_TIME               60
+    #define HARDWARE_GROUP_AT_B
+    #define HARDWARE_GROUP_AT_045   // only affects comparators, no effect on Hydra
+    #define HAS_TELEMETRY_PIN
+    #define DISABLE_LED
+#endif
+
+#ifdef GENERIC_F421_PA2_NOLED
+    #define TARGET_NAME             "GEN_F421_A2_0L"
+    #define DEAD_TIME               60
+    #define HARDWARE_GROUP_AT_C
+    #define HARDWARE_GROUP_AT_045   // only affects comparators, no effect on Hydra
+    #define HAS_TELEMETRY_PIN
+    #define DISABLE_LED
 #endif
 
 #ifdef GENERIC_F421_PB4_RGB
@@ -426,6 +445,22 @@
     #define LED_GPIO_RED            GPIOA
 #endif
 
+#ifdef GENERIC_F051_PA2_NOLED
+    #define FIRMWARE_NAME           "GEN F051 A2 0L"
+    #define DEAD_TIME               25
+    #define HARDWARE_GROUP_F0_A
+    #define HAS_TELEMETRY_PIN
+    #define DISABLE_LED
+#endif
+
+#ifdef GENERIC_F051_PB4_NOLED
+    #define FIRMWARE_NAME           "GEN F051 B4 0L"
+    #define DEAD_TIME               25
+    #define HARDWARE_GROUP_F0_B
+    #define HAS_TELEMETRY_PIN
+    #define DISABLE_LED
+#endif
+
 #ifdef GENERIC_F051_PA2_1LED
     #define FIRMWARE_NAME           "GEN F051 A2 1L"
     #define DEAD_TIME               25
@@ -563,6 +598,15 @@
     #define HAS_TELEMETRY_PIN
     #define SIXTY_FOUR_KB_MEMORY
     #define USE_LED_STRIP
+#endif
+
+#ifdef GENERIC_G071_NOLED
+    #define FIRMWARE_NAME           "GEN G071 NOLED"
+    #define DEAD_TIME               60
+    #define HARDWARE_GROUP_G0_N
+    #define HAS_TELEMETRY_PIN
+    #define SIXTY_FOUR_KB_MEMORY
+    #define DISABLE_LED
 #endif
 
 #ifdef GENERIC_G071_1LED

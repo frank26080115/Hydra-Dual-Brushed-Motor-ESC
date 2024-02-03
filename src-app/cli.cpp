@@ -14,6 +14,7 @@
 #include "userconfig.h"
 #include "sense.h"
 #include "rc.h"
+#include "tone.h"
 #include "version.h"
 
 #define MAX_CMD_ARGS 8
@@ -61,6 +62,7 @@ extern const EEPROM_data_t cfge;
 
 void cli_enter(void)
 {
+    tone_start(4, 0, cfg.tone_volume);
     ledblink_cli();
     swdpins_deinit();
     dbg_printf("CLI entered at %u\r\n", millis());
@@ -80,6 +82,7 @@ void cli_enter(void)
     uint16_t buff_idx = 0;
     char prev = '\0';
     bool has_interaction = false;
+    bool prev_has_interaction = false;
     uint32_t last_idle_prompt = millis();
 
     while (true)
@@ -90,6 +93,10 @@ void cli_enter(void)
         if (c >= 0) // data available
         {
             has_interaction |= c >= 'a' || c >= 'A';
+            if (prev_has_interaction == false && has_interaction) {
+                prev_has_interaction = true;
+                tone_stop();
+            }
             if (c == '\n' && prev == '\r')
             {
                 // ignore windows style new line sequence
@@ -195,7 +202,7 @@ void cli_execute(Cereal* cer, char* str)
     }
     else if (item_strcmp("version", str))
     {
-        cer->printf("\r\nV %u E %u HW 0x%08lX N:%s\r\n", firmware_info.version_major, firmware_info.version_eeprom, firmware_info.device_code, firmware_info.device_name);
+        cer->printf("\r\nV%u.%u E %u HW 0x%08lX N:%s\r\n", firmware_info.version_major, firmware_info.version_minor, firmware_info.version_eeprom, firmware_info.device_code, firmware_info.device_name);
         cer->printf("input pin is GPIO P%c%u\r\n"
             , (char)(((uint32_t)'A') + ((firmware_info.device_code & 0xFF) / ((((uint32_t)GPIOB_BASE) - ((uint32_t)GPIOA_BASE)) >> 8)))
             , (uint8_t)((firmware_info.device_code >> 8) & 0xFF)
@@ -499,6 +506,7 @@ void cliboot_decide(void)
         }
     }
 
+    tone_start(2, 0, cfg.tone_volume);
     inp_init();
     inp_pullDown();
     tstart = millis();
@@ -528,6 +536,7 @@ void cliboot_decide(void)
                 pulse_cnt++;
                 if (pulse_cnt >= 20) {
                     dbg_printf("CLI cancel from signal pulses (too many pulses)\r\n");
+                    tone_stop();
                     return;
                 }
             }

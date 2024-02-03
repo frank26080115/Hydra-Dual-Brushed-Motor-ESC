@@ -10,6 +10,8 @@
 #include "ws2812.h"
 #endif
 
+#include "tone.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

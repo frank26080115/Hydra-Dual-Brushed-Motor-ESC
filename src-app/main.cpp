@@ -66,9 +66,7 @@ int main(void)
     dbg_printf("low level init done at %u\r\n", millis());
 
     eeprom_load_or_default();
-    current_pid.Kp = cfg.currlim_kp;
-    current_pid.Ki = cfg.currlim_ki;
-    current_pid.Kd = cfg.currlim_kd;
+    load_runtime_configs();
 
     #ifdef ENABLE_COMPILE_CLI
     cliboot_decide();
@@ -140,8 +138,6 @@ int main(void)
         }
         #endif
     }
-
-    load_runtime_configs();
 
     dbg_printf("init finished at %u\r\n", millis());
 

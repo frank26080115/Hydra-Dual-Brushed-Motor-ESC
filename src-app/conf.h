@@ -8,8 +8,8 @@
 
 #define EEPROM_DIRTY_SAVE_TIME_MS 1000 // if the user edits a EEPROM item, it will auto-save only after this amount of time
 
-#define CLI_ENTER_LOW_CRITERIA  10000 // user must leave ESC disconnected for 10 seconds to enter CLI
-#define CLI_ENTER_HIGH_CRITERIA 3000  // after the first 10 seconds, the user must plug in the USB linker for an additional 3 seconds
+#define CLI_ENTER_LOW_CRITERIA  5000 // user must leave ESC disconnected for 5 seconds to enter CLI
+#define CLI_ENTER_HIGH_CRITERIA 2000 // after the first 5 seconds, the user must plug in the USB linker for an additional 2 seconds
 
 #define THROTTLE_UNIT_RANGE 1000 // scales all inputs to be in the range between -1000 and 1000
 
@@ -32,3 +32,6 @@
 
 #define TEMPERATURE_OVER    20      // if the thermal limit is set at 80, then 80 is when the power starts to drop, and 100 is when power is completly off
 #define UNDERVOLTAGE        100     // if the voltage limit is set at 3000, then 3000 is when the power starts to drop, and 2900 is when power is completly off
+
+#define TONE_DEF_VOLUME     10      // range 0 to 100
+#define PWM_TONE_RELOAD     (PWM_DEFAULT_HEADROOM * 5) // want a faster reload for tone generation

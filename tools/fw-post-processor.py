@@ -92,7 +92,7 @@ def proc_hex_file(fpath):
             if verbose:
                 print("firmware loaded - addr from 0x%08X to 0x%08X" % (fw_ihex.minaddr(), fw_ihex.maxaddr()))
 
-            fwfile_id_addr = 0x08001102 # reference the file `version.c` and the linker script
+            fwfile_id_addr = 0x08001100 # reference the file `version.c` and the linker script
             fwfile_id = 0
             fwfile_id      += int(fw_ihex[fwfile_id_addr])
             fwfile_id_addr += 1
@@ -115,6 +115,10 @@ def proc_hex_file(fpath):
                 bootloader_file = "bootloader_g071_64k.bin"
                 fwaddr     = 0x08001000
                 eep_addr   = 0xF800
+            elif (fwfile_id & 0x00FF0000) == 0x00210000:
+                bootloader_file = "bootloader_at421_p%s%u.hex" % (chr(ord('a') + port_num), pin_num)
+                fwaddr     = 0x08001000
+                eep_addr   = 0x7C00
 
             if bootloader_file is not None:
                 bootloader_file = os.path.join(dl_dir, bootloader_file)
@@ -122,12 +126,24 @@ def proc_hex_file(fpath):
                     print("desired bootloader file is \"%s\"" % bootloader_file)
 
                 flash_start = 0x08000000
-                with open(bootloader_file, "rb") as blf:
-                    ba = bytearray(blf.read())
-                    faddr = flash_start
-                    for d in ba:
-                        fw_ihex[faddr] = d
-                        faddr += 1
+                split_tup = os.path.splitext(bootloader_file)
+                bl_file_ext = split_tup[1].lower()
+
+                if bl_file_ext == ".bin":
+                    with open(bootloader_file, "rb") as blf:
+                        ba = bytearray(blf.read())
+                elif bl_file_ext == ".hex":
+                    bl_ihex = IntelHex(bootloader_file)
+                    if bl_ihex.minaddr() != flash_start:
+                        raise Exception("bootloader ihex start address is wrong: 0x%08X" % bl_ihex.minaddr())
+                    ba = bl_ihex.tobinarray(start = flash_start)
+                else:
+                    raise Exception("unknown bootloader file extension \"*%s\"" % bl_file_ext)
+
+                j = flash_start
+                for d in ba:
+                    fw_ihex[j] = d
+                    j += 1
 
                 fw_ihex.tofile(fw_new_path, format='hex')
                 print("saved new file: \"%s\"" % fw_new_path)
@@ -142,7 +158,10 @@ def download_bootloaders():
     import urllib.request
     urls = [["https://github.com/AlkaMotors/AM32_Bootloader_F051/releases/download/v11/PA2_BOOTLOADER_V11.bin", "bootloader_f051_pa2.bin"],
             ["https://github.com/AlkaMotors/AM32_Bootloader_F051/releases/download/v11/PB4_BOOTLOADER_V11.bin", "bootloader_f051_pb4.bin"],
-            ["https://github.com/AlkaMotors/g071Bootloader/releases/download/v7/G071_Bootloader_64_v7.bin"    , "bootloader_g071_64k.bin"]]
+            ["https://github.com/AlkaMotors/g071Bootloader/releases/download/v7/G071_Bootloader_64_v7.bin"    , "bootloader_g071_64k.bin"],
+            ["https://raw.githubusercontent.com/AlkaMotors/AT32F421_AM32_Bootloader/922493dd0e54bae1c92cecdd9fd5472ce099dd21/Objects/F421_PA2_BOOTLOADER_V2.hex", "bootloader_at421_pa2.hex"],
+            ["https://raw.githubusercontent.com/AlkaMotors/AT32F421_AM32_Bootloader/922493dd0e54bae1c92cecdd9fd5472ce099dd21/Objects/F421_PB4_BOOTLOADER_V2.hex", "bootloader_at421_pb4.hex"],
+            ]
     dl_dir = "downloaded_bootloaders"
     if os.path.exists(dl_dir) == False:
         os.makedirs(dl_dir)

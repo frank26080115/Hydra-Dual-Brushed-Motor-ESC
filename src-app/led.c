@@ -1,6 +1,7 @@
 #include "led.h"
 #include <stddef.h>
 #include "systick.h"
+#include "tone.h"
 
 void led_init(void)
 {
@@ -53,6 +54,8 @@ void led_state_set(bool x)
 
 void led_task(bool halt)
 {
+    tone_task();
+
     #ifndef DISABLE_LED
     #ifdef USE_LED_STRIP
     WS2812_task(); // this sets the next color if DMA is not busy

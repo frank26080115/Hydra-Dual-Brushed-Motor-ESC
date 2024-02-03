@@ -1,6 +1,7 @@
 #include "main.h"
 #include "userconfig.h"
 #include "systick.h"
+#include "sense.h"
 #include <string.h>
 #include <stdlib.h>
 
@@ -58,6 +59,10 @@ const EEPROM_data_t default_eeprom = {
     .currlim_kp         = 400,
     .currlim_ki         = 0,
     .currlim_kd         = 1000,
+
+    // data after the checksum are unprotected
+
+    .tone_volume        = TONE_DEF_VOLUME,
 };
 
 // this stores a copy in the flash region allocated for EEPROM, this is writable (but not like RAM)
@@ -108,6 +113,9 @@ const EEPROM_item_t cfg_items[] = {
     DCLR_ITM("curlimkp"     , currlim_kp        ),
     DCLR_ITM("curlimki"     , currlim_ki        ),
     DCLR_ITM("curlimkd"     , currlim_kd        ),
+    #ifdef DISABLE_LED
+    DCLR_ITM("tonevol"      , tone_volume       ),
+    #endif
     { .ptr = 0, .size = 0, }, // indicate end of list
 };
 
@@ -226,6 +234,9 @@ extern void pwm_set_braking(bool);
 
 void load_runtime_configs(void)
 {
+    current_pid.Kp = cfg.currlim_kp;
+    current_pid.Ki = cfg.currlim_ki;
+    current_pid.Kd = cfg.currlim_kd;
     arm_pulses_required = cfg.arm_duration;
     disarm_timeout = cfg.disarm_timeout;
     pwm_set_braking(cfg.braking);
