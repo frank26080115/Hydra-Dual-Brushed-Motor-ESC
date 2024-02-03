@@ -91,3 +91,8 @@ There is no "arcade mode mixing" feature in this firmware, please do this from t
 
  * [Firmware Build Instructions](doc/build-instructions.md)
  * [Install AM32](doc/install-am32.md)
+ * [Developer Commentary](doc/developer-commentary.md)
+
+# This still seems expensive
+
+There is another hacky ESC project that can turn cheap BLHeli_S brushless ESCs into brushed motor ESCs. It's called [Greenjay](https://github.com/frank26080115/greenjay) firmware. Each individual ESC is small and inexpensive.
