@@ -8,15 +8,17 @@
 #define WRITE_SIZE_TYPE  uint32_t
 #endif
 
-void eeprom_write(uint8_t* data, int len, uint32_t addr)
+void eeprom_write(uint32_t* data, int len, uint32_t addr)
 {
     #ifdef DISABLE_EEPROM
-    volatile char  x = 0;
-    x = 1;
-    if (x) {
-        return;
-    }
+    volatile char x = 0; x = 1; if (x) { return; }
+    // this makes sure the function is still compiled, but never runs
     #endif
+
+    // make sure none of the bytes are missing after integer division
+    while ((len % sizeof(WRITE_SIZE_TYPE)) != 0) {
+        len++;
+    }
 
     WRITE_SIZE_TYPE* ptr_x = (WRITE_SIZE_TYPE*)data;
 

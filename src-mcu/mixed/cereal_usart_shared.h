@@ -8,14 +8,14 @@ static volatile bool had_first_byte_1 = false;
 static volatile bool had_first_byte_2 = false;
 
 #if defined(DEBUG_PRINT)
-static Cereal_USART* dbg_cer_tgt = NULL;
+static Cereal_USART* dbg_cer_tgt = NULL; // this is the port being used by all dbg_print() statements
 #endif
 
 static volatile bool is_idle_1 = false;
 static volatile bool is_idle_2 = false;
 static uint8_t use_dma_on = 0;
 #define CEREAL_DMA_SIZE 64                // doesn't need to be long, we only process one packet at the head and then toss the rest
-static uint8_t dma_buff[CEREAL_DMA_SIZE];
+static uint8_t dma_buff[CEREAL_DMA_SIZE] __attribute__((aligned(4)));
 
 extern uint8_t crsf_inputGuess;
 
@@ -237,6 +237,14 @@ void debug_writechar_cpp(char x)
     }
 }
 
+int debug_printf_cpp(const char *format, va_list arg)
+{
+    if (dbg_cer_tgt != NULL) {
+        return dbg_cer_tgt->vprintf(format, arg);
+    }
+    return 0;
+}
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -250,6 +258,11 @@ int debug_writebuff(uint8_t* buf, int len) {
         debug_writechar_cpp(buf[i]);
     }
     return len;
+}
+
+int debug_printf(const char *format, va_list arg)
+{
+    return debug_printf_cpp(format, arg);
 }
 
 #ifdef __cplusplus

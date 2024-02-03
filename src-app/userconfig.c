@@ -5,6 +5,10 @@
 #include <string.h>
 #include <stdlib.h>
 
+#ifndef DEFAULT_INPUT_MODE
+#define DEFAULT_INPUT_MODE     INPUTMODE_RC
+#endif
+
 #define FOOL_AM32                     \
     .fool_am32_bootloader_0   = 0x01, \
     .fool_am32_bootloader_1   = 0x01, \
@@ -16,16 +20,17 @@
 
 // this stores a default settings copy in flash, somewhere inside the application flash memory
 // this is read-only, and can never be corrupted. it is used for factory-reset
-const EEPROM_data_t default_eeprom = {
+const EEPROM_data_t default_eeprom __attribute__((aligned(4))) = {
     FOOL_AM32
 
     .magic              = 0xDEADBEEF,
     .version_major      = VERSION_MAJOR,
+    .version_minor      = VERSION_MINOR,
     .version_eeprom     = VERSION_EEPROM,
 
     .voltage_split_mode = VSPLITMODE_BOOST_ALWAYS,
     .load_balance       = false,
-    .input_mode         = INPUTMODE_RC,
+    .input_mode         = DEFAULT_INPUT_MODE,
     .phase_map          = 1,
     .baud               = 0,
 
@@ -71,10 +76,17 @@ const EEPROM_data_t cfge = {
     FOOL_AM32
     .magic              = 0xDEADBEEF,
 };
-uint32_t cfg_addr = (uint32_t)(&cfge);
+#define cfg_addr    ((uint32_t)(&cfge))
 
 // this stores the config in RAM
-EEPROM_data_t cfg;
+EEPROM_data_t cfg __attribute__((aligned(4)));
+// WARNING WARNING WARNING
+// for some reason, this particular declaration is prone to being not 32 bit aligned
+// and it will cause hard faults if it is not
+// it seems to be ok when using the -Og optimization flag but not -Os
+// adding the __attribute__((aligned(4))) seems to solve the problem completely
+// people suggested I enable the -Wcast-align warning to hunt down this problem throughout my code
+// some of the code here will use uint32_t* pointers instead of uint8_t* to make warnings from -Wcast-align go away
 
 bool eeprom_has_loaded = false;
 
@@ -82,7 +94,7 @@ bool eeprom_has_loaded = false;
 
 #define DCLR_ITM(__a, __b)        { .name = __a, .ptr = (uint32_t)&(cfge.__b ), .size = sizeof(cfge.__b ), }
 
-const EEPROM_item_t cfg_items[] = {
+const EEPROM_item_t cfg_items[] __attribute__((aligned(4))) = {
     DCLR_ITM("vsplitmode"   , voltage_split_mode),
     DCLR_ITM("loadbal"      , load_balance      ),
     DCLR_ITM("inputmode"    , input_mode        ),
@@ -140,7 +152,7 @@ EEPROM_chksum_t eeprom_checksum(uint8_t* data, int len)
     #endif
 }
 
-bool eeprom_verify_checksum(uint8_t* ptr8)
+bool eeprom_verify_checksum(uint32_t* ptr8)
 {
     EEPROM_data_t* ptre = (EEPROM_data_t*)ptr8;
     uint8_t* start_addr = (uint8_t*)(&(ptre->magic));
@@ -154,7 +166,7 @@ bool eeprom_verify_checksum(uint8_t* ptr8)
 
 bool eeprom_load_or_default(void)
 {
-    bool x = eeprom_verify_checksum((uint8_t*)cfg_addr);
+    bool x = eeprom_verify_checksum((uint32_t*)cfg_addr);
     if (x) {
         memcpy(&cfg, (void*)cfg_addr, sizeof(EEPROM_data_t));
         if (cfg.magic != EEPROM_MAGIC) {
@@ -205,7 +217,7 @@ void eeprom_save(void)
     EEPROM_chksum_t calculated_chksum = eeprom_checksum(start_addr, (int)(((uint32_t)end_addr) - ((uint32_t)start_addr)));
     ptre->chksum = calculated_chksum;
     memcpy(&cfg, &default_eeprom, head_len);                       // ensures header is written
-    eeprom_write((uint8_t*)&cfg, sizeof(EEPROM_data_t), cfg_addr); // commit to flash
+    eeprom_write((uint32_t*)&cfg, sizeof(EEPROM_data_t), cfg_addr); // commit to flash
     eeprom_save_time = 0; // remove dirty flag
     dbg_printf("EEPROM saved\r\n");
 }

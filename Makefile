@@ -27,7 +27,7 @@ VERSION_EEPROM = 1
 IDENTIFIER = HYDRA
 
 CFLAGS_COMMON  := -DVERSION_MAJOR=$(VERSION_MAJOR) -DVERSION_MINOR=$(VERSION_MINOR) -DVERSION_EEPROM=$(VERSION_EEPROM)
-CFLAGS_COMMON  += -I$(SRC_APP_DIR) -I$(SRC_HAL_DIR) -Wall -ffunction-sections -fdata-sections -fno-exceptions -ffreestanding -flto
+CFLAGS_COMMON  += -I$(SRC_APP_DIR) -I$(SRC_HAL_DIR) -mno-unaligned-access -Wall -Wcast-align -ffunction-sections -fdata-sections -fno-exceptions -ffreestanding -flto
 CFLAGS_COMMON  += -D$(TARGET)
 
 SRC_COMMON_C   := $(foreach dir, $(SRC_APP_DIR), $(wildcard $(dir)/*.c))
@@ -38,7 +38,7 @@ SRC_COMMON_C   += $(foreach dir, $(SRC_HAL_DIR), $(wildcard $(dir)/*.c))
 SRC_COMMON_CPP += $(foreach dir, $(SRC_HAL_DIR), $(wildcard $(dir)/*.cpp))
 SRC_COMMON_S   += $(foreach dir, $(SRC_HAL_DIR), $(wildcard $(dir)/*.s))
 
-FIRMWARE_VERSION := V$(VERSION_MAJOR)m$(VERSION_MINOR)E$(VERSION_EEPROM)
+FIRMWARE_VERSION := V$(VERSION_MAJOR)m$(VERSION_MINOR)
 TARGET_BASENAME   = $(BIN_DIR)/$(IDENTIFIER)_$(TARGET)_$(FIRMWARE_VERSION)
 
 C_OBJS   = $(addsuffix .o,$(addprefix $(OBJ_DIR)/,$(basename $(SRC_COMMON_C))))   $(addsuffix .o,$(addprefix $(OBJ_DIR)/,$(basename $(SRC_$(MCU_TYPE)_C))))
@@ -46,8 +46,9 @@ CPP_OBJS = $(addsuffix .o,$(addprefix $(OBJ_DIR)/,$(basename $(SRC_COMMON_CPP)))
 ASM_OBJS = $(addsuffix .o,$(addprefix $(OBJ_DIR)/,$(basename $(SRC_COMMON_S))))   $(addsuffix .o,$(addprefix $(OBJ_DIR)/,$(basename $(SRC_$(MCU_TYPE)_S))))
 ALL_OBJS = $(ASM_OBJS) $(CPP_OBJS) $(C_OBJS)
 
-.PHONY : clean cleanobjs all binary f051 g071 f051disco g071nucleo f421
+.PHONY : clean cleanobjs all binary f051 g071 f051disco g071nucleo f421 release
 all  : $(TARGETS_F051) $(TARGETS_G071) $(TARGETS_F051DISCO) $(TARGETS_G071NUCLEO) $(TARGETS_F421)
+release : $(TARGETS_F051) $(TARGETS_G071) $(TARGETS_F421)
 f051 : $(TARGETS_F051)
 g071 : $(TARGETS_G071)
 f421 : $(TARGETS_F421)
@@ -69,14 +70,14 @@ $(TARGETS_F051) :
 $(TARGETS_G071) :
 	@$(MAKE) -s MCU_TYPE=G071 TARGET=$@ cleanobjs binary
 
+$(TARGETS_F421) :
+	@$(MAKE) -s MCU_TYPE=F421 TARGET=$@ cleanobjs binary
+
 $(TARGETS_F051DISCO) :
 	@$(MAKE) -s MCU_TYPE=F051DISCO TARGET=$@ cleanobjs binary
 
 $(TARGETS_G071NUCLEO) :
 	@$(MAKE) -s MCU_TYPE=G071NUCLEO TARGET=$@ cleanobjs binary
-
-$(TARGETS_F421) :
-	@$(MAKE) -s MCU_TYPE=F421 TARGET=$@ cleanobjs binary
 
 $(OBJ_DIR)/%.o: %.cpp
 	@mkdir -p $(dir $@)

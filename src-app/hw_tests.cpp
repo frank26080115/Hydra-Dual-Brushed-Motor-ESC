@@ -31,6 +31,9 @@ extern void cli_enter(void);
 void hw_test(void)
 {
     //hwtest_uart();
+    //hwtest_uart1();
+    //hwtest_uart2();
+    //hwtest_uart_swc();
     //hwtest_adc();
     //hwtest_sense();
     //hwtest_gpio(GPIOA, LL_GPIO_PIN_8 | LL_GPIO_PIN_9 | LL_GPIO_PIN_10);
@@ -39,10 +42,10 @@ void hw_test(void)
     //hwtest_rc1();
     //hwtest_rc2();
     //hwtest_rc12();
-    //hwtest_rc_crsf();
+    hwtest_rc_crsf();
     //hwtest_bbcer();
     //hwtest_eeprom();
-    hwtest_cli();
+    //hwtest_cli();
 }
 #endif
 
@@ -166,26 +169,73 @@ void hwtest_uart(void)
 {
     #ifdef DEVELOPMENT_BOARD
     dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false);
+    uint32_t t = millis();
     while (true)
     {
-        //if (dbg_cer.get_idle_flag(false))
-        //{
-        //    if (dbg_cer.available() > 0)
-        //    {
-        //        int len = dbg_cer.available();
-        //        uint8_t* buf = dbg_cer.get_buffer();
-        //        dbg_cer.writeb(buf, len);
-        //        dbg_cer.flush();
-        //        dbg_cer.reset_buffer();
-        //        dbg_cer.get_idle_flag(true);
-        //    }
-        //}
+        if ((millis() - t) >= 1000) {
+            t = millis();
+            dbg_cer.printf("[%lu] test\r\n", t);
+        }
         if (dbg_cer.available() > 0)
         {
             dbg_cer.write((uint8_t)dbg_cer.read());
         }
     }
     #endif
+}
+
+void hwtest_uart1(void)
+{
+    main_cer.init(CEREAL_ID_USART1, CLI_BAUD, true, false);
+    uint32_t t = millis();
+    while (millis() < 10000)
+    {
+        if ((millis() - t) >= 1000) {
+            t = millis();
+            main_cer.printf("[%lu] test\r\n", t);
+        }
+        if (main_cer.available() > 0)
+        {
+            main_cer.write((uint8_t)main_cer.read());
+        }
+    }
+    NVIC_SystemReset();
+}
+
+void hwtest_uart2(void)
+{
+    main_cer.init(CEREAL_ID_USART2, CLI_BAUD, true, false);
+    uint32_t t = millis();
+    while (millis() < 10000)
+    {
+        if ((millis() - t) >= 1000) {
+            t = millis();
+            main_cer.printf("[%lu] test\r\n", t);
+        }
+        if (main_cer.available() > 0)
+        {
+            main_cer.write((uint8_t)main_cer.read());
+        }
+    }
+    NVIC_SystemReset();
+}
+
+void hwtest_uart_swc(void)
+{
+    main_cer.init(CEREAL_ID_USART_SWCLK, CLI_BAUD, true, false);
+    uint32_t t = millis();
+    while (millis() < 10000)
+    {
+        if ((millis() - t) >= 1000) {
+            t = millis();
+            main_cer.printf("[%lu] test\r\n", t);
+        }
+        if (main_cer.available() > 0)
+        {
+            main_cer.write((uint8_t)main_cer.read());
+        }
+    }
+    NVIC_SystemReset();
 }
 
 void hwtest_rcx(RcChannel* rcx, RcChannel* rcx2, uint8_t idx);

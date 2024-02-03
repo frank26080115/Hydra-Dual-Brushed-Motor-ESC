@@ -23,7 +23,7 @@ The solution: only send data to the WS2812 when the falling edge of the RC PWM p
 #define WS2812_PORT   GPIOB
 #endif
 
-static uint8_t  rgb_pending[4] = {0};
+static uint32_t          rgb_pending = 0;
 static volatile bool     new_pending = false;
 static volatile uint32_t prev_colour = 0;
 volatile bool WS2812_sendOccured = false;
@@ -54,8 +54,9 @@ void WS2812_init(void)
 
 void WS2812_setRGB(uint8_t red, uint8_t green, uint8_t blue)
 {
-    rgb_pending[1] = red; rgb_pending[2] = green; rgb_pending[0] = blue;
-    uint32_t twenty_four_bit_color_number = *((uint32_t*)rgb_pending);
+    uint8_t* ptr = (uint8_t*)&rgb_pending;
+    ptr[1] = red; ptr[2] = green; ptr[0] = blue;
+    uint32_t twenty_four_bit_color_number = rgb_pending;
     if (prev_colour != twenty_four_bit_color_number) { // do not waste time if colour didn't change
         new_pending = true;
     }

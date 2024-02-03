@@ -341,3 +341,5 @@ int main(void)
 
     return 0;
 }
+
+#include "release_checks.h"

@@ -44,6 +44,7 @@ typedef struct
 
     uint32_t magic;
     uint8_t version_major;
+    uint8_t version_minor;
     uint8_t version_eeprom;
 
     uint8_t voltage_split_mode;
@@ -96,7 +97,7 @@ typedef struct
 
     uint8_t tone_volume;
 
-} __attribute__((packed))
+} __attribute__((packed)) __attribute__((aligned(4)))
 EEPROM_data_t;
 
 // to keep the code simple, all EEPROM elements that need to be signed must also be 32 bits
@@ -106,7 +107,7 @@ typedef struct
     char     name[32];
     uint32_t ptr;
     uint8_t  size;
-} __attribute__((packed))
+} __attribute__((packed)) __attribute__((aligned(4)))
 EEPROM_item_t;
 
 typedef struct {
@@ -120,7 +121,8 @@ typedef struct {
     int32_t pid_output;
     int32_t integral_limit;
     int32_t output_limit;
-} pidloop_t;
+} __attribute__((aligned(4)))
+pidloop_t;
 
 typedef struct
 {

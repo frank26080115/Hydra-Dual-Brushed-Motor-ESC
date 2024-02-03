@@ -203,7 +203,7 @@ def main():
     mcuid_g071_128k = [0x34, 0x37, 0x31, 0x64, 0x2B, 0x06, 0x06, 0x01, 0x30]
     # https://github.com/AlkaMotors/AM32_Bootloader_F051/blob/9976cd7fe3dd12d012b0e86e0b2787b3cb7ae159/Core/Src/main.c#L74
     # https://github.com/AlkaMotors/g071Bootloader/blob/f86fc79a05c7ddcc25d598f4b2c952204c98c674/Core/Src/main.c#L62
-    mcuid_at32f421  = [0x34, 0x37, 0x31, 0x00, 0x1f, 0x06, 0x06, 0x01, 0x30]
+    mcuid_at32f421  = [0x34, 0x37, 0x31, 0x00, 0x1F, 0x06, 0x06, 0x01, 0x30]
     # https://github.com/AlkaMotors/AT32F421_AM32_Bootloader/blob/922493dd0e54bae1c92cecdd9fd5472ce099dd21/Src/main.c#L99
 
     if args.fullsave == False:
@@ -239,8 +239,8 @@ def main():
             else:
                 quit_nicely(-1)
 
-        pin_num_file = (fwfile_id & 0xFF00) >> 8
-        pin_num_boot = bootloader_id[3] & 0x0F
+        pin_num_file  = (fwfile_id & 0xFF00) >> 8
+        pin_num_boot  = bootloader_id[3] & 0x0F
         port_num_file = int((fwfile_id & 0xFF) / 4)
         port_num_boot = (bootloader_id[3] & 0xF0) >> 4
         if args.verbose:
@@ -360,9 +360,7 @@ def main():
                 done = True
             barr = fw_binarr[i:i + thischunk]
 
-            if i != 0:
-                print("\r", end="")
-            print("writing to 0x%04X    " % j, end="")
+            draw_progress_bar("writing to 0x%04X -" % j, i, 0, len(fw_binarr), ret = (i != 0))
 
             if args.demo == False:
                 send_setaddress(ser, int(j / addr_multi))
@@ -372,6 +370,7 @@ def main():
             i += thischunk
             j += thischunk
 
+        blank_progress_bar()
         print("\rfinished all writes, begin verification...")
 
     i = 0
@@ -385,9 +384,7 @@ def main():
                 done = True
             barr = fw_binarr[i:i + thischunk]
 
-            if i != 0:
-                print("\r", end="")
-            print("verifying 0x%04X    " % j, end="")
+            draw_progress_bar("verifying 0x%04X -" % j, i, 0, len(fw_binarr), ret = (i != 0))
 
             tries = 3
             while tries > 0:
@@ -404,6 +401,7 @@ def main():
                     raise Exception("verification read contents at 0x%04X does not match,\r\n\tdata %s\r\n\tread %s (%u %u %u)\r\n" % (j, format_arr(barr), format_arr(data), i, thischunk, len(fw_binarr)))
             i += thischunk
             j += thischunk
+        blank_progress_bar()
         print("\rfinished verification")
     else:
         # save to file
@@ -414,9 +412,7 @@ def main():
                 thischunk = fw_size - i
                 done = True
 
-            if i != 0:
-                print("\r", end="")
-            print("reading 0x%04X    " % i, end="")
+            draw_progress_bar("reading 0x%04X -" % i, i, 0, fw_size, ret = (i != 0))
 
             tries = 3
             while tries > 0:
@@ -428,6 +424,7 @@ def main():
                 elif tries <= 0:
                     raise Exception("too many CRC errors at 0x%04X\r\n" % (i))
             i += thischunk
+        blank_progress_bar()
         print("\rfinished reading")
         fw_ihex = IntelHex()
         addr = 0x08000000
@@ -436,6 +433,11 @@ def main():
             addr += 1
         fw_ihex.tofile(fw_fullpath, format='hex')
         print("saved new file: \"%s\"" % fw_fullpath)
+
+    try:
+        ser.close()
+    except Exception as ex:
+        print("ERROR: exception when closing serial port: %s" % (str(ex)))
 
     print("all done!")
     quit_nicely()
@@ -660,6 +662,36 @@ def format_arr(data):
     s = s.strip()
     s += "]"
     return s
+
+def draw_progress_bar(headtxt, num, lower, upper, endtxt = "", ret = True, width = 36):
+    global progbar_size
+    percent = int(round(num * 100 / (upper - lower)))
+    percent = 99 if percent >= 99 else percent # will disappear at 100 anyways
+    s = headtxt + " %2u%% |" % (percent)
+    pt = num * width / (upper - lower)
+    i = 0
+    while i < width:
+        if i <= pt:
+            s += "#"
+        else:
+            s += "."
+        i += 1
+    s += "|"
+    if len(endtxt) > 0:
+        s += " " + endtxt.strip()
+    s = s.strip()
+    if ret:
+        s = '\r' + s
+    print(s, end="")
+    progbar_size = len(s) # remember the bar size so it can be cleared later
+
+def blank_progress_bar():
+    global progbar_size
+    print("\r", end="")
+    i = 0
+    while i <= progbar_size:
+        print(" ", end="")
+        i += 1
 
 def dialog_thread():
     #global dialog_file

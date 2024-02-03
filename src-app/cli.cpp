@@ -1,5 +1,7 @@
 #include "main.h"
 
+// usage of the command-line-interface CLI is documented at https://github.com/frank26080115/Hydra-Dual-Brushed-Motor-ESC/blob/master/doc/configuration.md
+
 #ifdef ENABLE_COMPILE_CLI
 
 #include <stdlib.h>
@@ -93,10 +95,13 @@ void cli_enter(void)
         if (c >= 0) // data available
         {
             has_interaction |= c >= 'a' || c >= 'A';
+
             if (prev_has_interaction == false && has_interaction) {
+                // stop tone on first good keystroke
                 prev_has_interaction = true;
                 tone_stop();
             }
+
             if (c == '\n' && prev == '\r')
             {
                 // ignore windows style new line sequence

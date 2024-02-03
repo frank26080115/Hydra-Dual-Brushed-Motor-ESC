@@ -14,7 +14,7 @@
 #define WS2812_LED_BUFF_LEN 28
 
 static volatile bool dma_busy = false;
-static uint16_t led_buffer[WS2812_LED_BUFF_LEN] = {
+static uint16_t led_buffer[WS2812_LED_BUFF_LEN] __attribute__((aligned(4))) = {
      0,  0,
     20, 20, 20, 20, 20, 20, 20, 20,
     60, 60, 60, 60, 60, 60, 60, 60,
@@ -22,8 +22,8 @@ static uint16_t led_buffer[WS2812_LED_BUFF_LEN] = {
      0,  0,
 };
 
-static uint8_t rgb_pending[3] = {0};
-static bool    new_pending = false;
+static uint32_t rgb_pending = 0;
+static bool     new_pending = false;
 
 void WS2812_init(void)
 {
@@ -103,7 +103,8 @@ void WS2812_sendDMA(void)
 
 void WS2812_setRGB(uint8_t red, uint8_t green, uint8_t blue)
 {
-    rgb_pending[1] = red; rgb_pending[2] = green; rgb_pending[0] = blue;
+    uint8_t* ptr = (uint8_t*)&rgb_pending;
+    ptr[1] = red; ptr[2] = green; ptr[0] = blue;
     new_pending = true;
 }
 
@@ -111,7 +112,7 @@ void WS2812_task(void)
 {
     if (new_pending && !dma_busy)
     {
-        uint32_t twenty_four_bit_color_number = (uint32_t)*((uint32_t*)rgb_pending);
+        uint32_t twenty_four_bit_color_number = rgb_pending;
 
         for (int i = 0; i < 24 ; i ++) {
             led_buffer[i + 2] = (((twenty_four_bit_color_number >> (23 - i)) & 1) * 40) + 20;

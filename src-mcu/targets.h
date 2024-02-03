@@ -73,6 +73,7 @@
     #define VOLTAGE_BASED_RAMP
     #define MILLIVOLT_PER_AMP  12
     #define DISABLE_LED
+    #define DEFAULT_INPUT_MODE      INPUTMODE_CRSF
 #endif
 
 #ifdef GENERIC_F421_PB4_NOLED
@@ -209,6 +210,7 @@
     #define HARDWARE_GROUP_F0_A
     #define TARGET_VOLTAGE_DIVIDER  65
     #define DISABLE_LED
+    #define DEFAULT_INPUT_MODE      INPUTMODE_CRSF
 #endif
 
 #ifdef IFLIGHT_F051

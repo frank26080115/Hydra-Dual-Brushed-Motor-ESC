@@ -9,7 +9,7 @@ extern "C" {
 
 #include <stdint.h>
 
-void eeprom_write(uint8_t* buff, int len, uint32_t addr);
+void eeprom_write(uint32_t* buff, int len, uint32_t addr);
 
 #ifdef __cplusplus
 }

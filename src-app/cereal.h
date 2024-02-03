@@ -42,7 +42,8 @@ class Cereal
         virtual bool get_idle_flag(bool clr);
         inline uint8_t get_id(void) { return _id; };
 
-        #ifdef ENABLE_COMPILE_CLI
+        #if defined(ENABLE_COMPILE_CLI) || defined(DEBUG_PRINT)
+        size_t vprintf(const char *format, va_list arg);
         size_t printf(const char * format, ...) __attribute__ ((format (printf, 2, 3)));
         #endif
 

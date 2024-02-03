@@ -12,7 +12,7 @@ extern EEPROM_data_t cfg;
 extern bool eeprom_has_loaded;
 extern uint32_t cfg_addr;
 
-bool eeprom_verify_checksum(uint8_t* ptr8);
+bool eeprom_verify_checksum(uint32_t* ptr8);
 bool eeprom_load_or_default(void);
 void eeprom_load_defaults(void);
 void eeprom_save(void);

@@ -5,26 +5,25 @@
 extern "C" {
 #endif
 
-uint8_t cer_buff_1[CEREAL_BUFFER_SIZE];
-uint8_t cer_buff_2[CEREAL_BUFFER_SIZE];
+uint8_t cer_buff_1[CEREAL_BUFFER_SIZE] __attribute__((aligned(4)));
+uint8_t cer_buff_2[CEREAL_BUFFER_SIZE] __attribute__((aligned(4)));
 
 #if defined(ENABLE_COMPILE_CLI) || defined(DEBUG_PRINT)
-uint8_t cer_buff_3[CEREAL_BUFFER_SIZE];
+uint8_t cer_buff_3[CEREAL_BUFFER_SIZE] __attribute__((aligned(4)));
 #endif
 
 #ifdef __cplusplus
 }
 #endif
 
-#ifdef ENABLE_COMPILE_CLI
+#if defined(ENABLE_COMPILE_CLI) || defined(DEBUG_PRINT)
 
-size_t Cereal::printf(const char *format, ...)
+size_t Cereal::vprintf(const char *format, va_list arg)
 {
+    // got this code from https://github.com/espressif/arduino-esp32/blob/826a426905191a246c96f21ba80372ec8324c59a/cores/esp32/Print.cpp
     char* loc_buf = (char*)cer_buff_3;
     char * temp = loc_buf;
-    va_list arg;
     va_list copy;
-    va_start(arg, format);
     va_copy(copy, arg);
     int len = vsnprintf(temp, CEREAL_BUFFER_SIZE, format, copy);
     va_end(copy);
@@ -33,7 +32,7 @@ size_t Cereal::printf(const char *format, ...)
         return 0;
     }
     if (len >= CEREAL_BUFFER_SIZE) {
-        #if 0
+        #if 0 // do not use malloc
         temp = (char*) malloc(len+1);
         if(temp == NULL) {
             va_end(arg);
@@ -54,6 +53,16 @@ size_t Cereal::printf(const char *format, ...)
     #endif
     return len;
 }
+
+size_t Cereal::printf(const char *format, ...)
+{
+    va_list arg;
+    va_start(arg, format);
+    size_t ret = this->vprintf(format, arg);
+    va_end(arg);
+    return ret;
+}
+
 #endif
 
 size_t Cereal::writeb(uint8_t* buf, int len)

@@ -1,4 +1,4 @@
-The Hydra firmware was written for the ESCs using STM32F051 and STM32G071 microcontrollers. The ESCs on the market vary a bit between different models and different manufactures, these are the main points that we are worried about:
+The Hydra firmware was written for the ESCs using STM32F051 and STM32G071 microcontrollers (support for AT32F421 is coming soon). The ESCs on the market vary a bit between different models and different manufactures, these are the main points that we are worried about:
 
  * which pin is used for the main signal input
    * there are two possibilities, PA2 or PB4, STM32G071 only uses PB4

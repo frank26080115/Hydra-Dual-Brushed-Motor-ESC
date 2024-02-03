@@ -136,11 +136,11 @@ My firmware builds have additional embedded metadata that also identifies which 
 
 My PC app does do a check to see if the firmware file's embedded metadata does match. This will at least guarantee that the user can use the CLI after flashing. The CLI has functionality that allows the user to perform further hardware tests as well.
 
-# Feburary 1 2024 - Repeat Robotics Dual Brushless ESC
+# February 1 2024 - Repeat Robotics Dual Brushless ESC
 
 Repeat Robotics has released a new dual ESC for brushless motors. Everybody in the robotics hobby wanted a 2-in-1 ESC, much like how drone hobbyists use 4-in-1 ESCs. Repeat Robotics is filling this gap!
 
-Today I received mine, and to my horro, it uses a AT32F421 microcontroller. At the time of writing, the Hydra firmware does not support AT32 microcontrollers.
+Today I received mine, and to my horror, it uses a AT32F421 microcontroller. At the time of writing, the Hydra firmware does not support AT32 microcontrollers.
 
 I really want to unveil Hydra firmware to the world by turning this dual ESC into a 3-in-1 so now I'm putting in the effort to support AT32F421 microcontrollers, maybe even AT32F415 later.
 
@@ -150,10 +150,20 @@ Another annoying thing: the few ESCs on the market with the AT32F421 microcontro
 
 I used object class inheritance and a "compatibility layer" to make sure I don't have too much repeated code between platforms. The compatibility layer simply means a giant header file where I remap STM32's HAL calls to AT32's HAL calls.
 
+# February 3 2024 - Close to Release
+
+(note: EEPROM in this project just means flash memory being used for frequently rewritable user configuration data)
+
+I've been putting the code through many many tests, the development boards shows that the code is working great. I tried flashing it onto a real ESC, and... nothing happens at all. I read back the flash, and the entire fake EEPROM region is erased but nothing new was written. I test my flash writing routine again, everything worked fine.
+
+I changed my optimization flag on the development board from `-Og` to `-Os`, and it started hard-faulting. Luckily, I can still actually debug it. It turns out, the pointer being passed into the flash writing function was not 32-bit-aligned aligned. The way I wrote the function required it to be 32-bit-aligned and so it hard-faulted right after erasing the flash page that it was supposed to be writing into.
+
+Adding a bunch of `__attribute__((aligned(4)))` to my code helped, adding `-mno-unaligned-access` to my compiler flags did not help at all. Adding `-Wcast-align` to my compiler flags helped me identify other locations where this could potentially be a problem. Thanks to the creators of the [Black Magic Probe](https://black-magic.org/index.html) for giving me the advice about the compiler flags, I was on their Discord server because I wanted to debug the AT32F421 ESC with their probe.
+
 # Other: Why CRSF and not SBUS or IBUS
 
 CRSF is awesome, it is used by ExpressLRS because it is high speed, high precision, and it incorporates a CRC for data integrity. The radio receivers that output CRSF are the tiniest on the market.
 
-SBUS is horrible, FrSky products use SBUS and FrSky made it difficult to work with by making it an inverted signal, it was nearly impossible to work with using a 8-bit microcontroller. And then FrSky pulled very anti-consumer moves because the community figured out how to make open source versions of their products, and the market started getting much cheaper 3rd party products. They released new radio transmitters that were straight up not backwards compatible with their older radio receivers, and then they discontinued all of their older receiver products overnight. Their new radio transmitter isn't even that premium and they are charging premium prices for them. I have given away all three of my FrSky radio transmitters already, and I added in a multi-protocol module so the gift receipiants can use other brands of radio receivers with them.
+SBUS is horrible, FrSky products use SBUS and FrSky made it difficult to work with by making it an inverted signal, it was nearly impossible to work with using a 8-bit microcontroller. And then FrSky pulled very anti-consumer moves because the community figured out how to make open source versions of their products, and the market started getting much cheaper 3rd party products. They released new radio transmitters that were straight up not backwards compatible with their older radio receivers, and then they discontinued all of their older receiver products overnight. Their new radio transmitter isn't even that premium and they are charging premium prices for them. I have given away all three of my FrSky radio transmitters already, and I added in a multi-protocol module so the gift recipients can use other brands of radio receivers with them.
 
 I can't use IBUS, used by FlySky products, simply because I don't have FlySky hardware. Also, the IBUS port only exist on large sized receivers, which defeats the purpose of trying to use less wires.

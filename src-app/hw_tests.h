@@ -13,6 +13,9 @@ void hwtest_rc_crsf(void);
 void hwtest_eeprom(void);
 void hwtest_sense(void);
 void hwtest_uart(void);
+void hwtest_uart1(void);
+void hwtest_uart2(void);
+void hwtest_uart_swc(void);
 void hwtest_cli(void);
 
 void hwtest_gpio(

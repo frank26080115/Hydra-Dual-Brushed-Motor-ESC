@@ -1,6 +1,6 @@
 # Windows
 
-(for some reason that I can't figure out, builds on Windows seem to generate a smaller firmware binary than when built on Ubuntu with the same version of `arm-none-eabi-gcc`)
+For some reason that I can't figure out, builds on Windows seem to generate a smaller firmware binary than when built on Ubuntu with the same version of `arm-none-eabi-gcc`. Hydra firmware is pushing to be about 90% of available flash memory! This means, I recommend you to use Windows to build this firmware. (I am open to changing this recommendation once I have an explanation and solution to make Linux builds smaller)
 
 ## Installing ARM Toolchain
 

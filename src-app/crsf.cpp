@@ -22,7 +22,7 @@ uint8_t crsf_crc8(const uint8_t *ptr, uint8_t len);
 uint8_t crsf_inputGuess = 0;
 
 static Cereal* cereal;
-static uint16_t crsf_channels[CRSF_CHAN_CNT] = {0};
+static uint16_t crsf_channels[CRSF_CHAN_CNT] __attribute__((aligned(4))) = {0};
 static bool     new_flag       = false;
 static uint32_t last_good_time = 0;
 static uint8_t  good_pulse_cnt = 0;
@@ -225,7 +225,7 @@ void CrsfChannel::task(void)
 int16_t CrsfChannel::read(void)
 {
     if (_idx <= 0) {
-        return 0;
+        return 0; // unconfigured
     }
 
     uint32_t x = crsf_channels[_idx - 1];
@@ -233,13 +233,15 @@ int16_t CrsfChannel::read(void)
         return 0;
     }
     x = fi_map(x, CRSF_CHANNEL_VALUE_1000, CRSF_CHANNEL_VALUE_2000, cfg.rc_mid - cfg.rc_range, cfg.rc_mid + cfg.rc_range, false);
+    // the range is mapped to be similar to a RC pulse
+    // this way rc_pulse_map can handle the centering and deadzone
     return rc_pulse_map(x);
 }
 
 int16_t CrsfChannel::readRaw(void)
 {
     if (_idx <= 0) {
-        return 0;
+        return 0; // unconfigured
     }
 
     return crsf_channels[_idx - 1];
@@ -248,7 +250,7 @@ int16_t CrsfChannel::readRaw(void)
 bool CrsfChannel::is_alive(void)
 {
     if (_idx <= 0) {
-        return false;
+        return false; // unconfigured
     }
 
     if ((millis() - last_good_time) < RC_INPUT_TIMEOUT)
@@ -265,7 +267,7 @@ bool CrsfChannel::is_alive(void)
 bool CrsfChannel::has_new(bool clr)
 {
     if (_idx <= 0) {
-        return false;
+        return false; // unconfigured
     }
 
     bool x = new_flag || _has_new;

@@ -2,9 +2,12 @@
 
 // this file is used for preprocessor configurations
 
+//#define RELEASE_BUILD
+// make sure the tagged commits always have the release build flag
+
 //#define HW_TESTS
 //#define RC_LOG_JITTER
-#define DISABLE_EEPROM
+//#define DISABLE_EEPROM
 
 #define EEPROM_DIRTY_SAVE_TIME_MS 1000 // if the user edits a EEPROM item, it will auto-save only after this amount of time
 

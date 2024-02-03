@@ -39,7 +39,7 @@ Also, when used for brushless motors, each MOSFET is only turned on for a brief 
 The hardware that are fully supported are the ones I personally own and use
 
 | Name | Brushless Rating | Brushed Rating<br />1x Motor | Brushed Rating<br />2x Motors | Max Voltage | URL |
-|------|------------------|------------------------|-------------------------|-------------|-----|
+|------|------------------|------------------------------|-------------------------------|-------------|-----|
 | Repeat Robotics AM32 35A | 35A | 15A | 7A | 6S | https://repeat-robotics.com/buy/am32/ |
 | Repeat Robotics AM32 NeutronRC | 70A | 30A | 15A | 8S | https://repeat-robotics.com/buy/neutronrc-70a-g071-beetle-weapon-esc/ |
 | Repeat Robotics Dual Drive | ? | ? | ? | 6S | https://repeat-robotics.com/buy/repeat-am32-dual-brushless-drive-esc/ |
@@ -55,7 +55,7 @@ Other models potentially will work if they meet the following criteria:
 
  * Has the AM32 bootloader
  * Has enough exposed signal pads to support the desired input mode
- * Has the microcontroller STM32F051 or STM32G071
+ * Has the microcontroller STM32F051 or STM32G071 (and AT32F421 soon)
 
 [Here's a full guide on using other hardware not on the list](doc/other-hardware-hacking.md)
 
