@@ -64,10 +64,11 @@ void led_task(bool halt)
     #ifdef ENABLE_LED_BLINK
     // only execute this every 100ms
     static uint32_t last_time = 0;
-    if ((millis() - last_time) < 100) {
+    uint32_t tnow = millis();
+    if ((tnow - last_time) < 100) {
         return;
     }
-    last_time = millis();
+    last_time = tnow;
 
     blink_tmr++; // this will increment forever, 32 bits means 4971 days of operation without overflow
 
@@ -104,13 +105,13 @@ void led_task(bool halt)
         led_set(LED_GPIO, LED_PIN, 0, LED_IS_OPENDRAIN);
     }
     else if (led_state == 1) {
-        led_set(LED_GPIO, LED_PIN, (millis() % 1000) <= 100 ? 0xFF : 0, LED_IS_OPENDRAIN);
+        led_set(LED_GPIO, LED_PIN, (tnow % 1000) <= 100 ? 0xFF : 0, LED_IS_OPENDRAIN);
     }
     else if (led_state == 2) {
-        led_set(LED_GPIO, LED_PIN, (millis() % 500) <= 250 ? 0xFF : 0, LED_IS_OPENDRAIN);
+        led_set(LED_GPIO, LED_PIN, (tnow % 500) <= 250 ? 0xFF : 0, LED_IS_OPENDRAIN);
     }
     else if (led_state == 3) {
-        led_set(LED_GPIO, LED_PIN, (millis() % 500) <= 400 ? 0xFF : 0, LED_IS_OPENDRAIN);
+        led_set(LED_GPIO, LED_PIN, (tnow % 500) <= 400 ? 0xFF : 0, LED_IS_OPENDRAIN);
     }
     #endif
     #endif // ENABLE_LED_BLINK

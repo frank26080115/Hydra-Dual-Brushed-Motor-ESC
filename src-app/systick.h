@@ -17,9 +17,9 @@ extern volatile uint32_t tone_freq_multi;
 void systick_init(void);
 
 #if defined(STMICRO)
-#define millis() (systick_cnt * tone_freq_multi)
+#define millis() (systick_cnt / tone_freq_multi)
 #elif defined(ARTERY)
-#define millis() (systick_cnt * tone_freq_multi)
+#define millis() (systick_cnt / tone_freq_multi)
 #else
 #error
 uint32_t millis(void);

@@ -77,7 +77,7 @@ void CrsfChannel::task(void)
         {
             #ifdef DEBUG_CRSF
             if (to_debug) {
-                dbg_printf("[%u] CRSF good (last %u)\r\n", millis(), last_good_time);
+                dbg_printf("[%u] CRSF good (last %u)\r\n", now, last_good_time);
                 to_debug = false;
             }
             #endif

@@ -85,10 +85,11 @@ void cli_enter(void)
     char prev = '\0';
     bool has_interaction = false;
     bool prev_has_interaction = false;
-    uint32_t last_idle_prompt = millis();
+    uint32_t last_idle_prompt = 0;
 
     while (true)
     {
+        uint32_t tnow = millis();
         led_task(false);
 
         int16_t c = cer->read();
@@ -173,8 +174,8 @@ void cli_enter(void)
                 continue;
             }
         }
-        else if (has_interaction == false && (millis() - last_idle_prompt) >= 3000) {
-            last_idle_prompt = millis();
+        else if (has_interaction == false && (tnow - last_idle_prompt) >= 3000) {
+            last_idle_prompt = tnow;
             // if the user has not interacted at all with the CLI
             // then keep printing the prompt symbol periodically
             // just to aid the user
@@ -182,13 +183,14 @@ void cli_enter(void)
         }
 
         // do other things
+        tnow = millis();
         eeprom_save_if_needed();
         if (cli_hwdebug) {
             // report analog values if desired
             sense_task();
             static uint32_t last_hwdebug = 0;
-            if ((millis() - last_hwdebug) >= 200) {
-                last_hwdebug = millis();
+            if ((tnow - last_hwdebug) >= 200) {
+                last_hwdebug = tnow;
                 cli_reportSensors(cer);
             }
         }
@@ -284,20 +286,21 @@ void cli_execute(Cereal* cer, char* str)
         uint32_t t = 0;
         do
         {
+            uint32_t tnow = millis();
             led_task(false);
             // check sensors and perform current limit calculations
             if (sense_task()) {
                 current_limit_task();
                 cli_reportSensors(cer); // print if new data available
                 if (t == 0) {
-                    t = millis();
+                    t = tnow;
                 }
 
                 if (sense_current > max_current) {
                     max_current = sense_current;
                 }
             }
-            if (t != 0 && duration > 0 && (millis() - t) >= duration) {
+            if (t != 0 && duration > 0 && (tnow - t) >= duration) {
                 // quit if time expired
                 break;
             }
