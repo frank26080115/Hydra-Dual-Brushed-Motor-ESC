@@ -64,7 +64,7 @@ extern const EEPROM_data_t cfge;
 
 void cli_enter(void)
 {
-    tone_start(4, 0, cfg.tone_volume);
+    tone_start(4, 2000, cfg.tone_volume);
     ledblink_cli();
     swdpins_deinit();
     dbg_printf("CLI entered at %u\r\n", millis());

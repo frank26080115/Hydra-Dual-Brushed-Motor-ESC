@@ -125,7 +125,7 @@ const EEPROM_item_t cfg_items[] __attribute__((aligned(4))) = {
     DCLR_ITM("curlimkp"     , currlim_kp        ),
     DCLR_ITM("curlimki"     , currlim_ki        ),
     DCLR_ITM("curlimkd"     , currlim_kd        ),
-    #ifdef DISABLE_LED
+    #if defined(DISABLE_LED) || defined(ENABLE_TONE)
     DCLR_ITM("tonevol"      , tone_volume       ),
     #endif
     { .ptr = 0, .size = 0, }, // indicate end of list

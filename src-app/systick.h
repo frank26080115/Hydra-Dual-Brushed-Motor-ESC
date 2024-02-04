@@ -8,7 +8,7 @@ extern "C" {
 #endif
 
 extern volatile uint32_t systick_cnt;
-#ifdef DISABLE_LED
+#if defined(DISABLE_LED) || defined(ENABLE_TONE)
 extern volatile uint32_t tone_freq_multi;
 #else
 #define tone_freq_multi    (1)

@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-#ifdef DISABLE_LED
+#if defined(DISABLE_LED) || defined(ENABLE_TONE)
 
 void tone_task(void);
 
@@ -16,12 +16,14 @@ void tone_task(void);
 void tone_start(uint8_t freq_multi, uint32_t duration, uint8_t volume);
 
 void tone_stop(void);
+bool tone_isBusy(void);
 
 #else
 
 #define tone_task(...)
 #define tone_start(...)
 #define tone_stop(...)
+#define tone_isBusy(...)     0
 
 #endif
 

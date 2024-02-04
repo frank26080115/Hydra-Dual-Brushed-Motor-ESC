@@ -66,13 +66,13 @@ void CrsfChannel::task(void)
 
     uint32_t now = millis();
 
-    bool           is_idle = cereal->get_idle_flag(true);
+    bool           is_idle = cereal->get_idle_flag(true); // the DMA does not actually know the size of a packet, each packet is variable in length, so we simply wait until the USART detects the bus is idle
     uint8_t*       buff    = cereal->get_buffer();
-    crsf_header_t* hdr     = (crsf_header_t*)buff;
+    crsf_header_t* hdr     = (crsf_header_t*)buff; // makes the data easy to parse
 
     if (is_idle && hdr->sync == CRSF_SYNC_BYTE && hdr->type == CRSF_FRAMETYPE_RC_CHANNELS_PACKED)
     {
-        uint8_t crc = crsf_crc8(&(hdr->type), hdr->len - 1);
+        uint8_t crc = crsf_crc8(&(hdr->type), hdr->len - 1); // check if CRC matches, this would fail if the length byte is invalid
         if (crc == buff[hdr->len + 1]) // CRC matches
         {
             #ifdef DEBUG_CRSF
@@ -131,7 +131,7 @@ void CrsfChannel::task(void)
             #endif
 
         }
-        else
+        else // bad CRC
         {
             #ifdef DEBUG_CRSF
             if (to_debug) {
@@ -152,7 +152,7 @@ void CrsfChannel::task(void)
             rc_register_bad_pulse(&good_pulse_cnt, &bad_pulse_cnt, NULL);
         }
     }
-    else if (is_idle && hdr->sync == CRSF_SYNC_BYTE && hdr->type != CRSF_FRAMETYPE_RC_CHANNELS_PACKED)
+    else if (is_idle && hdr->sync == CRSF_SYNC_BYTE && hdr->type != CRSF_FRAMETYPE_RC_CHANNELS_PACKED) // some other packet type is received, throw it out
     {
         #ifdef DEBUG_CRSF
         if (to_debug) {
@@ -163,7 +163,7 @@ void CrsfChannel::task(void)
         }
         #endif
     }
-    else if (is_idle)
+    else if (is_idle) // dunno what happened here but throw out the packet
     {
         #ifdef DEBUG_CRSF_RATE
         badhdr_cnt++;
@@ -171,7 +171,7 @@ void CrsfChannel::task(void)
     }
 
     if (is_idle) {
-        cereal_dmaRestart();
+        cereal_dmaRestart(); // restart the DMA and get reading to receive another packet
     }
 
     _has_new |= new_flag;
@@ -203,22 +203,20 @@ void CrsfChannel::task(void)
                 arming_cnt = 0;
             }
         }
-
-
-        if (disarm_timeout > 0) // a disarm timeout is required
-        {
-            if ((now - last_good_time) >= disarm_timeout) // passed the timeout
-            {
-                #ifdef DEBUG_CRSF
-                dbg_printf("CRSF disarmed due to timeout (%u - %u > %u)\r\n", now, last_good_time, disarm_timeout);
-                #endif
-                armed = false;
-                arming_cnt = 0;
-            }
-        }
     }
-    else { // user specified no arming is required, so always arm
-        armed = true;
+    else { // user specified no arming is required
+        // arm if any signal is available
+        armed |= ((millis() - last_good_time) < RC_INPUT_TIMEOUT && good_pulse_cnt >= 3);
+    }
+
+    uint32_t disarm_timeout_used = disarm_timeout > 0 ? disarm_timeout : 3000; // if user specified, then use value, otherwise, disarm after 3 seconds
+    if ((now - last_good_time) >= disarm_timeout_used) // passed the timeout
+    {
+        #ifdef DEBUG_CRSF
+        dbg_printf("CRSF disarmed due to timeout (%u - %u > %u)\r\n", now, last_good_time, disarm_timeout);
+        #endif
+        armed = false;
+        arming_cnt = 0;
     }
 }
 

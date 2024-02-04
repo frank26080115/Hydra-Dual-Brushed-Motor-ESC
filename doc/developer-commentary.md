@@ -160,6 +160,8 @@ I changed my optimization flag on the development board from `-Og` to `-Os`, and
 
 Adding a bunch of `__attribute__((aligned(4)))` to my code helped, adding `-mno-unaligned-access` to my compiler flags did not help at all. Adding `-Wcast-align` to my compiler flags helped me identify other locations where this could potentially be a problem. Thanks to the creators of the [Black Magic Probe](https://black-magic.org/index.html) for giving me the advice about the compiler flags, I was on their Discord server because I wanted to debug the AT32F421 ESC with their probe.
 
+I've ran into this before and another solution is to use the `armcc` compiler instead of GCC, which is rather expensive, but generates smaller binaries and avoids this alignment issue. The developers of AM32 firmware have repeatedly warned me against using GCC for unknown reasons.
+
 # Other: Why CRSF and not SBUS or IBUS
 
 CRSF is awesome, it is used by ExpressLRS because it is high speed, high precision, and it incorporates a CRC for data integrity. The radio receivers that output CRSF are the tiniest on the market.

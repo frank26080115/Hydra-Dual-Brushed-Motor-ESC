@@ -34,13 +34,15 @@ These steps are different from installing the firmware. Please do not confuse th
 
  2. Power on the ESC. The LED should indicate that it is disarmed (LED will stay solid RED, or whatever colour is used).
 
- 3. Wait 10 seconds. After 10 seconds have passed, the LED blinking should have changed to a different pattern ![](imgs/ledblinks/cliwait.png)
+ 3. Wait 5 seconds. After 5 seconds have passed, the LED blinking should have changed to a different pattern ![](imgs/ledblinks/cliwait.png) (if there is no LED, then the ESC will make the motor start buzzing at a high pitch)
 
  4. Connect the USB linker to the computer
 
  5. Connect the USB linker to the ESC
 
- 6. Run the serial terminal app
+ 6. Wait another 3 seconds.
+
+ 7. Run the serial terminal app
 
 The LED blink pattern will change again to indicate successfully entering CLI mode ![](imgs/ledblinks/climode.png)
 

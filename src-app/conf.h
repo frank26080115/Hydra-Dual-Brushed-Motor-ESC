@@ -5,9 +5,10 @@
 //#define RELEASE_BUILD
 // make sure the tagged commits always have the release build flag
 
-//#define HW_TESTS
+#define HW_TESTS
 //#define RC_LOG_JITTER
 //#define DISABLE_EEPROM
+#define ENABLE_TONE
 
 #define EEPROM_DIRTY_SAVE_TIME_MS 1000 // if the user edits a EEPROM item, it will auto-save only after this amount of time
 
@@ -36,5 +37,5 @@
 #define TEMPERATURE_OVER    20      // if the thermal limit is set at 80, then 80 is when the power starts to drop, and 100 is when power is completly off
 #define UNDERVOLTAGE        100     // if the voltage limit is set at 3000, then 3000 is when the power starts to drop, and 2900 is when power is completly off
 
-#define TONE_DEF_VOLUME     10      // range 0 to 100
-#define PWM_TONE_RELOAD     (PWM_DEFAULT_HEADROOM * 5) // want a faster reload for tone generation
+#define TONE_DEF_VOLUME     80      // range 0 to 100
+#define PWM_TONE_RELOAD     (PWM_DEFAULT_HEADROOM * 40) // want a faster reload for tone generation

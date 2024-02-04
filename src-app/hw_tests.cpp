@@ -42,10 +42,11 @@ void hw_test(void)
     //hwtest_rc1();
     //hwtest_rc2();
     //hwtest_rc12();
-    hwtest_rc_crsf();
+    //hwtest_rc_crsf();
     //hwtest_bbcer();
     //hwtest_eeprom();
     //hwtest_cli();
+    hwtest_tone();
 }
 #endif
 
@@ -116,15 +117,29 @@ void hwtest_pwm(void)
     pwm_set_loadbalance(false);
     while (true)
     {
+        #ifdef DEVELOPMENT_BOARD
         if (dbg_read_btn())
         {
-            uint32_t x = (millis() / 5) % 1900;
+            uint32_t x = (millis() / 5) % (PWM_DEFAULT_AUTORELOAD - (PWM_DEFAULT_HEADROOM * 2));
             pwm_set_all_duty_remapped(x, x + 1, x + 2);
         }
         else
         {
             pwm_set_all_duty_remapped(0, 0, 0);
         }
+        #else
+        uint32_t tnow = millis();
+        uint32_t tnow10 = tnow % 10000;
+        if (tnow10 < 3000)
+        {
+            pwm_set_all_duty_remapped(0, 0, 0);
+        }
+        else
+        {
+            uint32_t x = ((tnow10 - 3000) / 2) % (PWM_DEFAULT_AUTORELOAD - (PWM_DEFAULT_HEADROOM * 2));
+            pwm_set_all_duty_remapped(x, x + 1, x + 2);
+        }
+        #endif
     }
 }
 
@@ -429,4 +444,54 @@ void hwtest_cli(void)
     rc2 = &rc_pulse_2;
     #endif
     cli_enter();
+}
+
+void hwtest_tone(void)
+{
+    dbg_button_init();
+    pwm_init();
+    dbg_switch_to_pwm();
+    pwm_all_flt();
+    pwm_set_braking(true);
+    pwm_all_pwm();
+    pwm_set_reload(2000);
+    pwm_set_remap(1);
+    pwm_set_loadbalance(false);
+    uint32_t t = 0;
+    uint8_t i;
+    while (true)
+    {
+        uint32_t now = millis();
+        tone_task();
+        #ifdef DEVELOPMENT_BOARD
+        if (dbg_read_btn())
+        {
+            if ((now - t) >= 1000) {
+                i++;
+                tone_start(i, 0, 100);
+                t = now;
+            }
+        }
+        else
+        {
+            tone_stop();
+            i = 0;
+        }
+        #else
+        uint32_t tnow10 = now % 10000;
+        if (tnow10 < 3000)
+        {
+            pwm_set_all_duty_remapped(0, 0, 0);
+            i = 0;
+        }
+        else
+        {
+            if ((now - t) >= 1000) {
+                i++;
+                tone_start(i, 0, 100);
+                t = now;
+            }
+        }
+        #endif
+    }
 }

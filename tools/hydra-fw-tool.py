@@ -3,7 +3,7 @@
 # to build EXE for Windows: `pyinstaller37 -F --exclude-module _bootlocale hydra-fw-tool.py`
 
 import argparse
-import os, sys, time, datetime
+import os, sys, time, datetime, re
 
 try:
     from intelhex import IntelHex
@@ -54,32 +54,68 @@ def main():
 
     ports = get_all_comports(False)
     if args.serialport is None or args.serialport == "auto" or args.serialport == "":
-        if len(ports) == 1:
-            args.serialport = ports[0]
-            print("auto detected serial port: %s" % args.serialport)
-        else:
-            tries = 2
-            while True:
-                print("available serial ports: ")
-                if len(ports) > 0:
-                    for i in ports:
-                        print("\t%s" % i)
+        got_port = False
+        while got_port == False:
+            if len(ports) == 1:
+                print("auto detected serial port: %s" % ports[0])
+                x = input("confirm start using %s? (YES or no): " % ports[0])
+                if x.strip() == "YES":
+                    got_port = True
+                    args.serialport = ports[0]
+                elif x.lower().strip()[0] == 'n':
+                    quit_nicely(-1)
+                elif x.lower().strip()[0] == 'y':
+                    print("ERROR: cannot understand input \"%s\", if you meant YES, please type it in all capital letters" % s)
                 else:
-                    print("\t(none available)")
-                args.serialport = input("please enter the name of the serial port: ")
-                ports = get_all_comports(False) # refresh the list
-                if args.serialport not in ports:
-                    print("ERROR: that is not one of the available ports")
-                    if no_wait:
-                        quit_nicely(-1)
-                    tries -= 1
-                    if tries > 0:
-                        continue
+                    print("ERROR: cannot understand input \"%s\"" % s)
+            else:
+                tries = 2
+                while True:
+                    print("available serial ports: ")
+                    if len(ports) > 0:
+                        for i in ports:
+                            print("\t%s" % i)
                     else:
-                        print("user insisted on using serial port: %s" % args.serialport)
+                        print("\t(none available)")
+                    x = input("please enter the name of the serial port: ")
+                    ports = get_all_comports(False) # refresh the list
+
+                    if x in ports:
+                        # exact match
+                        args.serialport = x
+                        got_port = True
                         break
-                else:
-                    break
+                    else:
+                        # attempt a number only match
+                        xp = re.findall(r'\d+', x)
+                        if len(xp) == 1:
+                             for p in ports:
+                                 pp = re.findall(r'\d+', p)
+                                 if len(pp) > 0:
+                                     if int(xp[0]) == int(pp[-1]):
+                                         args.serialport = p
+                                         got_port = True
+                                         break
+                        if got_port:
+                            print("user specified port \"%s\"" % args.serialport)
+                            break
+                    if got_port == False:
+                        print("ERROR: that is not one of the available ports")
+                        if no_wait:
+                            quit_nicely(-1)
+                        if len(x) > 0:
+                            tries -= 1
+                        else:
+                            tries = 2
+                        if tries > 0:
+                            continue
+                        else:
+                            print("user insisted on using serial port: %s" % x)
+                            args.serialport = x
+                            got_port = True
+                            break
+                    else:
+                        break
     else:
         if args.verbose:
             print("user specified using serial port: %s" % args.serialport)
@@ -439,7 +475,7 @@ def main():
     except Exception as ex:
         print("ERROR: exception when closing serial port: %s" % (str(ex)))
 
-    print("all done!")
+    print("all done!!! 100% |##############################|")
     quit_nicely()
 
 def quit_nicely(c = 0):
