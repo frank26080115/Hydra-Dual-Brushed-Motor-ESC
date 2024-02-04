@@ -475,7 +475,7 @@ def main():
     except Exception as ex:
         print("ERROR: exception when closing serial port: %s" % (str(ex)))
 
-    print("all done!!! 100% |##############################|")
+    print("all done!!! 100% [##############################]")
     quit_nicely()
 
 def quit_nicely(c = 0):
@@ -703,7 +703,7 @@ def draw_progress_bar(headtxt, num, lower, upper, endtxt = "", ret = True, width
     global progbar_size
     percent = int(round(num * 100 / (upper - lower)))
     percent = 99 if percent >= 99 else percent # will disappear at 100 anyways
-    s = headtxt + " %2u%% |" % (percent)
+    s = headtxt + " %2u%% [" % (percent)
     pt = num * width / (upper - lower)
     i = 0
     while i < width:
@@ -712,7 +712,7 @@ def draw_progress_bar(headtxt, num, lower, upper, endtxt = "", ret = True, width
         else:
             s += "."
         i += 1
-    s += "|"
+    s += "]"
     if len(endtxt) > 0:
         s += " " + endtxt.strip()
     s = s.strip()

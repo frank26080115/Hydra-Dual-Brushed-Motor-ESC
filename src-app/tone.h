@@ -17,6 +17,7 @@ void tone_start(uint8_t freq_multi, uint32_t duration, uint8_t volume);
 
 void tone_stop(void);
 bool tone_isBusy(void);
+void tone_setVolume(uint8_t x);
 
 #else
 
@@ -24,6 +25,7 @@ bool tone_isBusy(void);
 #define tone_start(...)
 #define tone_stop(...)
 #define tone_isBusy(...)     0
+#define tone_setVolume(...)
 
 #endif
 

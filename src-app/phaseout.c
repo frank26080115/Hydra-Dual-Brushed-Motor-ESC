@@ -156,7 +156,7 @@ void pwm_set_remap(uint8_t map)
 {
     // recalculate to 0 index
     phase_remap = map - ((map >= 1) ? 1 : 0);
-    map += HW_PHASES_REMAP; // change the mapping by compile time definition
+    phase_remap += HW_PHASES_REMAP; // change the mapping by compile time definition
     phase_remap %= 3;
 }
 

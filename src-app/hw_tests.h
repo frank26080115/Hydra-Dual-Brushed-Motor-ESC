@@ -5,6 +5,7 @@
 
 void hwtest_led(void);
 void hwtest_pwm(void);
+void hwtest_phases(void);
 void hwtest_adc(void);
 void hwtest_rc1(void);
 void hwtest_rc2(void);
@@ -18,6 +19,10 @@ void hwtest_uart2(void);
 void hwtest_uart_swc(void);
 void hwtest_cli(void);
 void hwtest_tone(void);
+void hwtest_rc_led_pwm(void);
+void hwtest_rc_led_crsf(void);
+void hwtest_rc_tone_pwm(void);
+void hwtest_rc_tone_crsf(void);
 
 void hwtest_gpio(
     #if defined(STMICRO)

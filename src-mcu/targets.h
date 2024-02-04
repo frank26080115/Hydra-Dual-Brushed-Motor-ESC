@@ -71,7 +71,8 @@
     #define HARDWARE_GROUP_AT_045
     #define USE_SERIAL_TELEMETRY
     #define VOLTAGE_BASED_RAMP
-    #define MILLIVOLT_PER_AMP  12
+    #define MILLIVOLT_PER_AMP       12
+    #define HW_PHASES_REMAP         1
     #define DISABLE_LED
     #define DEFAULT_INPUT_MODE      INPUTMODE_CRSF
 #endif
@@ -209,6 +210,7 @@
     #define DEAD_TIME               45
     #define HARDWARE_GROUP_F0_A
     #define TARGET_VOLTAGE_DIVIDER  65
+    #define HW_PHASES_REMAP         1
     #define DISABLE_LED
     #define DEFAULT_INPUT_MODE      INPUTMODE_CRSF
 #endif
@@ -442,6 +444,7 @@
     #define HARDWARE_GROUP_F0_B
     #define HAS_TELEMETRY_PIN
     #define VOLTAGE_BASED_RAMP
+    #define HW_PHASES_REMAP         1
     #define USE_RGB_LED
     #define LED_PIN_RED             LL_GPIO_PIN_15
     #define LED_GPIO_RED            GPIOA

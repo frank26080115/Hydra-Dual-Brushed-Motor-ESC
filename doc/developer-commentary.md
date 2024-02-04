@@ -58,6 +58,8 @@ These daughter-boards make it simple to connect up a ELRS radio receiver, which 
 
 ![](imgs/devkit_labelled.jpg)
 
+For testing on actual ESC circuits, my code also includes many test functions that uses LED blinking or LED brightness or even motor tone generation (sending a frequency to a motor will turn it into a speaker). For example, because the main input is being used to receive CRSF, I cannot use the same wire to `printf()` debug, so instead, I make the LED brightness go brighter if I send a higher throttle through CRSF. If there is no LED, I make the motor buzz, and the throttle level controls the buzzing volume.
+
 # Software Engineering
 
 The code is written to be very modular, and using C++ object class inheritance in appropriate places. The simplifies the code and I also write specific tests for all the modules, kind of like unit tests but a bit more broad. It does chew up a bit more memory but as I said before, brushed mode operation does not take as much memory as brushless motors.

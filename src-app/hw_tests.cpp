@@ -39,6 +39,7 @@ void hw_test(void)
     //hwtest_gpio(GPIOA, LL_GPIO_PIN_8 | LL_GPIO_PIN_9 | LL_GPIO_PIN_10);
     //hwtest_led();
     //hwtest_pwm();
+    //hwtest_phases();
     //hwtest_rc1();
     //hwtest_rc2();
     //hwtest_rc12();
@@ -46,7 +47,9 @@ void hw_test(void)
     //hwtest_bbcer();
     //hwtest_eeprom();
     //hwtest_cli();
-    hwtest_tone();
+    //hwtest_tone();
+    //hwtest_rc_led_crsf();
+    hwtest_rc_tone_crsf();
 }
 #endif
 
@@ -112,7 +115,6 @@ void hwtest_pwm(void)
     pwm_all_flt();
     pwm_set_braking(true);
     pwm_all_pwm();
-    pwm_set_reload(2000);
     pwm_set_remap(1);
     pwm_set_loadbalance(false);
     while (true)
@@ -129,15 +131,16 @@ void hwtest_pwm(void)
         }
         #else
         uint32_t tnow = millis();
-        uint32_t tnow10 = tnow % 10000;
+        uint32_t tnow10 = tnow % 20000;
         if (tnow10 < 3000)
         {
             pwm_set_all_duty_remapped(0, 0, 0);
         }
         else
         {
-            uint32_t x = ((tnow10 - 3000) / 2) % (PWM_DEFAULT_AUTORELOAD - (PWM_DEFAULT_HEADROOM * 2));
-            pwm_set_all_duty_remapped(x, x + 1, x + 2);
+            uint32_t lim = (PWM_DEFAULT_AUTORELOAD - (PWM_DEFAULT_HEADROOM * 2));
+            uint32_t x = tnow10;
+            pwm_set_all_duty_remapped(x % lim, (x + (lim / 3)) % lim, (x + ((lim * 2) / 3)) % lim);
         }
         #endif
     }
@@ -255,6 +258,7 @@ void hwtest_uart_swc(void)
 
 void hwtest_rcx(RcChannel* rcx, RcChannel* rcx2, uint8_t idx);
 void hwtest_rcx_print(RcChannel* rcx, uint8_t idx);
+void hwtest_rc_led(RcChannel* rcx, RcChannel* rcx2);
 
 void hwtest_rc1(void)
 {
@@ -341,6 +345,157 @@ void hwtest_rcx(RcChannel* rcx, RcChannel* rcx2, uint8_t idx)
         }
     }
 }
+
+void hwtest_rc_led_pwm()
+{
+    eeprom_load_defaults();
+    load_runtime_configs();
+    rc_pulse_1.init();
+    rc_pulse_2.init(GPIOEXTI_TIMx, GPIOEXTI_GPIO, GPIOEXTI_Pin);
+    hwtest_rc_led(&rc_pulse_1, &rc_pulse_2);
+}
+
+void hwtest_rc_led_crsf()
+{
+    eeprom_load_defaults();
+    load_runtime_configs();
+    #if defined(MAIN_SIGNAL_PA2)
+    crsf_inputGuess = 2;
+    #endif
+    main_cer.init(CEREAL_ID_USART_CRSF, 420000, true, false, true);
+    crsf_1.init(&main_cer, 1);
+    crsf_2.init(&main_cer, 2);
+    hwtest_rc_led(&crsf_1, &crsf_2);
+}
+
+void hwtest_rc_led(RcChannel* rcx, RcChannel* rcx2)
+{
+    led_init();
+    while (true)
+    {
+        rcx->task();
+        if (rcx2 != NULL) {
+            rcx2->task();
+        }
+        bool alive = false;
+        int mv = 0;
+        int r;
+        if (rcx->is_alive()) {
+            alive |= true;
+            r = rcx->read();
+            r = r < 0 ? -r : r;
+            mv = r > mv ? r : mv;
+        }
+        if (rcx2 != NULL)
+        {
+            if (rcx2->is_alive()) {
+                alive |= true;
+                r = rcx2->read();
+                r = r < 0 ? -r : r;
+                mv = r > mv ? r : mv;
+            }
+        }
+        if (alive == false)
+        {
+            if ((millis() % 1000) <= 100)
+            {
+                led_blink_set(1 << 5);
+            }
+            else
+            {
+                led_blink_set(0);
+            }
+        }
+        else
+        {
+            uint32_t tlim = fi_map(mv, 0, THROTTLE_UNIT_RANGE, 20, 100, true);
+            if ((millis() % 100) <= tlim) {
+                led_blink_set(1 << 7);
+            }
+            else {
+                led_blink_set(0);
+            }
+        }
+    }
+}
+
+#if defined(DISABLE_LED) || defined(ENABLE_TONE)
+
+void hwtest_rc_tone(RcChannel* rcx, RcChannel* rcx2);
+
+void hwtest_rc_tone_pwm()
+{
+    eeprom_load_defaults();
+    load_runtime_configs();
+    pwm_init();
+    dbg_switch_to_pwm();
+    rc_pulse_1.init();
+    rc_pulse_2.init(GPIOEXTI_TIMx, GPIOEXTI_GPIO, GPIOEXTI_Pin);
+    hwtest_rc_tone(&rc_pulse_1, &rc_pulse_2);
+}
+
+void hwtest_rc_tone_crsf()
+{
+    eeprom_load_defaults();
+    load_runtime_configs();
+    pwm_init();
+    dbg_switch_to_pwm();
+    #if defined(MAIN_SIGNAL_PA2)
+    crsf_inputGuess = 2;
+    #endif
+    main_cer.init(CEREAL_ID_USART_CRSF, 420000, true, false, true);
+    crsf_1.init(&main_cer, 1);
+    crsf_2.init(&main_cer, 2);
+    hwtest_rc_tone(&crsf_1, &crsf_2);
+}
+
+void hwtest_rc_tone(RcChannel* rcx, RcChannel* rcx2)
+{
+    tone_start(2, 0, 100);
+    while (true)
+    {
+        rcx->task();
+        if (rcx2 != NULL) {
+            rcx2->task();
+        }
+        bool alive = false;
+        int mv = 0;
+        int r;
+        if (rcx->is_alive()) {
+            alive |= true;
+            r = rcx->read();
+            r = r < 0 ? -r : r;
+            mv = r > mv ? r : mv;
+        }
+        if (rcx2 != NULL)
+        {
+            if (rcx2->is_alive()) {
+                alive |= true;
+                r = rcx2->read();
+                r = r < 0 ? -r : r;
+                mv = r > mv ? r : mv;
+            }
+        }
+        if (alive == false)
+        {
+            if ((millis() % 1000) <= 100)
+            {
+                tone_setVolume(50);
+            }
+            else
+            {
+                tone_setVolume(0);
+            }
+        }
+        else
+        {
+            uint32_t x = fi_map(mv, 0, THROTTLE_UNIT_RANGE, 10, 100, true);
+            tone_setVolume(x);
+        }
+    }
+}
+
+#endif
 
 #ifdef ENABLE_COMPILE_CLI
 void hwtest_bbcer(void)
@@ -446,17 +601,29 @@ void hwtest_cli(void)
     cli_enter();
 }
 
-void hwtest_tone(void)
+void hwtest_phases(void)
 {
+    eeprom_load_defaults();
+    load_runtime_configs();
     dbg_button_init();
     pwm_init();
     dbg_switch_to_pwm();
-    pwm_all_flt();
     pwm_set_braking(true);
-    pwm_all_pwm();
-    pwm_set_reload(2000);
-    pwm_set_remap(1);
     pwm_set_loadbalance(false);
+    while (true)
+    {
+        uint32_t x = PWM_DEFAULT_AUTORELOAD - PWM_DEFAULT_HEADROOM;
+        pwm_set_all_duty_remapped(x, x / 2, x / 4);
+    }
+}
+
+void hwtest_tone(void)
+{
+    eeprom_load_defaults();
+    load_runtime_configs();
+    dbg_button_init();
+    pwm_init();
+    dbg_switch_to_pwm();
     uint32_t t = 0;
     uint8_t i;
     while (true)
@@ -481,14 +648,14 @@ void hwtest_tone(void)
         uint32_t tnow10 = now % 10000;
         if (tnow10 < 3000)
         {
-            pwm_set_all_duty_remapped(0, 0, 0);
+            tone_stop();
             i = 0;
         }
         else
         {
             if ((now - t) >= 1000) {
                 i++;
-                tone_start(i, 0, 100);
+                tone_start(i, 0, 30);
                 t = now;
             }
         }

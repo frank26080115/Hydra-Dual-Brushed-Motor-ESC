@@ -16,12 +16,12 @@ static inline void pwm_setDuty_A(uint16_t x)
 
 static inline void pwm_setDuty_B(uint16_t x)
 {
-    PWMOUTTIMx->c1dt = x;
+    PWMOUTTIMx->c2dt = x;
 }
 
 static inline void pwm_setDuty_C(uint16_t x)
 {
-    PWMOUTTIMx->c1dt = x;
+    PWMOUTTIMx->c3dt = x;
 }
 
 #ifdef __cplusplus

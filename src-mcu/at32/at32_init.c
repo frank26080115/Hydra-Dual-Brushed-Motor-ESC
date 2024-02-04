@@ -1,5 +1,6 @@
 #include "at32.h"
 #include "systick.h"
+#include "stm32_at32_compat.h"
 
 void SystemClock_Config(void);
 void system_clock_config(void);
@@ -29,14 +30,16 @@ void mcu_init(void)
 
 void gpio_mode_QUICK(gpio_type* gpio_periph, uint32_t mode, uint32_t pull_up_down, uint32_t pin)
 {
-    #ifdef MCU_AT421
-    gpio_periph->cfgr = (((((gpio_periph->cfgr))) & (~(((pin * pin) * (0x3UL << (0U)))))) | (((pin * pin) * mode)));
-    #elif defined(MCU_F415)
+    //#if defined(MCU_AT421)
+    ////gpio_periph->cfgr = (((((gpio_periph->cfgr))) & (~(((pin * pin) * (0x3UL << (0U)))))) | (((pin * pin) * mode)));
+    //LL_GPIO_SetPinMode(gpio_periph, pin, mode);
+    //LL_GPIO_SetPinPull(gpio_periph, pin, pull_up_down);
+    //#elif defined(MCU_AT415)
     gpio_init_type gpio_init_struct;
     gpio_default_para_init(&gpio_init_struct);
     gpio_init_struct.gpio_mode = mode;
     gpio_init_struct.gpio_pins = pin;
     gpio_init_struct.gpio_pull = pull_up_down;
     gpio_init(gpio_periph, &gpio_init_struct);
-    #endif
+    //#endif
 }
