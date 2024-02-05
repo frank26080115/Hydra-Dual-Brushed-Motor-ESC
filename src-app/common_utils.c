@@ -69,22 +69,25 @@ int16_t rc_pulse_map(uint16_t x)
 // string comparison that ends at a space, also case-insensitive
 bool item_strcmp(const char* usr_inp, const char* table_item)
 {
-    int slen = 16; //strlen(usr_inp);
+    int slen = 32; //strlen(usr_inp);
     int i;
     for (i = 0; i < slen; i++)
     {
         char inpc = usr_inp[i];
         char x = table_item[i];
-        if (inpc <= ' ' || inpc >= '~' || inpc == '=' || inpc == ':') {
+        #define IS_CHAR_DELIMITER(ccc)    ((ccc) <= ' ' || (ccc) >= '~' || (ccc) == '=' || (ccc) == ':')
+        if (IS_CHAR_DELIMITER(inpc)) {
             inpc = 0;
         }
-        if (x <= ' ' || x >= '~' || x == '=' || x == ':') {
+        if (IS_CHAR_DELIMITER(x)) {
             x = 0;
         }
         if (inpc == 0 && x == 0) {
+            // both were delimited at the same time and so far has always matched
             return true;
         }
         #if 1
+        // case insensitive
         if (inpc >= 'A' && inpc <= 'Z') {
             inpc -= 'A';
             inpc += 'a';
@@ -95,10 +98,10 @@ bool item_strcmp(const char* usr_inp, const char* table_item)
         }
         #endif
         if (inpc != x) {
-            return false;
+            return false; // mismatch, immediate exit
         }
     }
-    return true;
+    return true; // everything seems to have matched so far
 }
 
 int32_t parse_integer(const char* str)
@@ -169,9 +172,12 @@ uint8_t crsf_crc8(const uint8_t *ptr, int len)
     return crc;
 }
 
-int32_t fi_lpf(int32_t oldval, int32_t newval, int32_t fltconst)
+int32_t fi_lpf(int32_t oldval, int32_t newval, int16_t fltconst)
 {
-    int32_t oldvalX = oldval * (1000 - fltconst);
+    if (fltconst <= 0 || fltconst >= 100) { // filter disabled
+        return newval;
+    }
+    int32_t oldvalX = oldval * (100 - fltconst);
     int32_t newvalX = newval * fltconst;
-    return (oldvalX + newvalX + 500) / 1000;
+    return (oldvalX + newvalX + 50) / 100; // division with rounding
 }

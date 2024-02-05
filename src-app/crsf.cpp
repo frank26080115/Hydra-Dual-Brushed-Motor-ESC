@@ -4,6 +4,7 @@
 //#define DEBUG_CRSF
 //#define DEBUG_CRSF_RATE
 
+// reference https://github.com/ExpressLRS/ExpressLRS/blob/69381f22b87bdc1056bcb8b2f4ecd08fd214d356/src/lib/CrsfProtocol/crsf_protocol.h
 #define CRSF_CHAN_CNT 16
 #define CRSF_SYNC_BYTE 0xC8
 #define CRSF_FRAMETYPE_RC_CHANNELS_PACKED 0x16
@@ -19,9 +20,9 @@ crsf_header_t;
 
 uint8_t crsf_crc8(const uint8_t *ptr, uint8_t len);
 
-uint8_t crsf_inputGuess = 0;
+uint8_t crsf_inputGuess = 0; // 0 means unknown, 1 means PB6 USART1, 2 means PA2 USART2
 
-static Cereal* cereal;
+static Cereal*  cereal;
 static uint16_t crsf_channels[CRSF_CHAN_CNT] __attribute__((aligned(4))) = {0};
 static bool     new_flag       = false;
 static uint32_t last_good_time = 0;
@@ -289,6 +290,9 @@ void CrsfChannel::disarm(void)
 
 uint16_t crsf_readChan(uint8_t i)
 {
+    if (i <= 0) {
+        return 0; // unconfigured
+    }
     return crsf_channels[i - 1];
 }
 

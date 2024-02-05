@@ -28,7 +28,7 @@ const EEPROM_data_t default_eeprom __attribute__((aligned(4))) = {
     .version_minor      = VERSION_MINOR,
     .version_eeprom     = VERSION_EEPROM,
 
-    .voltage_split_mode = VSPLITMODE_BOOST_ALWAYS,
+    .voltage_split_mode = 0,
     .load_balance       = false,
     .input_mode         = DEFAULT_INPUT_MODE,
     .phase_map          = 1,
@@ -65,6 +65,10 @@ const EEPROM_data_t default_eeprom __attribute__((aligned(4))) = {
     .currlim_ki         = 0,
     .currlim_kd         = 1000,
 
+    .dirpwm_chancfg_1   = 0,
+    .dirpwm_chancfg_2   = 0,
+    .dirpwm_chancfg_3   = 0,
+
     // data after the checksum are unprotected
 
     .tone_volume        = TONE_DEF_VOLUME,
@@ -81,12 +85,8 @@ const EEPROM_data_t cfge = {
 // this stores the config in RAM
 EEPROM_data_t cfg __attribute__((aligned(4)));
 // WARNING WARNING WARNING
-// for some reason, this particular declaration is prone to being not 32 bit aligned
-// and it will cause hard faults if it is not
-// it seems to be ok when using the -Og optimization flag but not -Os
-// adding the __attribute__((aligned(4))) seems to solve the problem completely
-// people suggested I enable the -Wcast-align warning to hunt down this problem throughout my code
-// some of the code here will use uint32_t* pointers instead of uint8_t* to make warnings from -Wcast-align go away
+// for some reason, this particular declaration is prone to being not 32 bit aligned, causing hard-faults, hence why the explicit alignment attribute
+// please see https://github.com/frank26080115/Hydra-Dual-Brushed-Motor-ESC/issues/3 for more explanation
 
 bool eeprom_has_loaded = false;
 
@@ -125,6 +125,9 @@ const EEPROM_item_t cfg_items[] __attribute__((aligned(4))) = {
     DCLR_ITM("curlimkp"     , currlim_kp        ),
     DCLR_ITM("curlimki"     , currlim_ki        ),
     DCLR_ITM("curlimkd"     , currlim_kd        ),
+    DCLR_ITM("dirpwm_1"     , dirpwm_chancfg_1  ),
+    DCLR_ITM("dirpwm_2"     , dirpwm_chancfg_2  ),
+    DCLR_ITM("dirpwm_3"     , dirpwm_chancfg_3  ),
     #if defined(DISABLE_LED) || defined(ENABLE_TONE)
     DCLR_ITM("tonevol"      , tone_volume       ),
     #endif

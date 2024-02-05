@@ -9,6 +9,9 @@
 extern "C" {
 #endif
 
+extern bool braking;
+extern bool complementary_pwm;
+
 extern void pwm_init();        // implemented in HAL
 extern void pwm_set_period(uint32_t x);   // used to set frequency from user config
 extern void pwm_set_deadtime(uint32_t x); // used to set deadtime from user config
@@ -24,10 +27,19 @@ extern void pwm_setPWM_C();
 extern void pwm_setFlt_C();
 extern void pwm_setLow_C();
 
+extern void pwm_setODPWM_A();
+extern void pwm_setODPWM_B();
+extern void pwm_setODPWM_C();
+extern void pwm_setHIPWM_A();
+extern void pwm_setHIPWM_B();
+extern void pwm_setHIPWM_C();
+
 // wrappers
 void pwm_all_flt();
 void pwm_all_low();
 void pwm_all_pwm();
+void pwm_all_pwmod();
+void pwm_all_pwmpush();
 
 void pwm_proportional_brake(); // implement this in HAL
 void pwm_full_brake();

@@ -3,7 +3,7 @@
 #include "rc.h"
 #include "cereal.h"
 
-// these CRSF_CHANNEL_VALUE_ constants are taken from https://github.com/ExpressLRS/ExpressLRS/blob/master/src/lib/CrsfProtocol/crsf_protocol.h 
+// these CRSF_CHANNEL_VALUE_ constants are taken from https://github.com/ExpressLRS/ExpressLRS/blob/69381f22b87bdc1056bcb8b2f4ecd08fd214d356/src/lib/CrsfProtocol/crsf_protocol.h
 #define CRSF_CHANNEL_VALUE_MIN  172 // 987us - actual CRSF min is 0 with E.Limits on
 #define CRSF_CHANNEL_VALUE_1000 191
 #define CRSF_CHANNEL_VALUE_MID  992

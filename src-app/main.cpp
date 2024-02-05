@@ -13,6 +13,7 @@
 
 RcChannel* rc1 = NULL;
 RcChannel* rc2 = NULL;
+RcChannel* rc3 = NULL; // only used in direct-PWM mode
 
 #if defined(DEVELOPMENT_BOARD)
 Cereal_USART dbg_cer;
@@ -22,6 +23,7 @@ RcPulse_InputCap rc_pulse_1(IC_TIMER_REGISTER, INPUT_PIN_PORT, INPUT_PIN, IC_TIM
 RcPulse_GpioIsr  rc_pulse_2;
 CrsfChannel      crsf_1;
 CrsfChannel      crsf_2;
+CrsfChannel      crsf_3; // only used in direct-PWM mode
 Cereal_USART     main_cer;
 #ifdef ENABLE_COMPILE_CLI
 Cereal_TimerBitbang cli_cer;
@@ -31,6 +33,8 @@ Cereal_TimerBitbang cli_cer;
 void cliboot_decide(void);
 void cli_enter(void);
 #endif
+
+void direct_pwm(int32_t v1, int32_t v2, int32_t v3, uint32_t duty_max);
 
 int main(void)
 {
@@ -44,12 +48,7 @@ int main(void)
     dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false);
     #endif
 
-    ENSURE_VERSION_DATA_IS_KEPT();
-
     led_init();
-
-    dbg_pintoggle_init();
-    // this happens after LED init because I'm borrowing the green and blue LED pins
 
     pwm_init();
     pwm_all_flt();
@@ -91,26 +90,37 @@ int main(void)
         // for ESCs that use PA2 for input, we don't know if the user connected CRSF to PA2 or PB6
         // so we simply wait for one of the signals to go high
         // it is also possible that the CLI decision loop already detected a signal
+        #if DEFAULT_INPUT_MODE == INPUTMODE_CRSF
+        // if the hardware specified forces CRSF as default, it means there's no secondary signal, use PA2/USART2 as input
+        if (crsf_inputGuess == 0) {
+            crsf_inputGuess = 2;
+        }
+        #endif
         while (crsf_inputGuess == 0)
         {
+            // unknown guess means wait for the one of the signals to become high, which means a USART is connected
             led_task(false);
             sense_task();
             current_limit_task();
-            if (inp_read() != 0) {
-                crsf_inputGuess = 1;
+            if (inp_read() != 0) { // this is checking PA2/USART2
+                crsf_inputGuess = 2;
                 break;
             }
-            if (inp2_read() != 0) {
-                crsf_inputGuess = 2;
+            if (inp2_read() != 0) { // this is checking PB6/USART1
+                crsf_inputGuess = 1;
                 break;
             }
         }
         #endif
-        main_cer.init(cfg.input_mode == INPUTMODE_CRSF_SWCLK ? CEREAL_ID_USART_SWCLK : CEREAL_ID_USART_CRSF, cfg.baud == 0 ? CRSF_BAUDRATE : cfg.baud, false, true, true);
+        main_cer.init((cfg.input_mode == INPUTMODE_CRSF_SWCLK) ? CEREAL_ID_USART_SWCLK : CEREAL_ID_USART_CRSF
+                        , (cfg.baud == 0) ? CRSF_BAUDRATE : cfg.baud
+                        , false, true, true);
         crsf_1.init(&main_cer, cfg.channel_1);
         crsf_2.init(&main_cer, cfg.channel_2);
+        crsf_3.init(&main_cer, cfg.channel_mode); // only used in direct-PWM mode
         rc1 = &crsf_1;
         rc2 = &crsf_2;
+        rc3 = &crsf_3;
 
         dbg_printf("input mode [%u] CRSF\r\n", cfg.input_mode);
     }
@@ -141,6 +151,7 @@ int main(void)
         current_limit_task();
         rc1->task();
         rc2->task();
+        if (rc3 != NULL) { rc3->task(); }
 
         bool need_debug_print = false;
         #ifdef DEBUG_PRINT
@@ -152,41 +163,49 @@ int main(void)
         }
         #endif
 
-        int v1, v2;
+        int v1, v2, v3;
 
         if (cfg.tied == false)
         {
             if (armed_both == false) {
                 if (rc1->is_armed() && rc2->is_armed() && rc1->read() == 0 && rc2->read() == 0) { // require both to be simultaneously zero
-                    armed_both = true;
+                    // check rc3 if direct-PWM mode
+                    if (rc3 == NULL) {
+                        armed_both = true;
+                    }
+                    else if (rc3->is_armed() && rc3->read() == 0) {
+                        armed_both = true;
+                    }
                 }
             }
             else {
                 if (rc1->is_armed() == false || rc2->is_armed() == false) { // disarm both on any disarm
                     armed_both = false;
                 }
+                // with CRSF, it is not possible for rc3 to be armed if rc1 or rc2 isn't armed
             }
 
             v1 = armed_both ? rc1->read() : 0;
             v2 = armed_both ? rc2->read() : 0;
+            v3 = armed_both && rc3 != NULL ? rc3->read() : 0;
         }
         else // controls are tied, take from one channel and apply to both
         {
             if (rc1->is_armed() != false) {
-                v2 = v1 = rc1->read();
+                v3 = v2 = v1 = rc1->read();
                 armed_both = true;
             }
             else if (rc2->is_armed() != false) {
-                v2 = v1 = rc2->read();
+                v3 = v2 = v1 = rc2->read();
                 armed_both = true;
             }
             else {
-                v1 = v2 = 0;
+                v1 = v2 = v3 = 0;
                 armed_both = false;
             }
         }
         if (cfg.chan_swap) {
-            int v3 = v1; v1 = v2; v2 = v3;
+            int vs = v1; v1 = v2; v2 = vs;
         }
         v1 *= cfg.flip_1 ? -1 : 1;
         v2 *= cfg.flip_2 ? -1 : 1;
@@ -258,7 +277,12 @@ int main(void)
         int total_power = p1 + p2;
         bool use_half_voltage = false;
 
-        if (v1 == 0 && v2 == 0) // both stopped, at least one is armed, so braking will be active if needed
+        if (cfg.voltage_split_mode == VSPLITMODE_DIRECTPWM)
+        {
+            // this needs to be the first if statement, so that it overrides everything
+            direct_pwm(v1, v2, v3, duty_max);
+        }
+        else if (v1 == 0 && v2 == 0) // both stopped, at least one is armed, so braking will be active if needed
         {
             pwm_set_all_duty_remapped(0, 0, 0);
         }
@@ -331,6 +355,59 @@ int main(void)
     }
 
     return 0;
+}
+
+void direct_pwm(int32_t v1, int32_t v2, int32_t v3, uint32_t duty_max)
+{
+    v1 = fi_map(v1, 0, THROTTLE_UNIT_RANGE, 0, duty_max, true);
+    v2 = fi_map(v2, 0, THROTTLE_UNIT_RANGE, 0, duty_max, true);
+    v3 = fi_map(v3, 0, THROTTLE_UNIT_RANGE, 0, duty_max, true);
+    complementary_pwm = true;
+
+    if (cfg.dirpwm_chancfg_1 == DIRPWM_PUSHPULL) {
+        pwm_setPWM_A();
+    }
+    else if (cfg.dirpwm_chancfg_1 == DIRPWM_HIGHONLY) {
+        pwm_setHIPWM_A();
+    }
+    else if (cfg.dirpwm_chancfg_1 == DIRPWM_OPENDRAIN) {
+        pwm_setODPWM_A();
+    }
+    else {
+        pwm_setFlt_A();
+        v1 = 0;
+    }
+    pwm_setDuty_A(v1);
+
+    if (cfg.dirpwm_chancfg_2 == DIRPWM_PUSHPULL) {
+        pwm_setPWM_B();
+    }
+    else if (cfg.dirpwm_chancfg_2 == DIRPWM_HIGHONLY) {
+        pwm_setHIPWM_B();
+    }
+    else if (cfg.dirpwm_chancfg_2 == DIRPWM_OPENDRAIN) {
+        pwm_setODPWM_B();
+    }
+    else {
+        pwm_setFlt_B();
+        v2 = 0;
+    }
+    pwm_setDuty_B(v2);
+
+    if (cfg.dirpwm_chancfg_3 == DIRPWM_PUSHPULL) {
+        pwm_setPWM_C();
+    }
+    else if (cfg.dirpwm_chancfg_3 == DIRPWM_HIGHONLY) {
+        pwm_setHIPWM_C();
+    }
+    else if (cfg.dirpwm_chancfg_3 == DIRPWM_OPENDRAIN) {
+        pwm_setODPWM_C();
+    }
+    else {
+        pwm_setFlt_C();
+        v3 = 0;
+    }
+    pwm_setDuty_C(v3);
 }
 
 #include "release_checks.h"

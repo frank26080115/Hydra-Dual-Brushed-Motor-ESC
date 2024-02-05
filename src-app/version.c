@@ -14,7 +14,7 @@
 #endif
 #endif
 
-__attribute__((section(".firmware_info")))
+__attribute__((section(".firmware_info"), used))
 const firmware_info_s firmware_info = {
     version_major  : VERSION_MAJOR,
     version_minor  : VERSION_MINOR,

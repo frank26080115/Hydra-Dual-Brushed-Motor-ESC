@@ -98,8 +98,11 @@ class Cereal_USART : public Cereal
             usart_type
         #endif
                         * _usart;
-        uint8_t _u;
+        uint8_t _u; // this always stores the usartx number no matter what `_id` is
         fifo_t* fifo_tx;
+
+        // STM32's USART perpherial exhibits a echo problem while in half-duplex mode, does not affect AT32
+        // https://github.com/frank26080115/Hydra-Dual-Brushed-Motor-ESC/issues/1
         bool fix_echo = false;
         uint32_t echo_time = 0;
 };

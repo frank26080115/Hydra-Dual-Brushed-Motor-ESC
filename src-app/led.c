@@ -2,12 +2,16 @@
 #include <stddef.h>
 #include "systick.h"
 #include "tone.h"
+#include "debug_tools.h"
 
 void led_init(void)
 {
     #ifndef DISABLE_LED
     ledhw_init();
     #endif
+
+    dbg_pintoggle_init();
+    // this happens after LED init because I'm borrowing the green and blue LED pins
 }
 
 #include "led_blink_patterns.h"

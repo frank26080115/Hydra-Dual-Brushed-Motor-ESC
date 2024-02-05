@@ -12,9 +12,10 @@ extern "C" {
 
 enum
 {
-    VSPLITMODE_HALF_VOLTAGE,
     VSPLITMODE_BOOST_ALWAYS,
+    VSPLITMODE_HALF_VOLTAGE,
     VSPLITMODE_BOOST_FORWARD,
+    VSPLITMODE_DIRECTPWM,
     VSPLITMODE_END,
 };
 
@@ -26,6 +27,14 @@ enum
     INPUTMODE_CRSF_SWCLK, // PA14
 
     // TODO: support SBUS and IBUS
+};
+
+enum
+{
+    DIRPWM_UNCONFIGURED, // float
+    DIRPWM_PUSHPULL,
+    DIRPWM_HIGHONLY,
+    DIRPWM_OPENDRAIN,
 };
 
 #define EEPROM_chksum_t uint8_t
@@ -57,12 +66,12 @@ typedef struct
     uint32_t voltage_divider;  // default uses target hardware definition
     uint32_t current_offset;   // default uses target hardware definition
     uint32_t current_scale;    // default uses target hardware definition
-    uint16_t adc_filter;       // 0 to 1000, 100 meaning 10% of new-value and 90% of old-value
+    uint16_t adc_filter;       // 0 to 100, 10 meaning 10% of new-value and 90% of old-value
 
     // CRSF channel selection
     uint8_t channel_1;
     uint8_t channel_2;
-    uint8_t channel_mode;
+    uint8_t channel_mode; // used for either setting the volt-split mode during run-time, or used as the 3rd channel for direct-PWM mode
     // use 0 if not used
 
     // RC signal calibration, units are microseconds
@@ -89,13 +98,18 @@ typedef struct
     int32_t currlim_ki;
     int32_t currlim_kd;
 
+    // direct-PWM mode channel configuration
+    uint8_t dirpwm_chancfg_1;
+    uint8_t dirpwm_chancfg_2;
+    uint8_t dirpwm_chancfg_3;
+
     uint32_t useless; // just a test pattern that can be written and used to change the chksum
 
     EEPROM_chksum_t chksum;
 
     // any data after the checksum can still be saved but won't be protected
 
-    uint8_t tone_volume;
+    uint8_t tone_volume; // placed here because not all ESCs support tone generation
 
 } __attribute__((packed)) __attribute__((aligned(4)))
 EEPROM_data_t;

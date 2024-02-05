@@ -134,7 +134,7 @@ void Cereal_USART::init(uint8_t id, uint32_t baud, bool halfdup, bool swap, bool
     }
 
     #if defined(STMICRO)
-    fix_echo |= halfdup;
+    fix_echo |= halfdup; // STM32's USART perpherial exhibits a echo problem while in half-duplex mode, does not affect AT32, https://github.com/frank26080115/Hydra-Dual-Brushed-Motor-ESC/issues/1
     #endif
 
     LL_USART_Enable(_usart);
@@ -147,8 +147,10 @@ void Cereal_USART::init(uint8_t id, uint32_t baud, bool halfdup, bool swap, bool
 
 void Cereal_USART::drain_echo(void)
 {
+    // STM32's USART perpherial exhibits a echo problem while in half-duplex mode, does not affect AT32
+    // https://github.com/frank26080115/Hydra-Dual-Brushed-Motor-ESC/issues/1
     if (fix_echo && echo_time != 0) {
-        reset_buffer();
+        reset_buffer(); // this disables RX for a brief time after any transmission
         if ((millis() - echo_time) >= 200) {
             echo_time = 0;
         }

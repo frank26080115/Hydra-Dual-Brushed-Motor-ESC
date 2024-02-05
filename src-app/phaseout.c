@@ -11,15 +11,15 @@ enum
     PWMPINSTATE_LOW,
     PWMPINSTATE_PWM,
     PWMPINSTATE_FLT,
+    PWMPINSTATE_PWMOD,
+    PWMPINSTATE_PWMPUSH,
 };
 
 bool braking;
 bool complementary_pwm;
 static uint8_t phase_remap = 0;
 static bool load_balance = false;
-#ifdef DEBUG_PRINT
-static uint16_t phase_vals[3];
-#endif
+static bool open_drain = false;
 
 static uint8_t all_pin_states;
 
@@ -47,6 +47,22 @@ void pwm_all_pwm()
     pwm_setPWM_B();
     pwm_setPWM_C();
     all_pin_states = PWMPINSTATE_PWM;
+}
+
+void pwm_all_pwmod()
+{
+    pwm_setODPWM_A();
+    pwm_setODPWM_B();
+    pwm_setODPWM_C();
+    all_pin_states = PWMPINSTATE_PWMOD;
+}
+
+void pwm_all_pwmpush()
+{
+    pwm_setHIPWM_A();
+    pwm_setHIPWM_B();
+    pwm_setHIPWM_C();
+    all_pin_states = PWMPINSTATE_PWMPUSH;
 }
 
 void pwm_full_brake()
@@ -89,7 +105,7 @@ void pwm_set_all_duty(uint16_t a, uint16_t b, uint16_t c)
 
 void pwm_set_all_duty_remapped(uint16_t a, uint16_t b, uint16_t c)
 {
-    if (load_balance)
+    if (load_balance && open_drain == false)
     {
         // tone down the power if one of the common-shared MOSFETs will take more power than what any of the other MOSFETs could possibly ever take
 
@@ -126,19 +142,13 @@ void pwm_set_all_duty_remapped(uint16_t a, uint16_t b, uint16_t c)
         }
     }
 
-    if (braking && a == b && a == c)
+    if (braking && open_drain == false && a == b && a == c)
     {
         // math calculated stop, so actually feed no voltage
         a = 0;
         b = 0;
         c = 0;
     }
-
-    #ifdef DEBUG_PRINT
-    phase_vals[0] = a;
-    phase_vals[1] = b;
-    phase_vals[2] = c;
-    #endif
 
     switch (phase_remap)
     {
@@ -178,7 +188,7 @@ void pwm_set_braking(bool x)
 #ifdef DEBUG_PRINT
 
 void pwm_debug_report(void) {
-    dbg_printf("%u, %u, %u, ", phase_vals[0], phase_vals[1], phase_vals[2]);
+    dbg_printf("%u, %u, %u, ", pwm_getDuty_A(), pwm_getDuty_B(), pwm_getDuty_C());
 }
 
 #endif

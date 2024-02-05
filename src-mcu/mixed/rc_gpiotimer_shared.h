@@ -157,16 +157,18 @@ EXINT15_4_IRQHandler
                     , (bool*)&new_flag, (bool*)&armed
                 );
             }
-            //else
-            //{
-            //    rc_register_bad_pulse((uint8_t*)&good_pulse_cnt, (uint8_t*)&bad_pulse_cnt, (uint32_t*)&arm_pulse_cnt);
-            //}
-            // false pulses happen too frequently for arming to be effective
+            #if 0 // false pulses happen too frequently for arming to be effective, https://github.com/frank26080115/Hydra-Dual-Brushed-Motor-ESC/issues/2
+            else
+            {
+                rc_register_bad_pulse((uint8_t*)&good_pulse_cnt, (uint8_t*)&bad_pulse_cnt, (uint32_t*)&arm_pulse_cnt);
+            }
+            #endif
         }
         was_high = false;
         #if defined(USE_LED_STRIP) && defined(MCU_AT421)
+        // doing this here is safe because we have very guaranteed non-busy times
         WS2812_onIrq();
-        WS2812_sendOccured = false;
+        WS2812_sendOccured = false; // does not need to invalidate the next pulse
         #endif
     }
     #if defined(MCU_F051) || defined(MCU_AT421)
@@ -211,10 +213,12 @@ TMR6_GLOBAL_IRQHandler
         LL_TIM_ClearFlag_UPDATE(rc_tim);
         if (overflow_cnt < 8) {
             overflow_cnt++;
-            //arm_pulse_cnt = 0;
-            // overflow happens too frequently for arming to be reliable
+            #if 0 // overflow happens too frequently for arming to be reliable, https://github.com/frank26080115/Hydra-Dual-Brushed-Motor-ESC/issues/2
+            arm_pulse_cnt = 0;
+            #endif
         }
         #if defined(USE_LED_STRIP) && defined(MCU_AT421)
+        // doing this here is safe because we have very guaranteed non-busy times
         WS2812_onIrq();
         #endif
     }

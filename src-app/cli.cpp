@@ -54,9 +54,14 @@ void cli_enter(void)
 
     #if defined(MAIN_SIGNAL_PA2)
         #if defined(ARTERY)
+            // Artery chips have no echo problem on the USART peripheral
             Cereal_USART* cer = &main_cer;
             cer->init(CEREAL_ID_USART2, CLI_BAUD, true, false, false);
         #else
+            // STM32 chips have an echo problem when using half-duplex mode
+            // https://github.com/frank26080115/Hydra-Dual-Brushed-Motor-ESC/issues/1
+            // I have attempted to fix the problem but it is still not 100% reliable
+            // so I've simply defaulted to using bit-bang cereal instead
             Cereal_TimerBitbang* cer = &cli_cer;
             cer->init(CLI_BAUD);
         #endif

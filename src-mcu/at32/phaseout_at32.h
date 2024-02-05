@@ -24,6 +24,21 @@ static inline void pwm_setDuty_C(uint16_t x)
     PWMOUTTIMx->c3dt = x;
 }
 
+static inline uint16_t pwm_getDuty_A(void)
+{
+    return PWMOUTTIMx->c3dt;
+}
+
+static inline uint16_t pwm_getDuty_B(void)
+{
+    return PWMOUTTIMx->c2dt;
+}
+
+static inline uint16_t pwm_getDuty_C(void)
+{
+    return PWMOUTTIMx->c1dt;
+}
+
 #ifdef __cplusplus
 }
 #endif

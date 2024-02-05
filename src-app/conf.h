@@ -26,7 +26,7 @@
 
 #define PWM_DEFAULT_DEADTIME     50 // for the high-MOSFET's charge pump
 
-#define ADC_FILTER_DEFAULT  100     // 0 to 1000, 100 meaning 10% of new-value and 90% of old-value
+#define ADC_FILTER_DEFAULT  10      // 0 to 1000, 100 meaning 10% of new-value and 90% of old-value
 
 #define RC_INPUT_TIMEOUT    200     // this isn't really actually used much
 #define RC_INPUT_VALID_MIN  800     // criteria for a valid pulse

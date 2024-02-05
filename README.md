@@ -54,7 +54,7 @@ Other models potentially will work if they meet the following criteria:
 
  * Has the AM32 bootloader
  * Has enough exposed signal pads to support the desired input mode
- * Has the microcontroller STM32F051 or STM32G071 (and AT32F421 soon)
+ * Has the microcontroller STM32F051, STM32G071, and AT32F421
 
 [Here's a full guide on using other hardware not on the list](doc/other-hardware-hacking.md)
 
@@ -91,6 +91,7 @@ There is no "arcade mode mixing" feature in this firmware, please do this from t
  * [Firmware Build Instructions](doc/build-instructions.md)
  * [Install AM32](doc/install-am32.md)
  * [Developer Commentary](doc/developer-commentary.md)
+ * [Direct-PWM Mode](doc/direct-pwm-mode.md) for directly controlling the MOSFETs, useful for remotely controlling LEDs and other loads
 
 # This still seems expensive
 

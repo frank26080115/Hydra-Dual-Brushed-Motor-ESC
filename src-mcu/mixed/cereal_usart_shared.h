@@ -32,12 +32,13 @@ void Cereal_USART::sw_init(uint8_t id)
     if (id == CEREAL_ID_USART_CRSF)
     {
         #if defined(MAIN_SIGNAL_PA2)
+        // the main loop should never run the initialize function without first providing a guess
         if (crsf_inputGuess == 1)
         {
             _usart = USART1;
             _u = CEREAL_ID_USART1;
         }
-        else if (crsf_inputGuess == 2)
+        else // if (crsf_inputGuess == 2)
         {
             _usart = USART2;
             _u = CEREAL_ID_USART2;

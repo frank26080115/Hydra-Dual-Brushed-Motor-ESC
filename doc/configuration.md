@@ -104,7 +104,7 @@ This will cause the ESC to enter into the AM32 bootloader.
 
 | command        | default | range       | description |
 |----------------|---------|-------------|-------------|
-| `vsplitmode  ` | 0       | 0 - 2       | voltage splitting mode <br /> 0 = half voltage <br  /> 1 = boosted always <br /> 2 = boosted while not turning |
+| `vsplitmode  ` | 0       | 0 - 2       | voltage splitting mode <br /> 0 = boosted almost always <br  /> 1 = half voltage <br /> 2 = boosted while not turning |
 | `loadbal     ` | 0       | 0 or 1      | lowers load on common-shared MOSFET |
 | `inputmode   ` | 0       | 0 - 3       | 0 = RC PWM pulse input <br /> 1 = CRSF input <br /> 2 = RC PWM input through SWCLK <br /> 3 = CRSF input through SWCLK |
 | `phasemap    ` | 1       | 1 - 3       | selects which one of the three phases is used as the common-shared phase |  
@@ -130,10 +130,28 @@ This will cause the ESC to enter into the AM32 bootloader.
 | `voltdiv     ` | ????    | 0 - uint32  | hardware voltage divider adjustment <br /> default is dependant of hardware, do not adjust if you don't need to |
 | `curroffset  ` | ????    | 0 - uint32  | hardware current sensor offset adjustment <br /> default is dependant of hardware, do not adjust if you don't need to |
 | `currscale   ` | ????    | 0 - uint32  | hardware current sensor scaling adjustment <br /> default is dependant of hardware, do not adjust if you don't need to |
-| `adcfilter   ` | 100     | 1 - 1000    | analog signal low-pass filtering constant, for avoiding noisy sensor measurements <br /> low value means strong filtering, slow changes <br /> high value means weak filtering, fast changes
+| `adcfilter   ` | 10      | 1 - 100     | analog signal low-pass filtering constant, for avoiding noisy sensor measurements <br /> low value means strong filtering, slow changes <br /> high value means weak filtering, fast changes <br /> 0 and 100 both mean "disable filter" |
 | `curlimkp    ` | 400     | sint32      | PID constant P for the current limiting feature <br /> do not adjust |
 | `curlimki    ` | 0       | sint32      | PID constant I for the current limiting feature <br /> do not adjust |
 | `curlimkd    ` | 1000    | sint32      | PID constant D for the current limiting feature <br /> do not adjust |
+
+There are other items that are not always used, they are described in other usage guides.
+
+## Voltage Boosting During Runtime
+
+If you use the CRSF input mode, then you can configure a switch on your RC radio transmitter to change the voltage-splitting-mode live. The configuration item `vsplitmode` will not be used, and the switch will determine what voltage-splitting-mode you are operating in.
+
+This means you can be in the very linear (easy to use) half-voltage mode most of the time, but hit a button and have extra pushing power for your robot.
+
+To do this, simply configure the item `channel_mode` to the CRSF channel the switch is mapped to.
+
+The switch channel output value maps to the voltage-split-mode according to this table
+
+| switch value <br /> in microseconds | voltage split mode |
+|-------------------------------------|--------------------|
+| < 1333                              | boosted almost always |
+| 1334 to 1666                        | half-voltage       |
+| 1667 >                              | boosted while not turning |
 
 # Advanced Commands
 
@@ -157,12 +175,10 @@ The test can be stopped at any time by entering keystrokes into the serial termi
 
 During the test, sensor values will be displayed, which can help with finding current sensor values while running a motor.
 
-I wrote another guide on how to use the `testpwm` function for checking phase mapping, and for calibrating the current sensor. [Please see this guide](other-hardware-hacking.md)
+I wrote another guide on how to use the `testpwm` function for checking phase mapping. [Please see this guide](other-hardware-hacking.md)
 
 ## Debugging Hardware
 
 The command is `hwdebug`, using it will toggle ON or OFF sensor value output to the serial terminal.
 
-This is useful for tuning the voltage limit and voltage divider value.
-
-I wrote another guide on how to use the `hwdebug` function for calibrating sensors. [Please see this guide](other-hardware-hacking.md)
+I wrote another guide on how to use the `tunevoltage` command and `tunecurrent` command for calibrating sensors. [Please see this sensor-calibration guide](sensor-calibration.md)

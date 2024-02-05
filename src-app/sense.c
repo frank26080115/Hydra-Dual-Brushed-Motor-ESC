@@ -64,7 +64,7 @@ bool sense_task(void)
 void current_limit_task(void)
 {
     static uint32_t last_time = 0;
-    if (cfg.current_limit <= 0) {
+    if (cfg.current_limit <= 0) { // user disabled the limit
         current_limit_val = 0;
         return;
     }
