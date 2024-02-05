@@ -24,7 +24,7 @@
 
 #define CRSF_BAUDRATE 420000
 
-#define PWM_DEFAULT_HEADROOM     50 // for the high-MOSFET's charge pump
+#define PWM_DEFAULT_DEADTIME     50 // for the high-MOSFET's charge pump
 
 #define ADC_FILTER_DEFAULT  100     // 0 to 1000, 100 meaning 10% of new-value and 90% of old-value
 
@@ -38,4 +38,4 @@
 #define UNDERVOLTAGE        100     // if the voltage limit is set at 3000, then 3000 is when the power starts to drop, and 2900 is when power is completly off
 
 #define TONE_DEF_VOLUME     80      // range 0 to 100
-#define PWM_TONE_RELOAD     (PWM_DEFAULT_HEADROOM * 40) // want a faster reload for tone generation
+#define PWM_TONE_RELOAD     (PWM_DEFAULT_DEADTIME * 40) // want a faster reload for tone generation

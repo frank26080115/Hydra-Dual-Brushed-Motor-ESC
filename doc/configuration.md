@@ -115,8 +115,8 @@ This will cause the ESC to enter into the AM32 bootloader.
 | `rc_mid      ` | 1500    | 800 - 2200  | RC PWM pulse middle value, in microseconds, does not affect CRSF |
 | `rc_range    ` | 500     | 0 - 1000    | RC PWM pulse range, 500 means 1000 to 2000, does not affect CRSF |
 | `rc_deadzone ` | 10      | 0 - uint16  | RC PWM pusle deadzone around the center <br /> used if the signal is noisy <br /> unit is in microseconds <br /> does also apply to CRSF |
-| `pwm_reload  ` | ????    | 0 - 65535   | PWM generator reload value, controls the PWM frequency <br /> Do not modify <br /> lower value = higher frequency
-| `pwm_headroom` | 50      | 0 - uint32  | PWM cannot be always 100% since the MOSFET drivers use a charge pump. High value means lower power for the motors, but if the value is too low then the high-side MOSFETs might stop working at full throttle. |
+| `pwm_period  ` | ????    | 0 - 65535   | PWM period, generator reload value, controls the PWM frequency <br /> unit is in clock ticks <br /> Do not modify <br /> lower value = higher frequency
+| `pwm_deadtime` | 50      | 0 - uint32  | PWM cannot be always 100% since the MOSFET drivers use a charge pump. High value means lower power for the motors, but if the value is too low then the high-side MOSFETs might stop working at full throttle. |
 | `braking     ` | 1       | 0 or 1      | If true, enables complementry PWM and never floats the output pins. If false, disables complementry PWM and floats the output pins if throttle is 0 |
 | `chanswap    ` | 0       | 0 or 1      | swaps the input channels |
 | `flip1       ` | 0       | 0 or 1      | flips (reverse) the 1st input channel |
@@ -125,7 +125,7 @@ This will cause the ESC to enter into the AM32 bootloader.
 | `armdur      ` | 100     | 0 - uint32  | arming duration required, the number of valid arming pulses (zero throttle) required before becoming armed <br /> setting 0 means **always armed** |
 | `disarmtime  ` | 3000    | 0 - uint32       | number of milliseconds of signal loss before going into disarmed state <br /> setting 0 means **never** |
 | `templim     ` | 0       | 0 - 255     | temperature limit in degrees-Celcius <br /> setting 0 means limit disabled |
-| `currlim     ` | 0       | 0 - 255     | current limit in amps <br /> setting 0 means limit disabled |
+| `currlim     ` | 0       | 0 - 255     | current limit in milliamps <br /> setting 0 means limit disabled |
 | `voltlim     ` | 0       | 0 - 65535   | low battery voltage limit in millivolts <br /> setting 0 means limit disabled |
 | `voltdiv     ` | ????    | 0 - uint32  | hardware voltage divider adjustment <br /> default is dependant of hardware, do not adjust if you don't need to |
 | `curroffset  ` | ????    | 0 - uint32  | hardware current sensor offset adjustment <br /> default is dependant of hardware, do not adjust if you don't need to |

@@ -87,9 +87,9 @@ void Cereal_USART::sw_init(uint8_t id)
         fifo_tx = &fifo_tx_1;
     }
     else if (_u == CEREAL_ID_USART2) {
-        fifo_init(&fifo_rx_2, cer_buff_1, CEREAL_BUFFER_SIZE);
+        fifo_init(&fifo_rx_2, cer_buff_3, CEREAL_BUFFER_SIZE);
         fifo_rx = &fifo_rx_2;
-        fifo_init(&fifo_tx_2, cer_buff_2, CEREAL_BUFFER_SIZE);
+        fifo_init(&fifo_tx_2, cer_buff_4, CEREAL_BUFFER_SIZE);
         fifo_tx = &fifo_tx_2;
     }
 }
@@ -152,6 +152,7 @@ void Cereal_USART::write(uint8_t x)
     if (x == '\n') {
         flush();
     }
+    echo_time = millis();
 }
 
 void cereal_dmaRestart(void)
@@ -194,6 +195,12 @@ void USARTx_IRQHandler(uint8_t _u, USART_TypeDef* usart, fifo_t* fifo_rx, fifo_t
             uint8_t x = fifo_pop(fifo_tx);
             LL_USART_TransmitData8(usart, x);
         }
+        #if defined(STMICRO)
+        else
+        {
+            LL_USART_EnableDirectionRx(usart);
+        }
+        #endif
     }
     if (LL_USART_IsActiveFlag_IDLE(usart))
     {

@@ -83,8 +83,13 @@ bool adc_task()
         start_again = true;
 
         adc_raw_temperature = adc_buff[2];
-        adc_raw_voltage     = adc_buff[1] / 2;
+        #ifdef PA6_VOLTAGE
+        adc_raw_voltage     = adc_buff[1];
         adc_raw_current     = adc_buff[0];
+        #else
+        adc_raw_voltage     = adc_buff[0];
+        adc_raw_current     = adc_buff[1];
+        #endif
         ret = true;
     }
     if (start_again)

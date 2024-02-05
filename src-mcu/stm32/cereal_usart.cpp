@@ -133,10 +133,72 @@ void Cereal_USART::init(uint8_t id, uint32_t baud, bool halfdup, bool swap, bool
         cereal_dmaRestart();
     }
 
+    #if defined(STMICRO)
+    fix_echo |= halfdup;
+    #endif
+
     LL_USART_Enable(_usart);
 
     IRQn_Type irqn = _u == CEREAL_ID_USART2 ? USART2_IRQn : USART1_IRQn;
 
     NVIC_SetPriority(irqn, 1);
     NVIC_EnableIRQ(irqn);
+}
+
+void Cereal_USART::drain_echo(void)
+{
+    if (fix_echo && echo_time != 0) {
+        reset_buffer();
+        if ((millis() - echo_time) >= 200) {
+            echo_time = 0;
+        }
+    }
+}
+
+int16_t Cereal_USART::read(void)
+{
+    drain_echo();
+    return Cereal::read();
+}
+
+int16_t Cereal_USART::peek(void)
+{
+    drain_echo();
+    return Cereal::peek();
+}
+
+int16_t Cereal_USART::peekAt(int16_t i)
+{
+    drain_echo();
+    return Cereal::peekAt(i);
+}
+
+int16_t Cereal_USART::peekTail(void)
+{
+    drain_echo();
+    return Cereal::peekTail();
+}
+
+int16_t Cereal_USART::consume(uint16_t x)
+{
+    drain_echo();
+    return Cereal::consume(x);
+}
+
+int Cereal_USART::available(void)
+{
+    drain_echo();
+    return Cereal::available();
+}
+
+int Cereal_USART::read(uint8_t* buf, int len)
+{
+    drain_echo();
+    return Cereal::read(buf, len);
+}
+
+bool Cereal_USART::popUntil(uint8_t x)
+{
+    drain_echo();
+    return Cereal::popUntil(x);
 }

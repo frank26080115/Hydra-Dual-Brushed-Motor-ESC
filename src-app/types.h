@@ -71,8 +71,8 @@ typedef struct
     uint16_t rc_deadzone;  // does apply to CRSF data
 
     // driver PWM options
-    uint32_t pwm_reload;
-    uint32_t pwm_headroom;
+    uint32_t pwm_period;
+    uint32_t pwm_deadtime;
 
     bool braking;
     bool chan_swap;

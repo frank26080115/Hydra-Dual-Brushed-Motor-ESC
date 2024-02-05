@@ -1821,7 +1821,7 @@
     #define UTILITY_TIMER              TIM17
     #define COM_TIMER                  TIM14
     #define TIM1_AUTORELOAD            1999
-    #define PWM_DEFAULT_AUTORELOAD     TIM1_AUTORELOAD
+    #define PWM_DEFAULT_PERIOD         TIM1_AUTORELOAD
     #define APPLICATION_ADDRESS        0x08001000
     #define MAIN_COMP                  COMP1
     #define EXTI_LINE                  LL_EXTI_LINE_21
@@ -1908,7 +1908,7 @@
     #define UTILITY_TIMER           TIM17
     #define COM_TIMER               TIM14
     #define TIM1_AUTORELOAD         2667
-    #define PWM_DEFAULT_AUTORELOAD  TIM1_AUTORELOAD
+    #define PWM_DEFAULT_PERIOD      TIM1_AUTORELOAD
     #define APPLICATION_ADDRESS     0x08001000
     #define MAIN_COMP               COMP2
     #define EXTI_LINE               LL_EXTI_LINE_18
@@ -1970,7 +1970,7 @@
     #define UTILITY_TIMER           TIMER16
     #define COM_TIMER               TIMER15
     #define TIM1_AUTORELOAD         3000
-    #define PWM_DEFAULT_AUTORELOAD  TIM1_AUTORELOAD
+    #define PWM_DEFAULT_PERIOD      TIM1_AUTORELOAD
     #define APPLICATION_ADDRESS     0x08001000
     #define EXTI_LINE   EXTI_21
     #define TARGET_MIN_BEMF_COUNTS  4
@@ -1987,7 +1987,7 @@
     #define UTILITY_TIMER            TMR17
     #define COM_TIMER                TMR16
     #define TIM1_AUTORELOAD          5000
-    #define PWM_DEFAULT_AUTORELOAD   TIM1_AUTORELOAD
+    #define PWM_DEFAULT_PERIOD       TIM1_AUTORELOAD
     #define APPLICATION_ADDRESS      0x08001000
     #define EXTI_LINE                EXINT_LINE_21
     #define TARGET_MIN_BEMF_COUNTS   12
@@ -2037,7 +2037,7 @@
     #define UTILITY_TIMER            TMR10
     #define COM_TIMER                TMR11
     #define TIM1_AUTORELOAD          6000
-    #define PWM_DEFAULT_AUTORELOAD   TIM1_AUTORELOAD
+    #define PWM_DEFAULT_PERIOD       TIM1_AUTORELOAD
     #define APPLICATION_ADDRESS      0x08001000
     #define EXTI_LINE                EXINT_LINE_19
     #define TARGET_MIN_BEMF_COUNTS   8

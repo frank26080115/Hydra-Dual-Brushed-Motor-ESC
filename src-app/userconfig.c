@@ -47,8 +47,8 @@ const EEPROM_data_t default_eeprom __attribute__((aligned(4))) = {
     .rc_range           = 500,
     .rc_deadzone        = 10,
 
-    .pwm_reload         = PWM_DEFAULT_AUTORELOAD,
-    .pwm_headroom       = PWM_DEFAULT_HEADROOM,
+    .pwm_period         = PWM_DEFAULT_PERIOD,
+    .pwm_deadtime       = PWM_DEFAULT_DEADTIME,
 
     .braking            = true,
     .chan_swap          = false,
@@ -106,8 +106,8 @@ const EEPROM_item_t cfg_items[] __attribute__((aligned(4))) = {
     DCLR_ITM("rc_mid"       , rc_mid            ),
     DCLR_ITM("rc_range"     , rc_range          ),
     DCLR_ITM("rc_deadzone"  , rc_deadzone       ),
-    DCLR_ITM("pwm_reload"   , pwm_reload        ),
-    DCLR_ITM("pwm_headroom" , pwm_headroom      ),
+    DCLR_ITM("pwm_period"   , pwm_period        ),
+    DCLR_ITM("pwm_deadtime" , pwm_deadtime      ),
     DCLR_ITM("braking"      , braking           ),
     DCLR_ITM("chanswap"     , chan_swap         ),
     DCLR_ITM("flip1"        , flip_1            ),
@@ -239,7 +239,8 @@ void eeprom_mark_dirty(void)
 
 extern uint32_t arm_pulses_required;
 extern uint32_t disarm_timeout;
-extern void pwm_set_reload(uint32_t);
+extern void pwm_set_period(uint32_t);
+extern void pwm_set_deadtime(uint32_t);
 extern void pwm_set_remap(uint8_t);
 extern void pwm_set_loadbalance(bool);
 extern void pwm_set_braking(bool);
@@ -252,7 +253,8 @@ void load_runtime_configs(void)
     arm_pulses_required = cfg.arm_duration;
     disarm_timeout = cfg.disarm_timeout;
     pwm_set_braking(cfg.braking);
-    pwm_set_reload(cfg.pwm_reload);
+    pwm_set_period(cfg.pwm_period);
+    pwm_set_deadtime(cfg.pwm_deadtime);
     pwm_set_remap(cfg.phase_map);
     pwm_set_loadbalance(cfg.load_balance);
 }

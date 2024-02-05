@@ -35,7 +35,7 @@ void tone_start(uint8_t freq_multi, uint32_t duration, uint8_t volume)
         volume = TONE_DEF_VOLUME;
     }
 
-    tone_volume = fi_map(volume, 0, 100, 0, PWM_TONE_RELOAD - PWM_DEFAULT_HEADROOM, true);
+    tone_volume = fi_map(volume, 0, 100, 0, PWM_TONE_RELOAD, true);
     tone_active = tone_volume > 0 ? 1 : 0;
     if (tone_active == 0) {
         tone_duration = 0;
@@ -48,7 +48,7 @@ void tone_start(uint8_t freq_multi, uint32_t duration, uint8_t volume)
         tone_freq_multi = freq_multi <= 0 ? 1 : freq_multi;
         pwm_set_braking(true);
         pwm_set_loadbalance(false);
-        pwm_set_reload(PWM_TONE_RELOAD);
+        pwm_set_period(PWM_TONE_RELOAD);
     }
     SysTick_Config(SystemCoreClock / (1000 * tone_freq_multi));
     systick_cnt = start_time * tone_freq_multi; // make sure the rest of the application still has a normal system time
@@ -70,7 +70,7 @@ bool tone_isBusy(void)
 
 void tone_setVolume(uint8_t x)
 {
-    tone_volume = fi_map(x, 0, 100, 0, PWM_TONE_RELOAD - PWM_DEFAULT_HEADROOM, true);
+    tone_volume = fi_map(x, 0, 100, 0, PWM_TONE_RELOAD, true);
 }
 
 #endif

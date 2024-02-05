@@ -93,7 +93,7 @@ void pwm_set_all_duty_remapped(uint16_t a, uint16_t b, uint16_t c)
     {
         // tone down the power if one of the common-shared MOSFETs will take more power than what any of the other MOSFETs could possibly ever take
 
-        uint16_t max_duty = cfg.pwm_reload - cfg.pwm_headroom;
+        uint16_t max_duty = cfg.pwm_period;
         uint16_t mid_duty = (max_duty + 1) / 2;
         int p1, p2;
         if (b >= a && c >= a)

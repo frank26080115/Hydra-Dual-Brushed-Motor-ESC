@@ -16,6 +16,7 @@ extern bool adc_task(void);
 extern uint32_t sense_current;      // TODO calibrate
 extern uint32_t sense_voltage;      // millivolts
 extern uint32_t sense_temperatureC; // C
+extern uint32_t battery_voltage;
 
 extern uint16_t adc_raw_voltage;
 extern uint16_t adc_raw_current;

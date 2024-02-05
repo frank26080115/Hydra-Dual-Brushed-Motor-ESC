@@ -18,7 +18,7 @@
 
 void pwm_init()
 {
-    PWMOUTTIMx->pr  = PWM_DEFAULT_AUTORELOAD;
+    PWMOUTTIMx->pr  = PWM_DEFAULT_PERIOD;
     PWMOUTTIMx->div = 0;
     PWMOUTTIMx->cm1 = 0x6868;   // Channel 1 and 2 in PWM output mode
     PWMOUTTIMx->cm2 = 0x68;     // channel 3 in PWM output mode
@@ -67,9 +67,14 @@ void pwm_init()
     PWMOUTTIMx->swevt |= TMR_OVERFLOW_SWTRIG;
 }
 
-void pwm_set_reload(uint32_t x)
+void pwm_set_period(uint32_t x)
 {
     PWMOUTTIMx->pr = x;
+}
+
+void pwm_set_deadtime(uint32_t x)
+{
+    PWMOUTTIMx->brk_bit.dtc = x;
 }
 
 #include "stm32_at32_compat.h"

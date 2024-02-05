@@ -25,7 +25,7 @@ void pwm_init()
 
     TIM_InitStruct.Prescaler          = 0;
     TIM_InitStruct.CounterMode        = LL_TIM_COUNTERMODE_UP;
-    TIM_InitStruct.Autoreload         = PWM_DEFAULT_AUTORELOAD;
+    TIM_InitStruct.Autoreload         = PWM_DEFAULT_PERIOD;
     TIM_InitStruct.ClockDivision      = LL_TIM_CLOCKDIVISION_DIV1;
     TIM_InitStruct.RepetitionCounter  = 0;
     LL_TIM_Init(PWMOUTTIMx, &TIM_InitStruct);
@@ -232,9 +232,14 @@ void pwm_init()
     LL_TIM_GenerateEvent_UPDATE(TIM1);
 }
 
-void pwm_set_reload(uint32_t x)
+void pwm_set_period(uint32_t x)
 {
     LL_TIM_SetAutoReload(PWMOUTTIMx, x);
+}
+
+void pwm_set_deadtime(uint32_t x)
+{
+    LL_TIM_OC_SetDeadTime(PWMOUTTIMx, x);
 }
 
 #ifdef PWM_NEED_IRQ

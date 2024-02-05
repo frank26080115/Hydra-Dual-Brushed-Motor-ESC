@@ -39,6 +39,7 @@ void hw_test(void)
     //hwtest_gpio(GPIOA, LL_GPIO_PIN_8 | LL_GPIO_PIN_9 | LL_GPIO_PIN_10);
     //hwtest_led();
     //hwtest_pwm();
+    //hwtest_pwm_max();
     //hwtest_phases();
     //hwtest_rc1();
     //hwtest_rc2();
@@ -46,10 +47,10 @@ void hw_test(void)
     //hwtest_rc_crsf();
     //hwtest_bbcer();
     //hwtest_eeprom();
-    //hwtest_cli();
+    hwtest_cli();
     //hwtest_tone();
     //hwtest_rc_led_crsf();
-    hwtest_rc_tone_crsf();
+    //hwtest_rc_tone_crsf();
 }
 #endif
 
@@ -122,7 +123,7 @@ void hwtest_pwm(void)
         #ifdef DEVELOPMENT_BOARD
         if (dbg_read_btn())
         {
-            uint32_t x = (millis() / 5) % (PWM_DEFAULT_AUTORELOAD - (PWM_DEFAULT_HEADROOM * 2));
+            uint32_t x = (millis() / 5) % (PWM_DEFAULT_PERIOD);
             pwm_set_all_duty_remapped(x, x + 1, x + 2);
         }
         else
@@ -138,7 +139,7 @@ void hwtest_pwm(void)
         }
         else
         {
-            uint32_t lim = (PWM_DEFAULT_AUTORELOAD - (PWM_DEFAULT_HEADROOM * 2));
+            uint32_t lim = PWM_DEFAULT_PERIOD;
             uint32_t x = tnow10;
             pwm_set_all_duty_remapped(x % lim, (x + (lim / 3)) % lim, (x + ((lim * 2) / 3)) % lim);
         }
@@ -146,29 +147,60 @@ void hwtest_pwm(void)
     }
 }
 
-void hwtest_adc(void)
+void hwtest_pwm_max(void)
 {
-    #ifdef DEVELOPMENT_BOARD
-    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false);
-    #endif
-    sense_init();
-    uint32_t t = millis();
+    dbg_button_init();
+    pwm_init();
+    dbg_switch_to_pwm();
+    pwm_all_flt();
+    pwm_set_braking(true);
+    pwm_all_pwm();
+    pwm_set_period(PWM_DEFAULT_PERIOD);
+    pwm_set_deadtime(PWM_DEFAULT_DEADTIME);
+    pwm_set_remap(1);
+    pwm_set_loadbalance(false);
     while (true)
     {
-        sense_task();
-        if ((millis() - t) >= 200)
+        #ifdef DEVELOPMENT_BOARD
+        if (dbg_read_btn())
         {
-            t = millis();
-            dbg_printf("[%u]  v = %u     c = %u    t = %u\r\n", t, adc_raw_voltage, adc_raw_current, adc_raw_temperature);
+            pwm_set_all_duty_remapped(PWM_DEFAULT_PERIOD, PWM_DEFAULT_PERIOD - PWM_DEFAULT_DEADTIME, PWM_DEFAULT_PERIOD - PWM_DEFAULT_DEADTIME - PWM_DEFAULT_DEADTIME);
         }
+        else
+        {
+            pwm_set_all_duty_remapped(0, 0, 0);
+        }
+        #else
+        uint32_t tnow = millis();
+        uint32_t tnow10 = tnow % 20000;
+        if (tnow10 < 3000)
+        {
+            pwm_set_all_duty_remapped(0, 0, 0);
+        }
+        else
+        {
+            pwm_set_all_duty_remapped(PWM_DEFAULT_PERIOD, PWM_DEFAULT_PERIOD - PWM_DEFAULT_DEADTIME, PWM_DEFAULT_PERIOD - PWM_DEFAULT_DEADTIME - PWM_DEFAULT_DEADTIME);
+        }
+        #endif
     }
 }
 
-void hwtest_sense(void)
+void hwtest_adc(void)
 {
+    Cereal* cer;
     #ifdef DEVELOPMENT_BOARD
     dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false);
+    cer = &dbg_cer;
+    #elif defined(ENABLE_COMPILE_CLI)
+    #if defined(MAIN_SIGNAL_PA2)
+    main_cer.init(CEREAL_ID_USART2, CLI_BAUD, false, false);
+    cer = &main_cer;
+    #else
+    cli_cer.init(CLI_BAUD);
+    cer = &cli_cer;
     #endif
+    #endif
+
     eeprom_load_defaults();
     sense_init();
     uint32_t t = millis();
@@ -178,7 +210,41 @@ void hwtest_sense(void)
         if ((millis() - t) >= 200)
         {
             t = millis();
-            dbg_printf("[%u]  v = %u     c = %u    t = %u\r\n", t, sense_voltage, sense_current, sense_temperatureC);
+            cer->printf("[%lu]  v = %u / %lu    c = %u / %lu    t = %u / %lu\r\n", t
+                , adc_raw_voltage, sense_voltage
+                , adc_raw_current, sense_current
+                , adc_raw_temperature, sense_temperatureC
+                );
+        }
+    }
+}
+
+void hwtest_sense(void)
+{
+    Cereal* cer;
+    #ifdef DEVELOPMENT_BOARD
+    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false);
+    cer = &dbg_cer;
+    #elif defined(ENABLE_COMPILE_CLI)
+    #if defined(MAIN_SIGNAL_PA2)
+    main_cer.init(CEREAL_ID_USART2, CLI_BAUD, false, false);
+    cer = &main_cer;
+    #else
+    cli_cer.init(CLI_BAUD);
+    cer = &cli_cer;
+    #endif
+    #endif
+
+    eeprom_load_defaults();
+    sense_init();
+    uint32_t t = millis();
+    while (true)
+    {
+        sense_task();
+        if ((millis() - t) >= 200)
+        {
+            t = millis();
+            cer->printf("[%lu]  v = %lu     c = %lu    t = %lu\r\n", t, sense_voltage, sense_current, sense_temperatureC);
         }
     }
 }
@@ -612,7 +678,7 @@ void hwtest_phases(void)
     pwm_set_loadbalance(false);
     while (true)
     {
-        uint32_t x = PWM_DEFAULT_AUTORELOAD - PWM_DEFAULT_HEADROOM;
+        uint32_t x = PWM_DEFAULT_PERIOD;
         pwm_set_all_duty_remapped(x, x / 2, x / 4);
     }
 }

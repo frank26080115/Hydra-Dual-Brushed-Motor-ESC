@@ -220,11 +220,11 @@ int main(void)
 
         // impose temperature limiting if desired
         if (cfg.temperature_limit > 0 && sense_temperatureC > cfg.temperature_limit) {
-            duty_max = fi_map(sense_temperatureC, cfg.temperature_limit, cfg.temperature_limit + TEMPERATURE_OVER, cfg.pwm_reload / 2, 1, true);
+            duty_max = fi_map(sense_temperatureC, cfg.temperature_limit, cfg.temperature_limit + TEMPERATURE_OVER, cfg.pwm_period / 2, 1, true);
             limit_reached = true;
         }
         else {
-            duty_max = cfg.pwm_reload - cfg.pwm_headroom;
+            duty_max = cfg.pwm_period;
         }
 
         // impose current limiting if desired

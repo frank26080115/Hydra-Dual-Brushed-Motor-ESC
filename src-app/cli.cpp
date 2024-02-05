@@ -32,25 +32,8 @@ extern RcChannel* rc1;
 extern RcChannel* rc2;
 #endif
 
-#if defined(STMICRO) || defined(ARTERY)
-extern Cereal_USART main_cer;
-
-#if defined(MAIN_SIGNAL_PA2)
-//
-#elif defined(MAIN_SIGNAL_PB4)
-
-#ifdef ENABLE_COMPILE_CLI
+extern Cereal_USART        main_cer;
 extern Cereal_TimerBitbang cli_cer;
-#endif
-#else
-
-#ifdef ENABLE_COMPILE_CLI
-extern Cereal_TimerBitbang cli_cer;
-#endif
-#endif
-#else
-#error unsupported
-#endif
 
 void cli_reportSensors(Cereal*);
 void cli_execute(Cereal* cer, char* str);
@@ -70,8 +53,13 @@ void cli_enter(void)
     dbg_printf("CLI entered at %u\r\n", millis());
 
     #if defined(MAIN_SIGNAL_PA2)
-    Cereal_USART* cer = &main_cer;
-    cer->init(CEREAL_ID_USART2, CLI_BAUD, false, true, false);
+        #if defined(ARTERY)
+            Cereal_USART* cer = &main_cer;
+            cer->init(CEREAL_ID_USART2, CLI_BAUD, true, false, false);
+        #else
+            Cereal_TimerBitbang* cer = &cli_cer;
+            cer->init(CLI_BAUD);
+        #endif
     #elif defined(MAIN_SIGNAL_PB4)
     Cereal_TimerBitbang* cer = &cli_cer;
     cer->init(CLI_BAUD);
@@ -264,9 +252,10 @@ void cli_execute(Cereal* cer, char* str)
             return;
         }
 
+        pwm_set_period(PWM_DEFAULT_PERIOD);
         pwm_set_braking(true);
 
-        uint16_t pwr = fi_map(cmd_args[1], 0, 100, 0, PWM_DEFAULT_AUTORELOAD - PWM_DEFAULT_HEADROOM, true);
+        uint16_t pwr = fi_map(cmd_args[1], 0, 100, 0, PWM_DEFAULT_PERIOD, true);
 
         int phase = ((cmd_args[0] - 1) % 3) + 1;
         uint32_t duration = cmd_args[2];
@@ -316,6 +305,99 @@ void cli_execute(Cereal* cer, char* str)
         pwm_set_all_duty_remapped(0, 0, 0); // end
         cer->printf("\r\ntest end, maximum detect current = %ld", max_current);
     }
+    else if (item_strcmp("tunevoltage", str))
+    {
+        uint16_t original = cfg.voltage_divider;
+        uint32_t tick = 0;
+        uint32_t tnow;
+        int16_t c;
+        while (true)
+        {
+            sense_task();
+            tnow = millis();
+            int16_t c = cer->read();
+            if (c == '\n' || c == '\r' || c == '\0' || c == 'x' || c == 's' || c == 0x08 || c == 0x1B || c == 0x18 || c == 0x7F) {
+                break;
+            }
+            switch (c)
+            {
+                case ',' : cfg.voltage_divider -=    1; break;
+                case '.' : cfg.voltage_divider +=    1; break;
+                case ';' : cfg.voltage_divider -=   10; break;
+                case '\'': cfg.voltage_divider +=   10; break;
+                case '[' : cfg.voltage_divider -=  100; break;
+                case ']' : cfg.voltage_divider +=  100; break;
+                case '-' : cfg.voltage_divider -= 1000; break;
+                case '=' : cfg.voltage_divider += 1000; break;
+                case '+' : cfg.voltage_divider += 1000; break;
+            }
+            if ((tnow - tick) >= 200) {
+                cer->printf("[%lu] raw %u , calc %lu, vdiv %lu\r\n", tnow, adc_raw_voltage, sense_voltage, cfg.voltage_divider);
+                tick = tnow;
+            }
+        }
+        cer->printf("\r\ntune session end, vdiv = %lu", cfg.voltage_divider);
+        if (c == 's') { // save
+            cer->printf(" , saving\r\n");
+            eeprom_save();
+        }
+        else {
+            cer->printf(" , not saved\r\n");
+            cfg.voltage_divider = original;
+        }
+    }
+    else if (item_strcmp("tunecurrent", str))
+    {
+        pwm_set_period(PWM_DEFAULT_PERIOD);
+        pwm_set_braking(true);
+        pwm_set_all_duty_remapped(PWM_DEFAULT_PERIOD, 0, 0);
+
+        uint16_t ori_offset = cfg.current_offset;
+        uint16_t ori_scale = cfg.current_scale;
+        uint32_t tick = 0;
+        uint32_t tnow;
+        int16_t c;
+        while (true)
+        {
+            sense_task();
+            tnow = millis();
+            int16_t c = cer->read();
+            if (c == '\n' || c == '\r' || c == '\0' || c == 'x' || c == 's' || c == 0x08 || c == 0x1B || c == 0x18 || c == 0x7F) {
+                break;
+            }
+            switch (c)
+            {
+                case ',' : cfg.current_offset -=   1; break;
+                case '.' : cfg.current_offset +=   1; break;
+                case ';' : cfg.current_offset -=  10; break;
+                case '\'': cfg.current_offset +=  10; break;
+                case '<' : cfg.current_offset -= 100; break;
+                case '>' : cfg.current_offset += 100; break;
+                case '[' : cfg.current_scale  -=   1; break;
+                case ']' : cfg.current_scale  +=   1; break;
+                case '-' : cfg.current_scale  -=  10; break;
+                case '=' : cfg.current_scale  +=  10; break;
+                case '+' : cfg.current_scale  +=  10; break;
+                case '{' : cfg.current_scale  -= 100; break;
+                case '}' : cfg.current_scale  += 100; break;
+            }
+            if ((tnow - tick) >= 200) {
+                cer->printf("[%lu] raw %u , calc %lu, offset %lu, scale %lu\r\n", tnow, adc_raw_current, sense_current, cfg.current_offset, cfg.current_scale);
+                tick = tnow;
+            }
+        }
+        cer->printf("\r\ntune session end, offset = %lu, scale = %lu", cfg.current_offset, cfg.current_scale);
+        if (c == 's') { // save
+            cer->printf(" , saving\r\n");
+            eeprom_save();
+        }
+        else {
+            cer->printf(" , not saved\r\n");
+            cfg.current_offset = ori_offset;
+            cfg.current_scale  = ori_scale;
+        }
+        pwm_set_all_duty_remapped(0, 0, 0);
+    }
     else
     {
         // none of the commands match, loop through the potential settings to see if it's something to save
@@ -328,7 +410,7 @@ void cli_execute(Cereal* cer, char* str)
         }
         else {
             // unrecognized command
-            cer->printf("\r\nERROR CMD");
+            cer->printf("\r\nERROR CMD \"%s\"", str);
             return;
         }
     }

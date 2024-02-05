@@ -7,6 +7,7 @@ extern EEPROM_data_t cfg;
 
 uint32_t sense_current = 0;
 uint32_t sense_voltage = 0;
+uint32_t battery_voltage = 0;
 uint32_t sense_temperatureC = 0;
 bool  sense_newData = false;
 uint16_t adc_raw_voltage = 0;
@@ -50,14 +51,10 @@ bool sense_task(void)
         }
         sense_temperatureC = fi_lpf(sense_temperatureC, tempC, filter_const);
 
-        uint16_t millivolts = (adc_raw_voltage * 3300 / 4095 * cfg.voltage_divider);
-        if (sense_voltage == 0) {
-            sense_voltage = millivolts;
-        }
-        sense_voltage = fi_lpf(sense_voltage, millivolts, filter_const);
+        sense_voltage = fi_lpf(sense_voltage, ((((adc_raw_voltage * 3300) / 4095) * cfg.voltage_divider) / 10), filter_const);
 
-        adc_raw_current_filtered = fi_lpf(adc_raw_current_filtered, adc_raw_current, filter_const);
-        sense_current = ((adc_raw_current_filtered * 3300 / 41) - (cfg.current_offset * 100)) / (cfg.current_scale);
+        adc_raw_current_filtered = fi_lpf(adc_raw_current_filtered, adc_raw_current * 10, filter_const);
+        sense_current = ((adc_raw_current_filtered * 3300 / 41) - (cfg.current_offset * 1000)) / (cfg.current_scale);
 
         return true;
     }
@@ -71,11 +68,12 @@ void current_limit_task(void)
         current_limit_val = 0;
         return;
     }
-    // calculations needs to happen at 1 kHz intervals
+    // calculations needs to happen at 1 kHz intervals, since the PID calculation was taken from AM32 code
     uint32_t now = millis();
     if (last_time == now) {
         return;
     }
     last_time = now;
-    current_limit_val = pid_calc(&current_pid, sense_current, cfg.current_limit * 100) / 10000;
+    current_limit_val = pid_calc(&current_pid, sense_current / 10, cfg.current_limit / 10) / 10000;
+    // AM32 used centiamp units, Hydra uses milliamps, so there's a divide by 10 here
 }

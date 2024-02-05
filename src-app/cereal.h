@@ -58,9 +58,11 @@ extern "C" {
 
 extern uint8_t cer_buff_1[CEREAL_BUFFER_SIZE];
 extern uint8_t cer_buff_2[CEREAL_BUFFER_SIZE];
+extern uint8_t cer_buff_3[CEREAL_BUFFER_SIZE];
+extern uint8_t cer_buff_4[CEREAL_BUFFER_SIZE];
 
 #if defined(ENABLE_COMPILE_CLI) || defined(DEVELOPMENT_BOARD)
-extern uint8_t cer_buff_3[CEREAL_BUFFER_SIZE];
+extern uint8_t cer_buff_5[CEREAL_BUFFER_SIZE];
 #endif
 
 #ifdef __cplusplus
@@ -78,6 +80,17 @@ class Cereal_USART : public Cereal
         virtual uint8_t* get_buffer(void);
         virtual uint32_t get_last_time(void);
         virtual bool get_idle_flag(bool clr);
+        #if defined(STMICRO)
+        virtual void drain_echo(void);
+        virtual int16_t read(void);
+        virtual int16_t peek(void);
+        virtual int16_t peekAt(int16_t);
+        virtual int16_t peekTail(void);
+        virtual int available(void);
+        virtual int read(uint8_t* buf, int len);
+        virtual bool popUntil(uint8_t x);
+        virtual int16_t consume(uint16_t);
+        #endif
     protected:
         #if defined(STMICRO)
             USART_TypeDef
@@ -87,6 +100,8 @@ class Cereal_USART : public Cereal
                         * _usart;
         uint8_t _u;
         fifo_t* fifo_tx;
+        bool fix_echo = false;
+        uint32_t echo_time = 0;
 };
 
 #ifdef ENABLE_COMPILE_CLI
