@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# to build EXE for Windows: `pyinstaller37 -F --exclude-module _bootlocale hydra-fw-tool.py`
+# to build EXE for Windows: `pyinstaller37 -F --exclude-module _bootlocale --hidden-import=pkg_resources.py2_warn hydra-fw-tool.py`
 
 import argparse
 import os, sys, time, datetime, re
@@ -729,46 +729,15 @@ def blank_progress_bar():
         print(" ", end="")
         i += 1
 
-def dialog_thread():
-    #global dialog_file
-    #try:
-    #    from pythonnet import load
-    #    load('netfx')
-    #    import clr
-    #    clr.AddReference('System.Windows.Forms')
-    #    import System.Windows.Forms as WinForms
-    #    from System.Windows.Forms import OpenFileDialog
-    #    clr.AddReference('System.Threading')
-    #    from System.Threading import Thread, ThreadStart, ApartmentState
-    #    file_dialog = OpenFileDialog()
-    #    file_dialog.Title = "Open Firmware File"
-    #    file_dialog.Filter = "HEX file|*.hex"
-    #    if file_dialog.ShowDialog() == WinForms.DialogResult.OK:
-    #        dialog_file = file_dialog.FileName
-    #except Exception as ex:
-    #    print(ex)
-    #    dialog_file = None
-    pass
-
 def try_windows_openfiledialog():
-    #global dialog_file
-    #try:
-    #    from pythonnet import load
-    #    load('netfx')
-    #    import clr
-    #    clr.AddReference('System.Windows.Forms')
-    #    import System.Windows.Forms as WinForms
-    #    from System.Windows.Forms import OpenFileDialog
-    #    clr.AddReference('System.Threading')
-    #    from System.Threading import Thread, ThreadStart, ApartmentState
-    #    thread = Thread(ThreadStart(dialog_thread))
-    #    thread.SetApartmentState(ApartmentState.STA)
-    #    thread.Start()
-    #    thread.Join()
-    #    return dialog_file
-    #except Exception as ex:
-    #    print(ex)
-    #    return None
+    try:
+        import easygui
+        x = easygui.fileopenbox(title='Select Firmware File', filetypes=["*.hex"])
+        if x is None:
+            # user explicitly cancelled, we can quit
+            sys.exit(-1)
+    except Exception as ex:
+        pass
     return None
 
 if __name__ == '__main__':
