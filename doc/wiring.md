@@ -16,7 +16,7 @@ If the behavior is not correct, then the `phasemap` can be changed through the C
 
 ## How to Find the Telemetry and SWD Signal Pads
 
-These signals will be useful later
+These signals will be useful later. This is the sort version of the guide. For [a longer guide on how to find these signals, click here.](other-hardware-hacking.md)
 
 The telemetry signal, if it exists, is typically very close to the main signal input. It might be labelled with a `T` or with a word that starts with `T`.
 

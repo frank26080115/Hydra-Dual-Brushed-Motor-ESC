@@ -23,17 +23,8 @@ RcPulse_GpioIsr  rc_pulse_2;
 CrsfChannel      crsf_1;
 CrsfChannel      crsf_2;
 Cereal_USART     main_cer;
-#if defined(MAIN_SIGNAL_PA2)
-//
-#elif defined(MAIN_SIGNAL_PB4)
 #ifdef ENABLE_COMPILE_CLI
 Cereal_TimerBitbang cli_cer;
-#endif
-#else
-//
-#ifdef ENABLE_COMPILE_CLI
-Cereal_TimerBitbang cli_cer;
-#endif
 #endif
 
 #ifdef ENABLE_COMPILE_CLI

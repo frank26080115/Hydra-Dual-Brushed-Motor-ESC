@@ -39,7 +39,7 @@ void hw_test(void)
     //hwtest_gpio(GPIOA, LL_GPIO_PIN_8 | LL_GPIO_PIN_9 | LL_GPIO_PIN_10);
     //hwtest_led();
     //hwtest_pwm();
-    //hwtest_pwm_max();
+    hwtest_pwm_max();
     //hwtest_phases();
     //hwtest_rc1();
     //hwtest_rc2();
@@ -47,7 +47,7 @@ void hw_test(void)
     //hwtest_rc_crsf();
     //hwtest_bbcer();
     //hwtest_eeprom();
-    hwtest_cli();
+    //hwtest_cli();
     //hwtest_tone();
     //hwtest_rc_led_crsf();
     //hwtest_rc_tone_crsf();

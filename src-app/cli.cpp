@@ -325,18 +325,13 @@ void cli_execute(Cereal* cer, char* str)
                 case '.' : cfg.voltage_divider +=    1; break;
                 case ';' : cfg.voltage_divider -=   10; break;
                 case '\'': cfg.voltage_divider +=   10; break;
-                case '[' : cfg.voltage_divider -=  100; break;
-                case ']' : cfg.voltage_divider +=  100; break;
-                case '-' : cfg.voltage_divider -= 1000; break;
-                case '=' : cfg.voltage_divider += 1000; break;
-                case '+' : cfg.voltage_divider += 1000; break;
             }
             if ((tnow - tick) >= 200) {
-                cer->printf("[%lu] raw %u , calc %lu, vdiv %lu\r\n", tnow, adc_raw_voltage, sense_voltage, cfg.voltage_divider);
+                cer->printf("[%lu] raw %u , calc %lu , vdiv %lu\r\n", tnow, adc_raw_voltage, sense_voltage, cfg.voltage_divider);
                 tick = tnow;
             }
         }
-        cer->printf("\r\ntune session end, vdiv = %lu", cfg.voltage_divider);
+        cer->printf("\r\ntunevoltage session end, vdiv = %lu", cfg.voltage_divider);
         if (c == 's') { // save
             cer->printf(" , saving\r\n");
             eeprom_save();
@@ -350,12 +345,13 @@ void cli_execute(Cereal* cer, char* str)
     {
         pwm_set_period(PWM_DEFAULT_PERIOD);
         pwm_set_braking(true);
-        pwm_set_all_duty_remapped(PWM_DEFAULT_PERIOD, 0, 0);
+        pwm_set_all_duty_remapped(0, 0, 0);
 
         uint16_t ori_offset = cfg.current_offset;
         uint16_t ori_scale = cfg.current_scale;
         uint32_t tick = 0;
         uint32_t tnow;
+        uint16_t pwr, pwr100;
         int16_t c;
         while (true)
         {
@@ -369,24 +365,25 @@ void cli_execute(Cereal* cer, char* str)
             {
                 case ',' : cfg.current_offset -=   1; break;
                 case '.' : cfg.current_offset +=   1; break;
-                case ';' : cfg.current_offset -=  10; break;
-                case '\'': cfg.current_offset +=  10; break;
-                case '<' : cfg.current_offset -= 100; break;
-                case '>' : cfg.current_offset += 100; break;
-                case '[' : cfg.current_scale  -=   1; break;
-                case ']' : cfg.current_scale  +=   1; break;
-                case '-' : cfg.current_scale  -=  10; break;
-                case '=' : cfg.current_scale  +=  10; break;
-                case '+' : cfg.current_scale  +=  10; break;
-                case '{' : cfg.current_scale  -= 100; break;
-                case '}' : cfg.current_scale  += 100; break;
+                case '<' : cfg.current_offset -=  10; break;
+                case '>' : cfg.current_offset +=  10; break;
+                case ';' : cfg.current_scale  -=   1; break;
+                case '\'': cfg.current_scale  +=   1; break;
+                case ':' : cfg.current_scale  -=  10; break;
+                case '"' : cfg.current_scale  +=  10; break;
+            }
+            if (c >= '0' && c <= '9') {
+                pwr    = fi_map(c, '0', '9', 0, PWM_DEFAULT_PERIOD, true);
+                pwr100 = fi_map(c, '0', '9', 0, 100               , true);
+                pwm_set_all_duty_remapped(pwr, 0, 0);
             }
             if ((tnow - tick) >= 200) {
-                cer->printf("[%lu] raw %u , calc %lu, offset %lu, scale %lu\r\n", tnow, adc_raw_current, sense_current, cfg.current_offset, cfg.current_scale);
+                cer->printf("[%lu] raw %u , calc %lu , offset %lu , scale %lu , pwr %u\r\n", tnow, adc_raw_current, sense_current, cfg.current_offset, cfg.current_scale, pwr100);
                 tick = tnow;
             }
         }
-        cer->printf("\r\ntune session end, offset = %lu, scale = %lu", cfg.current_offset, cfg.current_scale);
+        pwm_set_all_duty_remapped(0, 0, 0);
+        cer->printf("\r\ntunecurrent session end, offset = %lu, scale = %lu", cfg.current_offset, cfg.current_scale);
         if (c == 's') { // save
             cer->printf(" , saving\r\n");
             eeprom_save();
@@ -396,7 +393,6 @@ void cli_execute(Cereal* cer, char* str)
             cfg.current_offset = ori_offset;
             cfg.current_scale  = ori_scale;
         }
-        pwm_set_all_duty_remapped(0, 0, 0);
     }
     else
     {
