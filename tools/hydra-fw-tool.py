@@ -58,7 +58,7 @@ def main():
         while got_port == False:
             if len(ports) == 1:
                 print("auto detected serial port: %s" % ports[0])
-                x = input("confirm start using %s? (YES or no): " % ports[0])
+                x = input("confirm start using \"%s\"? (YES or no): " % ports[0])
                 if x.strip() == "YES":
                     got_port = True
                     args.serialport = ports[0]
