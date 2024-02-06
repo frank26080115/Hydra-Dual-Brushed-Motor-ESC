@@ -12,6 +12,10 @@ To configure the ESC, there is a command-line-interface (CLI) implemented, where
 
 (other features: current limiting, temperature limiting, low-battery limiting)
 
+# Demo Video
+
+https://github.com/frank26080115/Hydra-Dual-Brushed-Motor-ESC/assets/1427911/1d6e146a-af7b-48ce-b3be-d4855cccd53e
+
 # Principle of Operation
 
 Brushless motor ESCs have 6 MOSFETs on them to form 3 half-bridges. These drive the three windings inside a brushless motor. Each half-bridge is driven by a PWM signal, which can approximate a voltage.
