@@ -23,7 +23,7 @@ pidloop_t current_pid = {
     .output_limit   = 100000 // cannot be modified later
     // values are large, but the output will be divided later
 };
-int16_t current_limit_val = 0;
+uint16_t current_limit_duty = 0;
 
 void sense_init(void)
 {
@@ -65,7 +65,7 @@ void current_limit_task(void)
 {
     static uint32_t last_time = 0;
     if (cfg.current_limit <= 0) { // user disabled the limit
-        current_limit_val = 0;
+        current_limit_duty = 0;
         return;
     }
     // calculations needs to happen at 1 kHz intervals, since the PID calculation was taken from AM32 code
@@ -74,14 +74,14 @@ void current_limit_task(void)
         return;
     }
     last_time = now;
-    current_limit_val -= pid_calc(&current_pid, sense_current, cfg.current_limit) / 10000;
+    current_limit_duty -= pid_calc(&current_pid, sense_current, cfg.current_limit) / 10000;
 
     const int32_t duty_min = DEAD_TIME;
-    if (current_limit_val < duty_min) {
-        current_limit_val = duty_min;
+    if (current_limit_duty < duty_min) {
+        current_limit_duty = duty_min;
     }
-    else if (current_limit_val > cfg.pwm_period) {
-        current_limit_val = cfg.pwm_period;
+    else if (current_limit_duty > cfg.pwm_period) {
+        current_limit_duty = cfg.pwm_period;
     }
 }
 
@@ -92,5 +92,5 @@ void load_config_pid(void)
     current_pid.Kp    = fi_map(cfg.currlim_kp, 0, 100, 0, cfg.pwm_period / 40, false); // for a period of 2000, this gives a kp of 40, which is ideal
     current_pid.Ki    = cfg.currlim_ki;
     current_pid.Kd    = fi_map(cfg.currlim_kd, 0, 100, 0, cfg.pwm_period / 20, false); // for a period of 2000, this gives a kp of 100, which is ideal
-    current_limit_val = cfg.pwm_period;
+    current_limit_duty = cfg.pwm_period;
 }

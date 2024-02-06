@@ -24,6 +24,7 @@ void hwtest_rc_led_pwm(void);
 void hwtest_rc_led_crsf(void);
 void hwtest_rc_tone_pwm(void);
 void hwtest_rc_tone_crsf(void);
+void hwtest_simCurrentLimit(void);
 
 void hwtest_gpio(
     #if defined(STMICRO)

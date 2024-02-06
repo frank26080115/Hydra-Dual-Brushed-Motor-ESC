@@ -4,23 +4,6 @@
 
 extern bool complementary_pwm;
 
-void pwm_proportional_brake()
-{
-    LL_GPIO_SetPinMode(PHASE_A_GPIO_PORT_HIGH, PHASE_A_GPIO_HIGH, LL_GPIO_MODE_OUTPUT);
-    PHASE_A_GPIO_PORT_HIGH->HIGH_BITREG_OFF = PHASE_A_GPIO_HIGH;
-
-    LL_GPIO_SetPinMode(PHASE_B_GPIO_PORT_HIGH, PHASE_B_GPIO_HIGH, LL_GPIO_MODE_OUTPUT);
-    PHASE_B_GPIO_PORT_HIGH->HIGH_BITREG_OFF = PHASE_B_GPIO_HIGH;
-
-    LL_GPIO_SetPinMode(PHASE_C_GPIO_PORT_HIGH, PHASE_C_GPIO_HIGH, LL_GPIO_MODE_OUTPUT);
-    PHASE_C_GPIO_PORT_HIGH->HIGH_BITREG_OFF = PHASE_C_GPIO_HIGH;
-
-    // set low channel to PWM, duty cycle will now control braking
-    LL_GPIO_SetPinMode(PHASE_A_GPIO_PORT_LOW, PHASE_A_GPIO_LOW, LL_GPIO_MODE_ALTERNATE);
-    LL_GPIO_SetPinMode(PHASE_B_GPIO_PORT_LOW, PHASE_B_GPIO_LOW, LL_GPIO_MODE_ALTERNATE);
-    LL_GPIO_SetPinMode(PHASE_C_GPIO_PORT_LOW, PHASE_C_GPIO_LOW, LL_GPIO_MODE_ALTERNATE);
-}
-
 #ifndef PWM_ENABLE_BRIDGE
 
 #define PHASEOUTTEMPLATE_pwm_setPWM_x(X)    void pwm_setPWM_ ## X (void) {                            \
@@ -84,12 +67,14 @@ void pwm_proportional_brake()
     PHASE_GPIO_PORT_PWM_ ##X ->HIGH_BITREG_OFF = PHASE_GPIO_PWM_ ##X ;                              \
 }                                                                                                   \
 
-// unable to do this
+// unable to do this, default to float for safety
 #define PHASEOUTTEMPLATE_pwm_setODPWM_x(X)    void pwm_setODPWM_ ## X (void) {                      \
+    pwm_setFlt_ ##X ();                                                                             \
 }                                                                                                   \
 
-// unable to do this
+// unable to do this, default to float for safety
 #define PHASEOUTTEMPLATE_pwm_setHIPWM_x(X)    void pwm_setHIPWM_ ## X (void) {                      \
+    pwm_setFlt_ ##X ();                                                                             \
 }                                                                                                   \
 
 #endif

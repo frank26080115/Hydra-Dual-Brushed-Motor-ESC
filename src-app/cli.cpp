@@ -23,7 +23,7 @@
 int32_t cmd_args[MAX_CMD_ARGS];
 
 bool cli_hwdebug;
-extern int16_t current_limit_val;
+extern uint16_t current_limit_duty;
 extern void current_limit_task(void);
 
 #if defined(DEVELOPMENT_BOARD)
@@ -464,7 +464,7 @@ void cli_reportSensors(Cereal* cer)
     // for ESCs without a telemetry pad, enable the reading of the SWD pins
     // these will be pulled-up, and the user can short them to ground to see which pad responds
     cer->printf("SWDIO=%d, SWCLK=%d, ", swdio_read() ? 1 : 0, swclk_read() ? 1 : 0);
-    cer->printf("T=%ld, V=%ld, C=%ld, Currlim=%d, \r\n", sense_temperatureC, sense_voltage, sense_current, current_limit_val);
+    cer->printf("T=%ld, V=%ld, C=%ld, Currlim=%d, \r\n", sense_temperatureC, sense_voltage, sense_current, current_limit_duty);
 }
 
 void eeprom_print_all(Cereal* cer)

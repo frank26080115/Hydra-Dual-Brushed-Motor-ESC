@@ -39,7 +39,7 @@ void hw_test(void)
     //hwtest_gpio(GPIOA, LL_GPIO_PIN_8 | LL_GPIO_PIN_9 | LL_GPIO_PIN_10);
     //hwtest_led();
     //hwtest_pwm();
-    hwtest_pwm_max();
+    //hwtest_pwm_max();
     //hwtest_phases();
     //hwtest_rc1();
     //hwtest_rc2();
@@ -51,6 +51,7 @@ void hw_test(void)
     //hwtest_tone();
     //hwtest_rc_led_crsf();
     //hwtest_rc_tone_crsf();
+    hwtest_simCurrentLimit();
 }
 #endif
 
@@ -726,5 +727,70 @@ void hwtest_tone(void)
             }
         }
         #endif
+    }
+}
+
+void hwtest_simCurrentLimit(void)
+{
+    #ifdef DEVELOPMENT_BOARD
+    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false);
+    #endif
+
+    eeprom_load_defaults();
+    load_runtime_configs();
+
+    if (cfg.current_limit <= 0) {
+        cfg.current_limit = 10000; // simulate 10A current limit
+    }
+
+    sense_current = cfg.current_limit + 1000; // simulate 1A over the limit
+
+    dbg_printf("simulating constant current limiting\r\n");
+
+    NVIC_DisableIRQ(SysTick_IRQn);
+    uint32_t start_time = millis();
+    uint32_t tick;
+    for (tick = 0; tick < 3000 && current_limit_duty >= 0; tick++)
+    {
+        systick_cnt = start_time + tick;
+        current_limit_task();
+
+        dbg_printf("[t=%lu] curr = %d / %d ; duty = %d\r\n", tick, sense_current, cfg.current_limit, current_limit_duty);
+        if (current_limit_duty <= DEAD_TIME) {
+            break;
+        }
+    }
+    dbg_printf("power shut-down after %lu ms\r\n", tick);
+
+    dbg_printf("simulating linear load current limiting\r\n");
+    cfg.pwm_period = 2000;
+    load_runtime_configs();
+
+    uint32_t prev = 0;
+    uint32_t steady = 0;
+    start_time = millis();
+    for (tick = 0; tick < 3000 && current_limit_duty >= 0; tick++)
+    {
+        systick_cnt = start_time + tick;
+        current_limit_task();
+        sense_current = fi_map(current_limit_duty, 0, cfg.pwm_period, 0, cfg.current_limit + 1000, true);
+        if (current_limit_duty == prev) {
+            steady++;
+            if (steady >= 10) {
+                dbg_printf("steady state after %lu ms, current = %d / %d ; duty = %d \r\n", tick, sense_current, cfg.current_limit, current_limit_duty);
+                break;
+            }
+        }
+        prev = current_limit_duty;
+
+        dbg_printf("[t=%lu] curr = %d / %d ; duty = %d\r\n", tick, sense_current, cfg.current_limit, current_limit_duty);
+        if (current_limit_duty <= DEAD_TIME) {
+            dbg_printf("power shut-down after %lu ms\r\n", tick);
+            break;
+        }
+    }
+    dbg_printf("simulation end after %lu ms\r\n", tick);
+    while (true) {
+        // do nothing
     }
 }

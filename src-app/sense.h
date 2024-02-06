@@ -25,7 +25,7 @@ extern uint16_t adc_raw_temperature;
 extern bool sense_newData;
 
 extern pidloop_t current_pid;
-extern int16_t current_limit_val;
+extern uint16_t current_limit_duty;
 void current_limit_task(void);
 
 void load_config_pid(void);

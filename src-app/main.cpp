@@ -236,9 +236,9 @@ int main(void)
 
         // impose current limiting if desired
         if (cfg.current_limit > 0) {
-            if (duty_max > current_limit_val) {
-                limit_reached |= (current_limit_val < (duty_max - (duty_max / 8)));
-                duty_max = current_limit_val;
+            if (duty_max > current_limit_duty) {
+                limit_reached |= (current_limit_duty < (duty_max - (duty_max / 8)));
+                duty_max = current_limit_duty;
             }
         }
 
