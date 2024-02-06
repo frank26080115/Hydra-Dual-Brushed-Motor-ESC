@@ -256,6 +256,9 @@ static inline void LL_GPIO_SetPinPull(gpio_type *GPIOx, uint32_t Pin, uint32_t P
 #ifndef LL_USART_ReceiveData8
 #define LL_USART_ReceiveData8             usart_data_receive
 #endif
+#ifndef LL_USART_EnableDirectionRx
+#define LL_USART_EnableDirectionRx(x)       usart_receiver_enable((x), TRUE)
+#endif
 #ifndef LL_USART_Enable
 #define LL_USART_Enable(x)                usart_enable((x), TRUE)
 #endif
