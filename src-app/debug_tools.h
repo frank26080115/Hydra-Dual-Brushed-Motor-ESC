@@ -21,10 +21,10 @@ extern "C" {
 
 #ifdef DEBUG_PRINT
 void dbg_printf(const char* fmt, ...);
+void dbg_hexdump(uint32_t* data, int len);
 #else
 #define dbg_printf(...)
-//#define dbg_button_init(...)
-//#define dbg_read_btn(...)      false
+#define dbg_hexdump(...)
 #endif
 
 void dbg_button_init(void);

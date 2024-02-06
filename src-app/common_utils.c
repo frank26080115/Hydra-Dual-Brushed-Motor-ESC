@@ -164,7 +164,7 @@ uint8_t crsf_crc8(const uint8_t *ptr, int len)
         0x84, 0x51, 0xFB, 0x2E, 0x7A, 0xAF, 0x05, 0xD0, 0xAD, 0x78, 0xD2, 0x07, 0x53, 0x86, 0x2C, 0xF9,
     };
 
-    uint8_t crc = 0;
+    volatile uint8_t crc = 0;
     for (int i = 0; i < len; i++)
     {
         crc = crsf_crc8tab[crc ^ *ptr++];

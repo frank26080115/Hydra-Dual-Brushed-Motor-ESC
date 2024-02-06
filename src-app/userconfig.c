@@ -30,7 +30,7 @@ const EEPROM_data_t default_eeprom __attribute__((aligned(4))) = {
 
     .voltage_split_mode = 0,
     .load_balance       = false,
-    .input_mode         = DEFAULT_INPUT_MODE,
+    .input_mode         = INPUTMODE_CRSF,//DEFAULT_INPUT_MODE,
     .phase_map          = 1,
     .baud               = 0,
 
@@ -83,7 +83,7 @@ const EEPROM_data_t cfge = {
 #define cfg_addr    ((uint32_t)(&cfge))
 
 // this stores the config in RAM
-EEPROM_data_t cfg __attribute__((aligned(4)));
+volatile EEPROM_data_t cfg __attribute__((aligned(4)));
 // WARNING WARNING WARNING
 // for some reason, this particular declaration is prone to being not 32 bit aligned, causing hard-faults, hence why the explicit alignment attribute
 // please see https://github.com/frank26080115/Hydra-Dual-Brushed-Motor-ESC/issues/3 for more explanation
@@ -157,12 +157,16 @@ EEPROM_chksum_t eeprom_checksum(uint8_t* data, int len)
 
 bool eeprom_verify_checksum(uint32_t* ptr8)
 {
-    EEPROM_data_t* ptre = (EEPROM_data_t*)ptr8;
+    volatile EEPROM_data_t* ptre = (volatile EEPROM_data_t*)ptr8; // https://github.com/frank26080115/Hydra-Dual-Brushed-Motor-ESC/issues/4
     uint8_t* start_addr = (uint8_t*)(&(ptre->magic));
     uint8_t* end_addr   = (uint8_t*)(&(ptre->chksum));
-    EEPROM_chksum_t calculated_chksum = eeprom_checksum(start_addr, (int)(((uint32_t)end_addr) - ((uint32_t)start_addr)));
+    volatile EEPROM_chksum_t calculated_chksum = eeprom_checksum(start_addr, (int)(((uint32_t)end_addr) - ((uint32_t)start_addr)));
     if (calculated_chksum != ptre->chksum) {
         dbg_printf("ERR: EEPROM checksum does not match (0x%02X != 0x%02X)\r\n", calculated_chksum, ptre->chksum);
+        #ifdef DEVELOPMENT_BOARD
+        dbg_printf("addr 0x%08lX\r\n", (uint32_t)ptr8);
+        dbg_hexdump(ptr8, sizeof(EEPROM_data_t));
+        #endif
     }
     return calculated_chksum == ptre->chksum;
 }
@@ -171,7 +175,7 @@ bool eeprom_load_or_default(void)
 {
     bool x = eeprom_verify_checksum((uint32_t*)cfg_addr);
     if (x) {
-        memcpy(&cfg, (void*)cfg_addr, sizeof(EEPROM_data_t));
+        memcpy((void*)&cfg, (void*)cfg_addr, sizeof(EEPROM_data_t));
         if (cfg.magic != EEPROM_MAGIC) {
             x = false;
             dbg_printf("ERR: EEPROM magic does not match (0x%08X)\r\n", cfg.magic);
@@ -180,6 +184,11 @@ bool eeprom_load_or_default(void)
             x = false;
             dbg_printf("ERR: EEPROM version does not match (%u != %u)\r\n", cfg.version_eeprom, VERSION_EEPROM);
         }
+        #ifdef DEVELOPMENT_BOARD
+        if (x == false) {
+            dbg_hexdump((uint32_t*)&cfg, sizeof(EEPROM_data_t));
+        }
+        #endif
     }
     if (x) {
         dbg_printf("EEPROM is valid\r\n");
@@ -189,13 +198,19 @@ bool eeprom_load_or_default(void)
     else {
         dbg_printf("EEPROM is invalid\r\n");
         eeprom_factory_reset();
+        #ifdef DEVELOPMENT_BOARD
+        bool x2 = eeprom_verify_checksum((uint32_t*)cfg_addr);
+        if (x2 == false) {
+            dbg_printf("ERROR: EEPROM is invalid even after factory reset\r\n");
+        }
+        #endif
         return false;
     }
 }
 
 void eeprom_load_defaults(void)
 {
-    memcpy(&cfg, &default_eeprom, sizeof(EEPROM_data_t));
+    memcpy((void*)&cfg, &default_eeprom, sizeof(EEPROM_data_t));
     eeprom_has_loaded = true;
 }
 
@@ -212,14 +227,16 @@ void eeprom_save(void)
 {
     cfg.magic           = EEPROM_MAGIC;
     cfg.version_major   = VERSION_MAJOR;
+    cfg.version_minor   = VERSION_MINOR;
     cfg.version_eeprom  = VERSION_EEPROM;
+    cfg.useless         = 0x12345678;
     EEPROM_data_t* ptre = (EEPROM_data_t*)&cfg;
     uint8_t* start_addr = (uint8_t*)(&(ptre->magic));
     uint8_t* end_addr   = (uint8_t*)(&(ptre->chksum));
     uint32_t head_len   = ((uint32_t)start_addr) - ((uint32_t)ptre);
     EEPROM_chksum_t calculated_chksum = eeprom_checksum(start_addr, (int)(((uint32_t)end_addr) - ((uint32_t)start_addr)));
     ptre->chksum = calculated_chksum;
-    memcpy(&cfg, &default_eeprom, head_len);                       // ensures header is written
+    memcpy((void*)&cfg, &default_eeprom, head_len);                        // ensures header is written
     eeprom_write((uint32_t*)&cfg, sizeof(EEPROM_data_t), cfg_addr); // commit to flash
     eeprom_save_time = 0; // remove dirty flag
     dbg_printf("EEPROM saved\r\n");

@@ -8,7 +8,7 @@ extern "C" {
 #endif
 
 extern uint32_t eeprom_save_time;
-extern EEPROM_data_t cfg;
+extern volatile EEPROM_data_t cfg;
 extern bool eeprom_has_loaded;
 extern uint32_t cfg_addr;
 

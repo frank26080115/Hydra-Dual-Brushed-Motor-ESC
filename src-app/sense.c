@@ -3,7 +3,7 @@
 #include "funcs.h"
 #include "systick.h"
 
-extern EEPROM_data_t cfg;
+extern volatile EEPROM_data_t cfg;
 
 uint32_t sense_current = 0;
 uint32_t sense_voltage = 0;

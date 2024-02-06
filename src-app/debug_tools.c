@@ -17,6 +17,19 @@ void dbg_printf(const char* fmt, ...)
     //return ret;
 }
 
+void dbg_hexdump(uint32_t* data, int len)
+{
+    uint8_t* ptr = (uint8_t*)data;
+    int i;
+    for (i = 0; i < len; i++) {
+        if (i != 0 && (i % 16) == 0) {
+            dbg_printf("\r\n");
+        }
+        dbg_printf("%02X ", ptr[i]);
+    }
+    dbg_printf("\r\n");
+}
+
 #endif
 
 void dbg_button_init(void)
