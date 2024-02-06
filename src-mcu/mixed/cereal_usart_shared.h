@@ -156,6 +156,26 @@ void Cereal_USART::write(uint8_t x)
     echo_time = millis();
 }
 
+void Cereal_USART::restart(void)
+{
+    // this function exists because of https://github.com/frank26080115/Hydra-Dual-Brushed-Motor-ESC/issues/3
+    #if defined(STM32)
+    _usart->CR1 = cached_cr1;
+    _usart->CR2 = cached_cr2;
+    _usart->CR3 = cached_cr3;
+    #elif defined(ARTERY)
+    _usart->ctrl1 = cached_cr1;
+    _usart->ctrl2 = cached_cr2;
+    _usart->ctrl3 = cached_cr3;
+    #endif
+    IRQn_Type irqn = _u == CEREAL_ID_USART2 ? USART2_IRQn : USART1_IRQn;
+    NVIC_SetPriority(irqn, 1);
+    NVIC_EnableIRQ(irqn);
+
+    LL_USART_EnableDirectionRx(_usart);
+    LL_USART_Enable(_usart);
+}
+
 void cereal_dmaRestart(void)
 {
     // reset the DMA buffer completely or else CRSF parsing will fail

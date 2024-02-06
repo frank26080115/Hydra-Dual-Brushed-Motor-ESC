@@ -14,7 +14,7 @@ class CrsfChannel : public RcChannel
 {
     public:
         CrsfChannel(void);
-        virtual void init(Cereal* cer, uint8_t idx);
+        virtual void init(Cereal_USART* cer, uint8_t idx);
         virtual void task(void);
         virtual int16_t read(void);
         virtual int16_t readRaw(void);

@@ -22,10 +22,11 @@ uint8_t crsf_crc8(const uint8_t *ptr, uint8_t len);
 
 uint8_t crsf_inputGuess = 0; // 0 means unknown, 1 means PB6 USART1, 2 means PA2 USART2
 
-static Cereal*  cereal;
+static Cereal_USART* cereal;
 static uint16_t crsf_channels[CRSF_CHAN_CNT] __attribute__((aligned(4))) = {0};
 static bool     new_flag       = false;
 static uint32_t last_good_time = 0;
+static uint32_t last_any_time  = 0;
 static uint8_t  good_pulse_cnt = 0;
 static uint8_t  bad_pulse_cnt  = 0;
 
@@ -44,7 +45,7 @@ CrsfChannel::CrsfChannel(void)
 {
 }
 
-void CrsfChannel::init(Cereal* cer, uint8_t idx)
+void CrsfChannel::init(Cereal_USART* cer, uint8_t idx)
 {
     cereal = cer;
     _idx = idx;
@@ -70,6 +71,10 @@ void CrsfChannel::task(void)
     bool           is_idle = cereal->get_idle_flag(true); // the DMA does not actually know the size of a packet, each packet is variable in length, so we simply wait until the USART detects the bus is idle
     uint8_t*       buff    = cereal->get_buffer();
     crsf_header_t* hdr     = (crsf_header_t*)buff; // makes the data easy to parse
+
+    if (is_idle) {
+        last_any_time = now;
+    }
 
     if (is_idle && hdr->sync == CRSF_SYNC_BYTE && hdr->type == CRSF_FRAMETYPE_RC_CHANNELS_PACKED)
     {
@@ -173,6 +178,14 @@ void CrsfChannel::task(void)
 
     if (is_idle) {
         cereal_dmaRestart(); // restart the DMA and get reading to receive another packet
+    }
+    else {
+        // if a long time has passed without a packet, restart UART and DMA
+        if ((now - last_any_time) >= 30) {
+            last_any_time = now;
+            cereal->restart();
+            cereal_dmaRestart();
+        }
     }
 
     _has_new |= new_flag;

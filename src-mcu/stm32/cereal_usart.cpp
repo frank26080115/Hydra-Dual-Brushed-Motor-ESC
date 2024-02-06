@@ -139,6 +139,10 @@ void Cereal_USART::init(uint8_t id, uint32_t baud, bool halfdup, bool swap, bool
 
     LL_USART_Enable(_usart);
 
+    cached_cr1 = _usart->CR1;
+    cached_cr2 = _usart->CR2;
+    cached_cr3 = _usart->CR3;
+
     IRQn_Type irqn = _u == CEREAL_ID_USART2 ? USART2_IRQn : USART1_IRQn;
 
     NVIC_SetPriority(irqn, 1);

@@ -80,6 +80,7 @@ class Cereal_USART : public Cereal
         virtual uint8_t* get_buffer(void);
         virtual uint32_t get_last_time(void);
         virtual bool get_idle_flag(bool clr);
+        virtual void restart(void);
         #if defined(STMICRO)
         virtual void drain_echo(void);
         virtual int16_t read(void);
@@ -105,6 +106,10 @@ class Cereal_USART : public Cereal
         // https://github.com/frank26080115/Hydra-Dual-Brushed-Motor-ESC/issues/1
         bool fix_echo = false;
         uint32_t echo_time = 0;
+
+        uint32_t cached_cr1;
+        uint32_t cached_cr2;
+        uint32_t cached_cr3;
 };
 
 #ifdef ENABLE_COMPILE_CLI
