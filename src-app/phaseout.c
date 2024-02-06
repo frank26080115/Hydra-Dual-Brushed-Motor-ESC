@@ -11,8 +11,6 @@ enum
     PWMPINSTATE_LOW,
     PWMPINSTATE_PWM,
     PWMPINSTATE_FLT,
-    PWMPINSTATE_PWMOD,
-    PWMPINSTATE_PWMPUSH,
 };
 
 bool braking;
@@ -47,22 +45,6 @@ void pwm_all_pwm()
     pwm_setPWM_B();
     pwm_setPWM_C();
     all_pin_states = PWMPINSTATE_PWM;
-}
-
-void pwm_all_pwmod()
-{
-    pwm_setODPWM_A();
-    pwm_setODPWM_B();
-    pwm_setODPWM_C();
-    all_pin_states = PWMPINSTATE_PWMOD;
-}
-
-void pwm_all_pwmpush()
-{
-    pwm_setHIPWM_A();
-    pwm_setHIPWM_B();
-    pwm_setHIPWM_C();
-    all_pin_states = PWMPINSTATE_PWMPUSH;
 }
 
 void pwm_full_brake()

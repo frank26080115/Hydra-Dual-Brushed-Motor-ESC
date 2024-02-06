@@ -1,3 +1,5 @@
+// this file is meant to be included inline, do not include this file where it's not supposed to go
+
 #define RC_IC_TIMx IC_TIMER_REGISTER
 
 // only one instance of this cereal port is allowed
@@ -37,6 +39,7 @@ void Cereal_TimerBitbang::flush(void)
         tx_is_busy) {
         // do nothing but wait
     }
+    // I know this is blocking, but this will only be used in CLI mode, and happens fast enough to be negligible
 }
 
 uint32_t Cereal_TimerBitbang::get_last_time(void)
@@ -87,7 +90,7 @@ void Cereal_TimerBitbang::write(uint8_t x)
     }
     __enable_irq();
     if (x == '\n') {
-        flush();
+        flush(); // I know this is blocking, but this will only be used in CLI mode, and happens fast enough to be negligible
     }
 }
 

@@ -225,7 +225,7 @@ int main(void)
             ledblink_moving();
         }
 
-        int32_t duty_max;
+        int32_t duty_max = cfg.pwm_period;
         bool limit_reached = false;
 
         // impose temperature limiting if desired
@@ -233,26 +233,19 @@ int main(void)
             duty_max = fi_map(sense_temperatureC, cfg.temperature_limit, cfg.temperature_limit + TEMPERATURE_OVER, cfg.pwm_period / 2, 1, true);
             limit_reached = true;
         }
-        else {
-            duty_max = cfg.pwm_period;
-        }
 
         // impose current limiting if desired
         if (cfg.current_limit > 0) {
-            const int32_t duty_min = DEAD_TIME;
-            if (current_limit_val < duty_min) {
-                current_limit_val = duty_min;
-            }
             if (duty_max > current_limit_val) {
+                limit_reached |= (current_limit_val < (duty_max - (duty_max / 8)));
                 duty_max = current_limit_val;
-                limit_reached = true;
             }
         }
 
         // impose voltage limit if desired
         if (cfg.voltage_limit > 0) {
             if (sense_voltage < cfg.voltage_limit) {
-                duty_max -= fi_map(sense_voltage, cfg.voltage_limit, cfg.voltage_limit - UNDERVOLTAGE, 0, duty_max, true);
+                duty_max = fi_map(sense_voltage, cfg.voltage_limit - UNDERVOLTAGE, cfg.voltage_limit, 0, duty_max, true);
                 ledblink_lowbatt();
             }
         }
@@ -362,7 +355,7 @@ void direct_pwm(int32_t v1, int32_t v2, int32_t v3, uint32_t duty_max)
     v1 = fi_map(v1, 0, THROTTLE_UNIT_RANGE, 0, duty_max, true);
     v2 = fi_map(v2, 0, THROTTLE_UNIT_RANGE, 0, duty_max, true);
     v3 = fi_map(v3, 0, THROTTLE_UNIT_RANGE, 0, duty_max, true);
-    complementary_pwm = true;
+    complementary_pwm = true; // this only affects the pwm_setPWM_* functions, the other functions will ignore this
 
     if (cfg.dirpwm_chancfg_1 == DIRPWM_PUSHPULL) {
         pwm_setPWM_A();
@@ -372,6 +365,7 @@ void direct_pwm(int32_t v1, int32_t v2, int32_t v3, uint32_t duty_max)
     }
     else if (cfg.dirpwm_chancfg_1 == DIRPWM_OPENDRAIN) {
         pwm_setODPWM_A();
+        v1 = cfg.pwm_period - v1;
     }
     else {
         pwm_setFlt_A();
@@ -387,6 +381,7 @@ void direct_pwm(int32_t v1, int32_t v2, int32_t v3, uint32_t duty_max)
     }
     else if (cfg.dirpwm_chancfg_2 == DIRPWM_OPENDRAIN) {
         pwm_setODPWM_B();
+        v2 = cfg.pwm_period - v2;
     }
     else {
         pwm_setFlt_B();
@@ -402,6 +397,7 @@ void direct_pwm(int32_t v1, int32_t v2, int32_t v3, uint32_t duty_max)
     }
     else if (cfg.dirpwm_chancfg_3 == DIRPWM_OPENDRAIN) {
         pwm_setODPWM_C();
+        v3 = cfg.pwm_period - v3;
     }
     else {
         pwm_setFlt_C();

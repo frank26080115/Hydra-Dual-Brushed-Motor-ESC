@@ -131,9 +131,9 @@ This will cause the ESC to enter into the AM32 bootloader.
 | `curroffset  ` | ????    | 0 - uint32  | hardware current sensor offset adjustment <br /> default is dependant of hardware, do not adjust if you don't need to |
 | `currscale   ` | ????    | 0 - uint32  | hardware current sensor scaling adjustment <br /> default is dependant of hardware, do not adjust if you don't need to |
 | `adcfilter   ` | 10      | 1 - 100     | analog signal low-pass filtering constant, for avoiding noisy sensor measurements <br /> low value means strong filtering, slow changes <br /> high value means weak filtering, fast changes <br /> 0 and 100 both mean "disable filter" |
-| `curlimkp    ` | 400     | sint32      | PID constant P for the current limiting feature <br /> do not adjust |
+| `curlimkp    ` | 100     | percentage  | PID constant P for the current limiting feature <br /> do not adjust, 100% is default and ideal |
 | `curlimki    ` | 0       | sint32      | PID constant I for the current limiting feature <br /> do not adjust |
-| `curlimkd    ` | 1000    | sint32      | PID constant D for the current limiting feature <br /> do not adjust |
+| `curlimkd    ` | 100     | percentage  | PID constant D for the current limiting feature <br /> do not adjust, 100% is default and ideal |
 
 There are other items that are not always used, they are described in other usage guides.
 

@@ -61,9 +61,9 @@ const EEPROM_data_t default_eeprom __attribute__((aligned(4))) = {
     .current_limit      = 0,
     .voltage_limit      = 0,
 
-    .currlim_kp         = 400,
+    .currlim_kp         = 100,
     .currlim_ki         = 0,
-    .currlim_kd         = 1000,
+    .currlim_kd         = 100,
 
     .dirpwm_chancfg_1   = 0,
     .dirpwm_chancfg_2   = 0,
@@ -267,16 +267,14 @@ extern void pwm_set_braking(bool);
 
 void load_runtime_configs(void)
 {
-    current_pid.Kp = cfg.currlim_kp;
-    current_pid.Ki = cfg.currlim_ki;
-    current_pid.Kd = cfg.currlim_kd;
     arm_pulses_required = cfg.arm_duration;
-    disarm_timeout = cfg.disarm_timeout;
-    pwm_set_braking(cfg.braking);
-    pwm_set_period(cfg.pwm_period);
-    pwm_set_deadtime(cfg.pwm_deadtime);
-    pwm_set_remap(cfg.phase_map);
+    disarm_timeout      = cfg.disarm_timeout;
+    pwm_set_braking    (cfg.braking);
+    pwm_set_period     (cfg.pwm_period);
+    pwm_set_deadtime   (cfg.pwm_deadtime);
+    pwm_set_remap      (cfg.phase_map);
     pwm_set_loadbalance(cfg.load_balance);
+    load_config_pid();
 }
 
 #ifdef ENABLE_COMPILE_CLI

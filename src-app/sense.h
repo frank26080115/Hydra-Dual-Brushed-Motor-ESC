@@ -28,6 +28,8 @@ extern pidloop_t current_pid;
 extern int16_t current_limit_val;
 void current_limit_task(void);
 
+void load_config_pid(void);
+
 #ifdef __cplusplus
 }
 #endif

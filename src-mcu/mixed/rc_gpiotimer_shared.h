@@ -1,3 +1,5 @@
+// this file is meant to be included inline, do not include this file where it's not supposed to go
+
 #define RC_MEASURE_MULTIPLIER 4 // speed up the timer to see if it can improve jitter
 
 static

@@ -1,3 +1,5 @@
+// this file is meant to be included inline, do not include this file where it's not supposed to go
+
 #define RC_IC_TIMx IC_TIMER_REGISTER
 
 static volatile uint16_t pulse_width;

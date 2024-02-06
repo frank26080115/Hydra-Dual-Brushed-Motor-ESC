@@ -38,8 +38,6 @@ extern void pwm_setHIPWM_C();
 void pwm_all_flt();
 void pwm_all_low();
 void pwm_all_pwm();
-void pwm_all_pwmod();
-void pwm_all_pwmpush();
 
 void pwm_proportional_brake(); // implement this in HAL
 void pwm_full_brake();

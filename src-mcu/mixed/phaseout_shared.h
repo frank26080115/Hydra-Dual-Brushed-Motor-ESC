@@ -1,3 +1,7 @@
+// this file is meant to be included inline, do not include this file where it's not supposed to go
+
+#include "phaseout_def_remap.h"
+
 extern bool complementary_pwm;
 
 void pwm_proportional_brake()
@@ -19,238 +23,89 @@ void pwm_proportional_brake()
 
 #ifndef PWM_ENABLE_BRIDGE
 
-void pwm_setPWM_B()
-{
-    if (!complementary_pwm) {
-        LL_GPIO_SetPinMode(PHASE_B_GPIO_PORT_LOW, PHASE_B_GPIO_LOW, LL_GPIO_MODE_OUTPUT);
-        PHASE_B_GPIO_PORT_LOW->LOW_BITREG_OFF = PHASE_B_GPIO_LOW;
-    }
-    else {
-        LL_GPIO_SetPinMode(PHASE_B_GPIO_PORT_LOW, PHASE_B_GPIO_LOW, LL_GPIO_MODE_ALTERNATE);
-    }
-    LL_GPIO_SetPinMode(PHASE_B_GPIO_PORT_HIGH, PHASE_B_GPIO_HIGH, LL_GPIO_MODE_ALTERNATE);
-}
+#define PHASEOUTTEMPLATE_pwm_setPWM_x(X)    void pwm_setPWM_ ## X (void) {                            \
+    if (!complementary_pwm) {                                                                         \
+        LL_GPIO_SetPinMode(PHASE_GPIO_PORT_LOW_ ##X , PHASE_GPIO_LOW_ ##X , LL_GPIO_MODE_OUTPUT);     \
+        PHASE_GPIO_PORT_LOW_ ##X ->LOW_BITREG_OFF = PHASE_GPIO_LOW_ ## X ;                            \
+    }                                                                                                 \
+    else {                                                                                            \
+        LL_GPIO_SetPinMode(PHASE_GPIO_PORT_LOW_ ##X , PHASE_GPIO_LOW_ ##X , LL_GPIO_MODE_ALTERNATE);  \
+    }                                                                                                 \
+    LL_GPIO_SetPinMode(PHASE_GPIO_PORT_HIGH_ ##X , PHASE_GPIO_HIGH_ ##X , LL_GPIO_MODE_ALTERNATE);    \
+}                                                                                                     \
 
-void pwm_setODPWM_B()
-{
-    LL_GPIO_SetPinMode(PHASE_B_GPIO_PORT_LOW,  PHASE_B_GPIO_LOW,  LL_GPIO_MODE_ALTERNATE);
-    LL_GPIO_SetPinMode(PHASE_B_GPIO_PORT_HIGH, PHASE_B_GPIO_HIGH, LL_GPIO_MODE_OUTPUT);
-    PHASE_B_GPIO_PORT_HIGH->LOW_BITREG_OFF =   PHASE_B_GPIO_HIGH;
-}
+#define PHASEOUTTEMPLATE_pwm_setODPWM_x(X)    void pwm_setODPWM_ ## X (void) {                     \
+    LL_GPIO_SetPinMode(PHASE_GPIO_PORT_LOW_ ##X ,  PHASE_GPIO_LOW_ ##X ,  LL_GPIO_MODE_ALTERNATE); \
+    LL_GPIO_SetPinMode(PHASE_GPIO_PORT_HIGH_ ##X , PHASE_GPIO_HIGH_ ##X , LL_GPIO_MODE_OUTPUT);    \
+    PHASE_GPIO_PORT_HIGH_ ##X ->LOW_BITREG_OFF =   PHASE_GPIO_HIGH_ ##X ;                          \
+}                                                                                                  \
 
-void pwm_setHIPWM_B()
-{
-    LL_GPIO_SetPinMode(PHASE_B_GPIO_PORT_LOW,  PHASE_B_GPIO_LOW,  LL_GPIO_MODE_OUTPUT);
-    LL_GPIO_SetPinMode(PHASE_B_GPIO_PORT_HIGH, PHASE_B_GPIO_HIGH, LL_GPIO_MODE_ALTERNATE);
-    PHASE_B_GPIO_PORT_LOW->LOW_BITREG_OFF =    PHASE_B_GPIO_LOW;
-}
+#define PHASEOUTTEMPLATE_pwm_setHIPWM_x(X)    void pwm_setHIPWM_ ## X (void) {                     \
+    LL_GPIO_SetPinMode(PHASE_GPIO_PORT_LOW_ ##X ,  PHASE_GPIO_LOW_ ##X ,  LL_GPIO_MODE_OUTPUT);    \
+    LL_GPIO_SetPinMode(PHASE_GPIO_PORT_HIGH_ ##X , PHASE_GPIO_HIGH_ ##X , LL_GPIO_MODE_ALTERNATE); \
+    PHASE_GPIO_PORT_LOW_ ##X ->LOW_BITREG_OFF =   PHASE_GPIO_LOW_ ##X ;                            \
+}                                                                                                  \
 
-void pwm_setFlt_B()
-{
-    LL_GPIO_SetPinMode(PHASE_B_GPIO_PORT_LOW, PHASE_B_GPIO_LOW, LL_GPIO_MODE_OUTPUT);
-    PHASE_B_GPIO_PORT_LOW->LOW_BITREG_OFF = PHASE_B_GPIO_LOW;
-    LL_GPIO_SetPinMode(PHASE_B_GPIO_PORT_HIGH, PHASE_B_GPIO_HIGH, LL_GPIO_MODE_OUTPUT);
-    PHASE_B_GPIO_PORT_HIGH->HIGH_BITREG_OFF = PHASE_B_GPIO_HIGH;
-}
+#define PHASEOUTTEMPLATE_pwm_setFlt_x(X)    void pwm_setFlt_ ##X () {                           \
+    LL_GPIO_SetPinMode(PHASE_GPIO_PORT_LOW_ ##X , PHASE_GPIO_LOW_ ##X , LL_GPIO_MODE_OUTPUT);   \
+    PHASE_GPIO_PORT_LOW_ ##X ->LOW_BITREG_OFF = PHASE_GPIO_LOW_ ##X ;                           \
+    LL_GPIO_SetPinMode(PHASE_GPIO_PORT_HIGH_ ##X , PHASE_GPIO_HIGH_ ##X , LL_GPIO_MODE_OUTPUT); \
+    PHASE_GPIO_PORT_HIGH_ ##X ->HIGH_BITREG_OFF = PHASE_GPIO_HIGH_ ##X ;                        \
+}                                                                                               \
 
-void pwm_setLow_B()
-{
-    LL_GPIO_SetPinMode(PHASE_B_GPIO_PORT_LOW, PHASE_B_GPIO_LOW, LL_GPIO_MODE_OUTPUT);
-    PHASE_B_GPIO_PORT_LOW->LOW_BITREG_ON = PHASE_B_GPIO_LOW;
-    LL_GPIO_SetPinMode(PHASE_B_GPIO_PORT_HIGH, PHASE_B_GPIO_HIGH, LL_GPIO_MODE_OUTPUT);
-    PHASE_B_GPIO_PORT_HIGH->HIGH_BITREG_OFF = PHASE_B_GPIO_HIGH;
-}
-
-void pwm_setPWM_C()
-{
-    if (!complementary_pwm) {
-        LL_GPIO_SetPinMode(PHASE_C_GPIO_PORT_LOW, PHASE_C_GPIO_LOW, LL_GPIO_MODE_OUTPUT);
-        PHASE_C_GPIO_PORT_LOW->LOW_BITREG_OFF = PHASE_C_GPIO_LOW;
-    }
-    else {
-        LL_GPIO_SetPinMode(PHASE_C_GPIO_PORT_LOW, PHASE_C_GPIO_LOW, LL_GPIO_MODE_ALTERNATE);
-    }
-    LL_GPIO_SetPinMode(PHASE_C_GPIO_PORT_HIGH, PHASE_C_GPIO_HIGH, LL_GPIO_MODE_ALTERNATE);
-}
-
-void pwm_setODPWM_C()
-{
-    LL_GPIO_SetPinMode(PHASE_C_GPIO_PORT_LOW,  PHASE_C_GPIO_LOW,  LL_GPIO_MODE_ALTERNATE);
-    LL_GPIO_SetPinMode(PHASE_C_GPIO_PORT_HIGH, PHASE_C_GPIO_HIGH, LL_GPIO_MODE_OUTPUT);
-    PHASE_C_GPIO_PORT_HIGH->LOW_BITREG_OFF =   PHASE_C_GPIO_HIGH;
-}
-
-void pwm_setHIPWM_C()
-{
-    LL_GPIO_SetPinMode(PHASE_C_GPIO_PORT_LOW,  PHASE_C_GPIO_LOW,  LL_GPIO_MODE_OUTPUT);
-    LL_GPIO_SetPinMode(PHASE_C_GPIO_PORT_HIGH, PHASE_C_GPIO_HIGH, LL_GPIO_MODE_ALTERNATE);
-    PHASE_C_GPIO_PORT_LOW->LOW_BITREG_OFF =    PHASE_C_GPIO_LOW;
-}
-
-void pwm_setFlt_C()
-{
-    LL_GPIO_SetPinMode(PHASE_C_GPIO_PORT_LOW, PHASE_C_GPIO_LOW, LL_GPIO_MODE_OUTPUT);
-    PHASE_C_GPIO_PORT_LOW->LOW_BITREG_OFF = PHASE_C_GPIO_LOW;
-    LL_GPIO_SetPinMode(PHASE_C_GPIO_PORT_HIGH, PHASE_C_GPIO_HIGH, LL_GPIO_MODE_OUTPUT);
-    PHASE_C_GPIO_PORT_HIGH->HIGH_BITREG_OFF = PHASE_C_GPIO_HIGH;
-}
-
-void pwm_setLow_C()
-{
-    LL_GPIO_SetPinMode(PHASE_C_GPIO_PORT_LOW, PHASE_C_GPIO_LOW, LL_GPIO_MODE_OUTPUT);
-    PHASE_C_GPIO_PORT_LOW->LOW_BITREG_ON = PHASE_C_GPIO_LOW;
-    LL_GPIO_SetPinMode(PHASE_C_GPIO_PORT_HIGH, PHASE_C_GPIO_HIGH, LL_GPIO_MODE_OUTPUT);
-    PHASE_C_GPIO_PORT_HIGH->HIGH_BITREG_OFF = PHASE_C_GPIO_HIGH;
-}
-
-void pwm_setPWM_A()
-{
-    if (!complementary_pwm) {
-        LL_GPIO_SetPinMode(PHASE_A_GPIO_PORT_LOW, PHASE_A_GPIO_LOW, LL_GPIO_MODE_OUTPUT);
-        PHASE_A_GPIO_PORT_LOW->LOW_BITREG_OFF = PHASE_A_GPIO_LOW;
-    }
-    else {
-        LL_GPIO_SetPinMode(PHASE_A_GPIO_PORT_LOW, PHASE_A_GPIO_LOW, LL_GPIO_MODE_ALTERNATE);
-    }
-    LL_GPIO_SetPinMode(PHASE_A_GPIO_PORT_HIGH, PHASE_A_GPIO_HIGH, LL_GPIO_MODE_ALTERNATE);
-}
-
-void pwm_setODPWM_A()
-{
-    LL_GPIO_SetPinMode(PHASE_A_GPIO_PORT_LOW,  PHASE_A_GPIO_LOW,  LL_GPIO_MODE_ALTERNATE);
-    LL_GPIO_SetPinMode(PHASE_A_GPIO_PORT_HIGH, PHASE_A_GPIO_HIGH, LL_GPIO_MODE_OUTPUT);
-    PHASE_A_GPIO_PORT_HIGH->LOW_BITREG_OFF =   PHASE_A_GPIO_HIGH;
-}
-
-void pwm_setHIPWM_A()
-{
-    LL_GPIO_SetPinMode(PHASE_A_GPIO_PORT_LOW,  PHASE_A_GPIO_LOW,  LL_GPIO_MODE_OUTPUT);
-    LL_GPIO_SetPinMode(PHASE_A_GPIO_PORT_HIGH, PHASE_A_GPIO_HIGH, LL_GPIO_MODE_ALTERNATE);
-    PHASE_A_GPIO_PORT_LOW->LOW_BITREG_OFF =    PHASE_A_GPIO_LOW;
-}
-
-void pwm_setFlt_A()
-{
-    LL_GPIO_SetPinMode(PHASE_A_GPIO_PORT_LOW, PHASE_A_GPIO_LOW, LL_GPIO_MODE_OUTPUT);
-    PHASE_A_GPIO_PORT_LOW->LOW_BITREG_OFF = PHASE_A_GPIO_LOW;
-    LL_GPIO_SetPinMode(PHASE_A_GPIO_PORT_HIGH, PHASE_A_GPIO_HIGH, LL_GPIO_MODE_OUTPUT);
-    PHASE_A_GPIO_PORT_HIGH->HIGH_BITREG_OFF = PHASE_A_GPIO_HIGH;
-}
-
-void pwm_setLow_A()
-{
-    LL_GPIO_SetPinMode(PHASE_A_GPIO_PORT_LOW, PHASE_A_GPIO_LOW, LL_GPIO_MODE_OUTPUT);
-    PHASE_A_GPIO_PORT_LOW->LOW_BITREG_ON = PHASE_A_GPIO_LOW;
-    LL_GPIO_SetPinMode(PHASE_A_GPIO_PORT_HIGH, PHASE_A_GPIO_HIGH, LL_GPIO_MODE_OUTPUT);
-    PHASE_A_GPIO_PORT_HIGH->HIGH_BITREG_OFF = PHASE_A_GPIO_HIGH;
-}
+#define PHASEOUTTEMPLATE_pwm_setLow_x(X)    void pwm_setLow_ ##X () {                           \
+    LL_GPIO_SetPinMode(PHASE_GPIO_PORT_LOW_ ##X , PHASE_GPIO_LOW_ ##X , LL_GPIO_MODE_OUTPUT);   \
+    PHASE_GPIO_PORT_LOW_ ##X ->LOW_BITREG_ON = PHASE_GPIO_LOW_ ##X ;                            \
+    LL_GPIO_SetPinMode(PHASE_GPIO_PORT_HIGH_ ##X , PHASE_GPIO_HIGH_ ##X , LL_GPIO_MODE_OUTPUT); \
+    PHASE_GPIO_PORT_HIGH_ ##X ->HIGH_BITREG_OFF = PHASE_GPIO_HIGH_ ##X ;                        \
+}                                                                                               \
 
 #else
 
-void pwm_setPWM_B()
-{
-    if (!complementary_pwm) {
-        //LL_GPIO_SetPinMode(PHASE_B_GPIO_PORT_LOW, PHASE_B_GPIO_LOW, LL_GPIO_MODE_OUTPUT);
-        //PHASE_B_GPIO_PORT_LOW->LOW_BITREG_OFF = PHASE_B_GPIO_LOW;
-    }
-    else {
-        LL_GPIO_SetPinMode(PHASE_B_GPIO_PORT_ENABLE, PHASE_B_GPIO_ENABLE, LL_GPIO_MODE_OUTPUT);
-        PHASE_B_GPIO_PORT_ENABLE->BSRR = PHASE_B_GPIO_ENABLE;
-    }
-    LL_GPIO_SetPinMode(PHASE_B_GPIO_PORT_PWM, PHASE_B_GPIO_PWM, LL_GPIO_MODE_ALTERNATE);
-}
+#define PHASEOUTTEMPLATE_pwm_setPWM_x(X)    void pwm_setPWM_ ## X (void) {                              \
+    if (complementary_pwm) {                                                                            \
+        LL_GPIO_SetPinMode(PHASE_GPIO_PORT_ENABLE_ ##X , PHASE_GPIO_ENABLE_ ##X , LL_GPIO_MODE_OUTPUT); \
+        PHASE_GPIO_PORT_ENABLE_ ##X ->BSRR = PHASE_GPIO_ENABLE_ ##X ;                                   \
+    }                                                                                                   \
+    LL_GPIO_SetPinMode(PHASE_GPIO_PORT_PWM_ ##X , PHASE_GPIO_PWM_ ##X , LL_GPIO_MODE_ALTERNATE);        \
+}                                                                                                       \
 
-void pwm_setFlt_B()
-{
-    LL_GPIO_SetPinMode(PHASE_B_GPIO_PORT_ENABLE, PHASE_B_GPIO_ENABLE, LL_GPIO_MODE_OUTPUT);
-    PHASE_B_GPIO_PORT_ENABLE->BRR = PHASE_B_GPIO_ENABLE;
-    LL_GPIO_SetPinMode(PHASE_B_GPIO_PORT_PWM, PHASE_B_GPIO_PWM, LL_GPIO_MODE_OUTPUT);
-    PHASE_B_GPIO_PORT_PWM->BRR = PHASE_B_GPIO_PWM;
-}
+#define PHASEOUTTEMPLATE_pwm_setFlt_x(X)    void pwm_setFlt_ ##X () {                               \
+    LL_GPIO_SetPinMode(PHASE_GPIO_PORT_ENABLE_ ##X , PHASE_GPIO_ENABLE_ ##X , LL_GPIO_MODE_OUTPUT); \
+    PHASE_GPIO_PORT_ENABLE_ ##X ->LOW_BITREG_OFF = PHASE_GPIO_ENABLE_ ##X ;                         \
+    LL_GPIO_SetPinMode(PHASE_GPIO_PORT_PWM_ ##X , PHASE_GPIO_PWM_ ##X , LL_GPIO_MODE_OUTPUT);       \
+    PHASE_GPIO_PORT_PWM_ ##X ->HIGH_BITREG_OFF = PHASE_GPIO_PWM_ ##X ;                              \
+}                                                                                                   \
 
-void pwm_setLow_B()
-{
-    LL_GPIO_SetPinMode(PHASE_B_GPIO_PORT_ENABLE, PHASE_B_GPIO_ENABLE, LL_GPIO_MODE_OUTPUT);
-    PHASE_B_GPIO_PORT_ENABLE->BSRR = PHASE_B_GPIO_ENABLE;
-    LL_GPIO_SetPinMode(PHASE_B_GPIO_PORT_PWM, PHASE_B_GPIO_PWM, LL_GPIO_MODE_OUTPUT);
-    PHASE_B_GPIO_PORT_PWM->BRR = PHASE_B_GPIO_PWM;
-}
+#define PHASEOUTTEMPLATE_pwm_setLow_x(X)    void pwm_setLow_ ##X () {                               \
+    LL_GPIO_SetPinMode(PHASE_GPIO_PORT_ENABLE_ ##X , PHASE_GPIO_ENABLE_ ##X , LL_GPIO_MODE_OUTPUT); \
+    PHASE_GPIO_PORT_ENABLE_ ##X ->LOW_BITREG_ON = PHASE_GPIO_ENABLE_ ##X ;                          \
+    LL_GPIO_SetPinMode(PHASE_GPIO_PORT_PWM_ ##X , PHASE_GPIO_PWM_ ##X , LL_GPIO_MODE_OUTPUT);       \
+    PHASE_GPIO_PORT_PWM_ ##X ->HIGH_BITREG_OFF = PHASE_GPIO_PWM_ ##X ;                              \
+}                                                                                                   \
 
-void pwm_setPWM_C()
-{
-    if (!complementary_pwm) {
-        //  LL_GPIO_SetPinMode(PHASE_C_GPIO_PORT_LOW, PHASE_C_GPIO_LOW, LL_GPIO_MODE_OUTPUT);
-        //PHASE_C_GPIO_PORT_LOW->LOW_BITREG_OFF = PHASE_C_GPIO_LOW;
-    }
-    else {
-        LL_GPIO_SetPinMode(PHASE_C_GPIO_PORT_ENABLE, PHASE_C_GPIO_ENABLE, LL_GPIO_MODE_OUTPUT);
-        PHASE_C_GPIO_PORT_ENABLE->BSRR = PHASE_C_GPIO_ENABLE;
-    }
-    LL_GPIO_SetPinMode(PHASE_C_GPIO_PORT_PWM, PHASE_C_GPIO_PWM, LL_GPIO_MODE_ALTERNATE);
-}
+// unable to do this
+#define PHASEOUTTEMPLATE_pwm_setODPWM_x(X)    void pwm_setODPWM_ ## X (void) {                      \
+}                                                                                                   \
 
-void pwm_setFlt_C()
-{
-    LL_GPIO_SetPinMode(PHASE_C_GPIO_PORT_ENABLE, PHASE_C_GPIO_ENABLE, LL_GPIO_MODE_OUTPUT);
-    PHASE_C_GPIO_PORT_ENABLE->BRR = PHASE_C_GPIO_ENABLE;
-    LL_GPIO_SetPinMode(PHASE_C_GPIO_PORT_PWM, PHASE_C_GPIO_PWM, LL_GPIO_MODE_OUTPUT);
-    PHASE_C_GPIO_PORT_PWM->BRR = PHASE_C_GPIO_PWM;
-}
-
-void pwm_setLow_C()
-{
-    LL_GPIO_SetPinMode(PHASE_C_GPIO_PORT_ENABLE, PHASE_C_GPIO_ENABLE, LL_GPIO_MODE_OUTPUT);
-    PHASE_C_GPIO_PORT_ENABLE->BSRR = PHASE_C_GPIO_ENABLE;
-    LL_GPIO_SetPinMode(PHASE_C_GPIO_PORT_PWM, PHASE_C_GPIO_PWM, LL_GPIO_MODE_OUTPUT);
-    PHASE_C_GPIO_PORT_PWM->BRR = PHASE_C_GPIO_PWM;
-}
-
-void pwm_setPWM_A()
-{
-    if (!complementary_pwm) {
-        //  LL_GPIO_SetPinMode(PHASE_A_GPIO_PORT_LOW, PHASE_A_GPIO_LOW, LL_GPIO_MODE_OUTPUT);
-        //PHASE_A_GPIO_PORT_LOW->LOW_BITREG_OFF = PHASE_A_GPIO_LOW;
-    }
-    else {
-        LL_GPIO_SetPinMode(PHASE_A_GPIO_PORT_ENABLE, PHASE_A_GPIO_ENABLE, LL_GPIO_MODE_OUTPUT);
-        PHASE_A_GPIO_PORT_ENABLE->BSRR = PHASE_A_GPIO_ENABLE;
-    }
-    LL_GPIO_SetPinMode(PHASE_A_GPIO_PORT_PWM, PHASE_A_GPIO_PWM, LL_GPIO_MODE_ALTERNATE);
-}
-
-void pwm_setFlt_A()
-{
-    LL_GPIO_SetPinMode(PHASE_A_GPIO_PORT_ENABLE, PHASE_A_GPIO_ENABLE, LL_GPIO_MODE_OUTPUT);
-    PHASE_A_GPIO_PORT_ENABLE->BRR = PHASE_A_GPIO_ENABLE;
-    LL_GPIO_SetPinMode(PHASE_A_GPIO_PORT_PWM, PHASE_A_GPIO_PWM, LL_GPIO_MODE_OUTPUT);
-    PHASE_A_GPIO_PORT_PWM->BRR = PHASE_A_GPIO_PWM;
-}
-
-void pwm_setLow_A()
-{
-    LL_GPIO_SetPinMode(PHASE_A_GPIO_PORT_ENABLE, PHASE_A_GPIO_ENABLE, LL_GPIO_MODE_OUTPUT);
-    PHASE_A_GPIO_PORT_ENABLE->BSRR = PHASE_A_GPIO_ENABLE;
-    LL_GPIO_SetPinMode(PHASE_A_GPIO_PORT_PWM, PHASE_A_GPIO_PWM, LL_GPIO_MODE_OUTPUT);
-    PHASE_A_GPIO_PORT_PWM->BRR = PHASE_A_GPIO_PWM;
-}
-
-void pwm_setODPWM_A() {
-    // unable to do this
-}
-void pwm_setODPWM_B() {
-    // unable to do this
-}
-void pwm_setODPWM_C() {
-    // unable to do this
-}
-void pwm_setHIPWM_A() {
-    // unable to do this
-}
-void pwm_setHIPWM_B() {
-    // unable to do this
-}
-void pwm_setHIPWM_C() {
-    // unable to do this
-}
+// unable to do this
+#define PHASEOUTTEMPLATE_pwm_setHIPWM_x(X)    void pwm_setHIPWM_ ## X (void) {                      \
+}                                                                                                   \
 
 #endif
+
+PHASEOUTTEMPLATE_pwm_setPWM_x(A)
+PHASEOUTTEMPLATE_pwm_setPWM_x(B)
+PHASEOUTTEMPLATE_pwm_setPWM_x(C)
+PHASEOUTTEMPLATE_pwm_setODPWM_x(A)
+PHASEOUTTEMPLATE_pwm_setODPWM_x(B)
+PHASEOUTTEMPLATE_pwm_setODPWM_x(C)
+PHASEOUTTEMPLATE_pwm_setHIPWM_x(A)
+PHASEOUTTEMPLATE_pwm_setHIPWM_x(B)
+PHASEOUTTEMPLATE_pwm_setHIPWM_x(C)
+PHASEOUTTEMPLATE_pwm_setFlt_x(A)
+PHASEOUTTEMPLATE_pwm_setFlt_x(B)
+PHASEOUTTEMPLATE_pwm_setFlt_x(C)
+PHASEOUTTEMPLATE_pwm_setLow_x(A)
+PHASEOUTTEMPLATE_pwm_setLow_x(B)
+PHASEOUTTEMPLATE_pwm_setLow_x(C)

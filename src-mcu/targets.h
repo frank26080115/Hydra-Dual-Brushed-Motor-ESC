@@ -605,6 +605,18 @@
     #define USE_LED_STRIP
 #endif
 
+#ifdef TESTCOMPILETARGET_G0B
+    #define FIRMWARE_NAME           "TESTCOMPILETARGET_G0B"
+    #define DEAD_TIME               60
+    #define MILLIVOLT_PER_AMP       33
+    #define CURRENT_OFFSET          0
+    #define TARGET_VOLTAGE_DIVIDER  210
+    #define HARDWARE_GROUP_G0_B
+    #define HAS_TELEMETRY_PIN
+    #define SIXTY_FOUR_KB_MEMORY
+    #define USE_LED_STRIP
+#endif
+
 #ifdef GENERIC_G071_NOLED
     #define FIRMWARE_NAME           "GEN G071 NOLED"
     #define DEAD_TIME               60

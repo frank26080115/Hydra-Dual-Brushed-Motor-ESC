@@ -1,3 +1,5 @@
+// this file is meant to be included inline, do not include this file where it's not supposed to go
+
 static fifo_t fifo_rx_1;
 static fifo_t fifo_rx_2;
 static fifo_t fifo_tx_1;
@@ -100,6 +102,7 @@ void Cereal_USART::flush(void)
     while (fifo_available(fifo_tx)) {
         // do nothing but wait
     }
+    // I know this is blocking, but this will only be used in CLI mode, and happens fast enough to be negligible
 }
 
 uint32_t Cereal_USART::get_last_time(void)
@@ -151,7 +154,7 @@ void Cereal_USART::write(uint8_t x)
         LL_USART_TransmitData8(_usart, y);
     }
     if (x == '\n') {
-        flush();
+        flush(); // I know this is blocking, but this will only be used in CLI mode, and happens fast enough to be negligible
     }
     echo_time = millis();
 }

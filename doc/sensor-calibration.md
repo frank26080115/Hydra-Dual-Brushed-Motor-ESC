@@ -7,10 +7,10 @@ You need to do these calibrations in order to use the current limiting feature, 
 Prerequisites:
 
  * Hydra firmware is installed
- * you understand how to use CLI mode
+ * you [understand how to use CLI mode](configuration.md)
  * you have saved a copy of your original configuration values
  * you already figured out which phase is the common-shared phase
- * a motor is connected between the common-shared phase and one of the other two phases
+ * a motor (or another load) is connected between the common-shared phase and one of the other two phases
  * you have a multimeter, and understand how to measure voltage and current
 
 ## Voltage Sensor Calibration
@@ -84,3 +84,11 @@ Before applying the load, adjust the `offset` such that the `calc` value is clos
 | `s`        | stop and save result |
 
 Once you've stopped, the final calibration parameters will be displayed, these are the number that should be set as `curroffset` and `currscale` in the configuration. If you've pressed the `s` key, the setting should have been saved for you.
+
+## Current Limiting Tuning
+
+The current limit value is set in milliamps. If you want the current limit to be set at 10A, then the value `currlim` should be configured to 10000.
+
+The default settings should have a `curlimkp` (current limit PID loop's kP) value of around 100 by default. If the current draw is 1A over the limit, this should cut the power completely in under half of a second. It's not a hard sharp power cut, the PID loop will gradually lower the voltage during this time. Simulation shows that the current should reach a steady state in around 120 milliseconds, but at a current slightly higher than the specified limit (for example, a current limit set at 10A will settle at 10.5A).
+
+If you want to operate at the current limit frequently or for long durations, then lower `curlimkp` and also have a slightly lower `currlim`.

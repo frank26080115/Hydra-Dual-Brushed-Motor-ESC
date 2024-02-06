@@ -14,6 +14,12 @@
 #else
     #define HIGH_BITREG_OFF BRR
 #endif
+
+#else
+#define LOW_BITREG_ON   BSRR
+#define LOW_BITREG_OFF  BRR
+#define HIGH_BITREG_ON  BSRR
+#define HIGH_BITREG_OFF BRR
 #endif
 
 void pwm_init()
