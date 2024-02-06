@@ -504,7 +504,7 @@ bool cliboot_if_2nd_sig(void)
             || ((cfg.input_mode == INPUTMODE_CRSF_SWCLK || cfg.input_mode == INPUTMODE_RC_SWD) && swclk_read() != 0)
         #endif
          ) {
-        crsf_inputGuess = 2;
+        crsf_inputGuess = 1; // PB6/USART1
         dbg_printf("CLI cancel from 2ndary signal high\r\n");
         return true;
     }
@@ -554,7 +554,7 @@ void cliboot_decide(void)
 
             if (inp_read() != 0)
             {
-                crsf_inputGuess = 1;
+                crsf_inputGuess = 2;
                 dbg_printf("CLI cancel from signal high\r\n");
                 return;
             }
@@ -570,7 +570,8 @@ void cliboot_decide(void)
             if (inp_read() == 0)
             {
                 crsf_inputGuess = 2;
-                dbg_printf("CLI cancel from signal low\r\n"); // meaning a device is connected but driving it low, CLI requires the signal to be completely unplugged
+                dbg_printf("CLI cancel from signal low\r\n"); // meaning a device is connected but driving it low, probably a PWM receiver that's not yet sending pulses
+                // CLI requires the signal to be completely unplugged
                 return;
             }
         }
@@ -586,11 +587,13 @@ void cliboot_decide(void)
             cliboot_if_key();
             CLIBOOT_IF_2ND_SIG();
             if (inp_read() == 0) {
+                // this will happen if a CRSF receiver is connected and transmissions start to happen
                 dbg_printf("reboot cancel from signal low\r\n");
                 return;
             }
             if ((millis() - tstart) >= 3000)
             {
+                // if it reboots but exits the bootloader, it will probably end up at the `(inp_read() == 0)` check above
                 dbg_printf("reset into bootloader\r\n");
                 NVIC_SystemReset(); // to back to bootloader
             }

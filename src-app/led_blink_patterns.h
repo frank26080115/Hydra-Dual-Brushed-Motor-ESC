@@ -124,7 +124,7 @@ const uint8_t blinkpattern_unarmed[] = {
 const uint8_t blinkpattern_armed[] = {
     // slow double blink
     BLINK_ON_TIME(1),
-    BLINK_OFF_TIME(1),
+    BLINK_OFF_TIME(7),
     BLINK_ON_TIME(1),
     BLINK_OFF_TIME(7),
     BLINK_LOOP,
