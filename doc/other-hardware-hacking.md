@@ -95,11 +95,17 @@ Setup your measurement like this:
 
 ![](imgs/multimetercenterphase.png)
 
-Using the CLI, run the command `testpwm 1 100 3000`, which will send 100% power for 3 seconds. If the meter detected a high change in voltage, then use the command `phasemap 1` to save the value, and you are finished.
+Using the CLI, run the command `hwtest`, and it will ask you to choose a test type, press the `p` key.
 
-If the meter did not detect a big change in voltage, then proceed to try another value. Run the command `testpwm 2 100 3000`, and see if the meter detected a high change in voltage. If the meter detected a high change in voltage, then use the command `phasemap 2` to save the value, and you are finished.
+Pressing the keys `1` to `9` will adjust turn on the currently-selected-phase, with `9` being maximum power and `1` being minimum power. Pressing `0` will turn it off.
 
-If the meter did not detect a big change in voltage, then proceed to try another value. Run the command `testpwm 3 100 3000`, and see if the meter detected a high change in voltage. If the meter detected a high change in voltage, then use the command `phasemap 3` to save the value, and you are finished.
+Pressing the `-` or `=` will change the which one of the three phases is being used.
+
+With the multimeter connected as shown, first press `9`, then press `-` or `=` until the multimeter detects a voltage.
+
+Then press the `ESC` key to exit the test mode. The result will be displayed, and a `phasemap` value will be shown.
+
+To save this value, use the command like `phasemap <n>`, where `<n>` is the number you just figured out.
 
 There are only 3 possibilities, if none of these three possibilities worked then something is wrong.
 
