@@ -19,9 +19,6 @@
 #include "tone.h"
 #include "version.h"
 
-#define MAX_CMD_ARGS 8
-int32_t cmd_args[MAX_CMD_ARGS];
-
 extern uint16_t current_limit_duty;
 extern void current_limit_task(void);
 
