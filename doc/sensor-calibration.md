@@ -68,23 +68,21 @@ There are other ways of doing this wiring, such as using a power supply with a c
 
 During the test, you can turn on or turn off the common-shared phase. The other two phases are always grounded. This allows you to attach a test load to the ESC. This could be a low-resistance-high-power resistor, or a constant-current dummy load, or a motor. Just don't blow up the ESC.
 
-Use the command `tunecurrent` in CLI mode to enable the output of the sensor.
-
-On you screen, you will start seeing data that looks like `[32400] raw 1234 , calc 13324 , offset 0 , scale 20`
+On you screen, you will start seeing data that looks like `[32400] raw-c 1234 , calc-c 13324 , c-offset 0 , c-scale 20`
 
 The number in the `[...]` is just a millisecond timestamp, ignore it.
 
-The `raw` value is the ADC raw reading, ignore it.
+The `raw-c` value is the ADC raw reading, ignore it.
 
-The `calc` value is what is most important. If there is 2A of current being drawn (read the as you do this), then this number should read 2000. The unit is milliamps.
+The `calc-c` value is what is most important. If there is 2A of current being drawn (read the as you do this), then this number should read 2000. The unit is milliamps.
 
-The `offset` value and `scale` value are the calibration parameters that we need to adjust.
+The `c-offset` value and `c-scale` value are the calibration parameters that we need to adjust.
 
-With your keyboard, pressing keys into the serial terminal will adjust the calibration parameters. Adjust them until the `calc` value is as close to what it is supposed to be as possible (read your meter as you do this).
+With your keyboard, pressing keys into the serial terminal will adjust the calibration parameters. Adjust them until the `calc-c` value is as close to what it is supposed to be as possible (read your meter as you do this).
 
-Before applying the load, adjust the `offset` such that the `calc` value is close to zero when there is no load, then move on to applying the load and adjusting `scale`.
+Before applying the load, adjust the `c-offset` such that the `calc-c` value is close to zero when there is no load, then move on to applying the load and adjusting `c-scale`.
 
-Once you've stopped, the final calibration parameters will be displayed, these are the number that should be set as `curroffset` and `currscale` in the configuration. If you've pressed the `s` key, the setting should have been saved for you.
+Once you've stopped, the final calibration parameters will be displayed, these are the number that should be set as `curroffset` and `currscale` in the configuration.
 
 ## Current Limiting Tuning
 

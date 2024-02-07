@@ -151,6 +151,7 @@ EEPROM_chksum_t eeprom_checksum(uint8_t* data, int len)
 
     return (sum2 << 8) | sum1;
     #else
+    // less code size if we borrow the CRSF CRC function
     return crsf_crc8((const uint8_t *)data, len);
     #endif
 }

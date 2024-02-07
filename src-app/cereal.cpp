@@ -34,25 +34,12 @@ size_t Cereal::vprintf(const char *format, va_list arg)
         return 0;
     }
     if (len >= CEREAL_BUFFER_SIZE) {
-        #if 0 // do not use malloc
-        temp = (char*) malloc(len+1);
-        if(temp == NULL) {
-            va_end(arg);
-            return 0;
-        }
-        len = vsnprintf(temp, len+1, format, arg);
-        #else
         va_end(arg);
         return 0;
-        #endif
     }
     va_end(arg);
     len = writeb((uint8_t*)temp, len);
-    #if 0
-    if (temp != loc_buf){
-        free(temp);
-    }
-    #endif
+
     return len;
 }
 

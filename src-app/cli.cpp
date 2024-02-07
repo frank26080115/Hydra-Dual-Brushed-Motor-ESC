@@ -22,7 +22,6 @@
 #define MAX_CMD_ARGS 8
 int32_t cmd_args[MAX_CMD_ARGS];
 
-bool cli_hwdebug;
 extern uint16_t current_limit_duty;
 extern void current_limit_task(void);
 
@@ -177,19 +176,8 @@ void cli_enter(void)
         }
 
         // do other things
-        tnow = millis();
         eeprom_save_if_needed();
-        #if 0
-        if (cli_hwdebug) {
-            // report analog values if desired
-            sense_task();
-            static uint32_t last_hwdebug = 0;
-            if ((tnow - last_hwdebug) >= 200) {
-                last_hwdebug = tnow;
-                cli_reportSensors(cer);
-            }
-        }
-        #endif
+        sense_task();
     }
 }
 
@@ -212,30 +200,6 @@ void cli_execute(Cereal* cer, char* str)
         );
         //cer->printf("CPU freq %lu\r\n", (uint32_t)SystemCoreClock);
     }
-    #if 0
-    else if (item_strcmp("hwdebug", str, NULL))
-    {
-        argc = cmd_parseArgs(str);
-        if (argc <= 0)
-        {
-            // no arguments means toggle
-            cli_hwdebug = !cli_hwdebug;
-        }
-        else
-        {
-            // 0 means false
-            cli_hwdebug = cmd_args[0] != 0;
-        }
-        if (cli_hwdebug) {
-            #ifdef STMICRO
-            swdio_init(LL_GPIO_PULL_UP);
-            swclk_init(LL_GPIO_PULL_UP);
-            #endif
-        }
-        cer->printf("\r\nHW debug: %u\r\n", cli_hwdebug);
-        // cli_hwdebug will cause periodic printout of analog sensor values
-    }
-    #endif
     else if (item_strcmp("factoryreset", str, NULL))
     {
         eeprom_factory_reset();
@@ -247,78 +211,6 @@ void cli_execute(Cereal* cer, char* str)
         cer->flush();
         NVIC_SystemReset();
     }
-    #if 0
-    else if (item_strcmp("testpwm", str, NULL))
-    {
-        // pulse a pin with a certain voltage
-        // useful for identifying which pin is which
-        // keep the pulse short to avoid damage
-        // analog sensor values are printed during the test
-        // this can be used to test current limits
-
-        // args:
-        // which_phase    power    duration
-
-        argc = cmd_parseArgs(str);
-        if (argc < 3 || cmd_args[0] <= 0) {
-            cer->printf("\r\nERROR ARGS");
-            return;
-        }
-
-        pwm_set_period(PWM_DEFAULT_PERIOD);
-        pwm_set_braking(true);
-
-        uint16_t pwr = fi_map(cmd_args[1], 0, 100, 0, PWM_DEFAULT_PERIOD, true);
-
-        int phase = ((cmd_args[0] - 1) % 3) + 1;
-        uint32_t duration = cmd_args[2];
-        pwm_set_remap(phase);
-
-        cer->printf("\r\ntesting PWM, phase %u, pwr = %u%%, time = %lums\r\n"
-                , phase
-                , pwr
-                , duration
-                );
-
-        uint32_t max_current = 0;
-
-        pwm_set_all_duty_remapped(pwr, 0, 0);
-
-        cer->reset_buffer();
-        uint32_t t = 0;
-        do
-        {
-            uint32_t tnow = millis();
-            led_task(false);
-            // check sensors and perform current limit calculations
-            if (sense_task()) {
-                current_limit_task();
-                cli_reportSensors(cer); // print if new data available
-                if (t == 0) {
-                    t = tnow;
-                }
-
-                if (sense_current > max_current) {
-                    max_current = sense_current;
-                }
-            }
-            if (t != 0 && duration > 0 && (tnow - t) >= duration) {
-                // quit if time expired
-                break;
-            }
-            if (t != 0) {
-                // quit on key press
-                int16_t nc = cer->read();
-                if (nc > 0) {
-                    break;
-                }
-            }
-        } while (true);
-
-        pwm_set_all_duty_remapped(0, 0, 0); // end
-        cer->printf("\r\ntest end, maximum detect current = %ld", max_current);
-    }
-    #endif
     else if (item_strcmp("hwtest", str, NULL))
     {
         pwm_set_remap(cfg.phase_map);
@@ -434,55 +326,6 @@ void cli_execute(Cereal* cer, char* str)
         }
     }
 }
-
-#if 0
-int cmd_parseArgs(char* str) // parse a list of integers delimited by space
-{
-    int i = 0;
-    char * token = strtok(str, " ");
-    while( token != NULL && i < MAX_CMD_ARGS)
-    {
-        if (i != 0)
-        {
-            int32_t x = parse_integer((const char*)token);
-            cmd_args[i-1] = x;
-        }
-        token = strtok(NULL, " ");
-        i += 1;
-   }
-   return i;
-}
-#endif
-
-#if 0
-void cli_reportSensors(Cereal* cer)
-{
-    cer->printf("[%lu]: ", millis());
-    #if defined(DEVELOPMENT_BOARD)
-    if (rc1 != NULL && rc2 != NULL)
-    {
-        cer->printf("RC1=");
-        if (rc1->is_alive()) {
-            cer->printf("%d, ", rc1->read());
-        }
-        else {
-            cer->printf("?, ");
-        }
-        cer->printf("RC2=");
-        if (rc2->is_alive()) {
-            cer->printf("%d, ", rc2->read());
-        }
-        else {
-            cer->printf("?, ");
-        }
-    }
-    #endif
-    // for ESCs without a telemetry pad, enable the reading of the SWD pins
-    // these will be pulled-up, and the user can short them to ground to see which pad responds
-    //cer->printf("SWDIO=%d, SWCLK=%d, ", swdio_read() ? 1 : 0, swclk_read() ? 1 : 0);
-    cer->printf("T=%ld, V=%ld, C=%ld, Currlim=%d, \r\n", sense_temperatureC, sense_voltage, sense_current, current_limit_duty);
-}
-#endif
 
 void eeprom_print_all(Cereal* cer)
 {

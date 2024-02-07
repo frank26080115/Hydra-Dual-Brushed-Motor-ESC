@@ -94,6 +94,7 @@ int fifo_readN(fifo_t* f, uint8_t* dst, uint16_t len)
     FIFO_ENABLE_IRQ();
     return i;
     #else
+    // it's better to let the interrupts fire in-between the bytes
     uint16_t i;
     int16_t c;
     for (i = 0; i < len; i++)
@@ -130,6 +131,7 @@ bool fifo_popUntil(fifo_t* f, uint8_t x)
     FIFO_ENABLE_IRQ();
     return false;
     #else
+    // it's better to let the interrupts fire in-between the bytes
     while (true)
     {
         int16_t d = fifo_peek(f);
