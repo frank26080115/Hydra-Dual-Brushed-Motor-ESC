@@ -189,6 +189,7 @@ void SystemInit(void)
   * @param  None
   * @retval None
   */
+#if 0 // ensure space saved
 void SystemCoreClockUpdate(void)
 {
     uint32_t tmp = 0, pllmull = 0, pllsource = 0, predivfactor = 0;
@@ -244,7 +245,7 @@ void SystemCoreClockUpdate(void)
     /* HCLK clock frequency */
     SystemCoreClock >>= tmp;
 }
-
+#endif
 /**
   * @}
   */

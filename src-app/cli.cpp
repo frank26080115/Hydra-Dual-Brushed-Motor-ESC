@@ -207,11 +207,13 @@ void cli_execute(Cereal* cer, char* str)
     else if (item_strcmp("version", str, NULL))
     {
         cer->printf("\r\nV%u.%u E %u HW 0x%08lX N:%s\r\n", firmware_info.version_major, firmware_info.version_minor, firmware_info.version_eeprom, firmware_info.device_code, firmware_info.device_name);
+        #ifndef RELEASE_BUILD
         cer->printf("input pin is GPIO P%c%u\r\n"
             , (char)(((uint32_t)'A') + ((firmware_info.device_code & 0xFF) / ((((uint32_t)GPIOB_BASE) - ((uint32_t)GPIOA_BASE)) >> 8)))
             , (uint8_t)((firmware_info.device_code >> 8) & 0xFF)
         );
-        //cer->printf("CPU freq %lu\r\n", (uint32_t)SystemCoreClock);
+        cer->printf("CPU freq %lu\r\n", (uint32_t)SystemCoreClock);
+        #endif
     }
     else if (item_strcmp("factoryreset", str, NULL))
     {

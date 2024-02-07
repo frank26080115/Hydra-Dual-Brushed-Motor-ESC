@@ -6,7 +6,7 @@ void STM32_Sys_Init(void);
 
 void mcu_init(void)
 {
-    STM32_Sys_Init();
+    SystemClock_Config(); // this starts the clocks
 
     #if defined(MCU_F051) || defined(MCU_F031)
     //LL_APB1_GRP2_EnableClock(LL_APB1_GRP2_PERIPH_SYSCFG);
@@ -14,7 +14,9 @@ void mcu_init(void)
     LL_FLASH_EnablePrefetch();
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
+    #if defined(DEVELOPMENT_BOARD)
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOC);
+    #endif
     LL_APB1_GRP2_EnableClock(LL_APB1_GRP2_PERIPH_ADC1);
     LL_APB1_GRP2_EnableClock(LL_APB1_GRP2_PERIPH_USART1);
     LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_USART2);
@@ -55,6 +57,6 @@ void mcu_init(void)
     //#endif
     #endif
 
-    SystemClock_Config();
+    STM32_Sys_Init(); // this sets the vector table
     systick_init();
 }

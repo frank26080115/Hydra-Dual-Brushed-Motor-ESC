@@ -46,6 +46,7 @@ void STM32_Sys_Init()
 {
     #ifndef DEVELOPMENT_BOARD
     SCB->VTOR = APPLICATION_ADDRESS;
+    // was this already done in SystemInit()?
     #endif
     __enable_irq();
 }

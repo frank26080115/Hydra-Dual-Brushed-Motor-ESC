@@ -26,6 +26,7 @@ void mcu_init(void)
 
     systick_init();
     __enable_irq();
+    // vector table offset is taken care of by SystemInit() in system_at32f421.c
 }
 
 void gpio_mode_QUICK(gpio_type* gpio_periph, uint32_t mode, uint32_t pull_up_down, uint32_t pin)

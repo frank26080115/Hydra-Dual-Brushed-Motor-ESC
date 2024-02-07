@@ -12,6 +12,11 @@ void Cereal_USART::init(uint8_t id, uint32_t baud, bool halfdup, bool swap, bool
 {
     sw_init(id);
 
+    LL_RCC_SetUSARTClockSource(LL_RCC_USART1_CLKSOURCE_PCLK1);
+    #if defined(RCC_CFGR3_USART2SW)
+    LL_RCC_SetUSARTClockSource(LL_RCC_USART2_CLKSOURCE_PCLK1);
+    #endif
+
     _usart->BRR = CLK_CNT(baud);
 
     if (halfdup) {

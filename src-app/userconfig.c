@@ -16,14 +16,19 @@
     .fool_am32_eeprom_layout  = 0x0A, \
     .fool_am32_version_major  = 1,    \
     .fool_am32_version_minor  = 99,   \
-    .fool_am32_name           = {'H', 'Y', 'D', 'R', 'A', '\0', }, \
+    .fool_am32_name           = { 'H', 'Y', 'D', 'R', 'A', '\0', }, \
 
+#ifdef RELEASE_BUILD
+// this copy of the config needs to remain unmodified, to avoid mistakes in configuration during a release build
+#include "default_config.h"
+#else
+// this copy of the config can be modified for testing purposes
 // this stores a default settings copy in flash, somewhere inside the application flash memory
 // this is read-only, and can never be corrupted. it is used for factory-reset
 const EEPROM_data_t default_eeprom __attribute__((aligned(4))) = {
     FOOL_AM32
 
-    .magic              = 0xDEADBEEF,
+    .magic              = EEPROM_MAGIC,
     .version_major      = VERSION_MAJOR,
     .version_minor      = VERSION_MINOR,
     .version_eeprom     = VERSION_EEPROM,
@@ -42,7 +47,7 @@ const EEPROM_data_t default_eeprom __attribute__((aligned(4))) = {
 
     .channel_1          = 1,
     .channel_2          = 2,
-    .channel_mode       = 3,
+    .channel_mode       = 0,
 
     .rc_mid             = 1500,
     .rc_range           = 500,
@@ -74,12 +79,13 @@ const EEPROM_data_t default_eeprom __attribute__((aligned(4))) = {
 
     .tone_volume        = TONE_DEF_VOLUME,
 };
+#endif
 
 // this stores a copy in the flash region allocated for EEPROM, this is writable (but not like RAM)
 __attribute__((__section__(".eeprom")))
 const EEPROM_data_t cfge = {
     FOOL_AM32
-    .magic              = 0xDEADBEEF,
+    .magic = EEPROM_MAGIC,
 };
 #define cfg_addr    ((uint32_t)(&cfge))
 
@@ -232,7 +238,6 @@ void eeprom_save(void)
     cfg.version_major   = VERSION_MAJOR;
     cfg.version_minor   = VERSION_MINOR;
     cfg.version_eeprom  = VERSION_EEPROM;
-    cfg.useless         = 0x12345678;
     EEPROM_data_t* ptre = (EEPROM_data_t*)&cfg;
     uint8_t* start_addr = (uint8_t*)(&(ptre->magic));
     uint8_t* end_addr   = (uint8_t*)(&(ptre->chksum));
@@ -316,8 +321,6 @@ bool eeprom_user_edit(char* str, int32_t* retv)
     }
 
     char* arg = (char*)&str[argi + 1];
-    //strtok(str, " "); // skip first string
-    //arg = strtok(NULL, " ");
     int32_t v = parse_integer((const char*)arg);
     uint16_t itmidx = idxret16[0];
     uint8_t* ptr8 = (uint8_t*)&cfg; // retarget to the struct in RAM that's actually writable

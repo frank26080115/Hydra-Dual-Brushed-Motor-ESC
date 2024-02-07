@@ -150,3 +150,28 @@ void dbg_switch_to_cereal(void)
     LL_GPIO_SetAFPin_8_15(GPIOA, LL_GPIO_PIN_10, LL_GPIO_AF_1);
 }
 #endif
+
+int dbg_chipInit_isDone(void)
+{
+    #if defined(MCU_F051)
+    if (LL_FLASH_GetLatency() != LL_FLASH_LATENCY_1) {
+        return 1;
+    }
+    if (!LL_RCC_HSI_IsReady()) {
+        return 2;
+    }
+    if (!LL_RCC_PLL_IsReady()) {
+        return 3;
+    }
+    if (LL_RCC_GetAHBPrescaler() != LL_RCC_SYSCLK_DIV_1) {
+        return 4;
+    }
+    if (LL_RCC_GetAPB1Prescaler() != LL_RCC_APB1_DIV_1) {
+        return 5;
+    }
+    if (LL_RCC_GetSysClkSource() != LL_RCC_SYS_CLKSOURCE_PLL) {
+        return 6;
+    }
+    #endif
+    return 0;
+}

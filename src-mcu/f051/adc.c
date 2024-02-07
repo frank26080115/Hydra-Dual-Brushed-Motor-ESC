@@ -8,6 +8,8 @@ static uint16_t adc_buff[3];
 
 void adc_init()
 {
+    LL_RCC_HSI14_EnableADCControl();
+
     LL_ADC_InitTypeDef     ADC_InitStruct     = { 0 };
     LL_ADC_REG_InitTypeDef ADC_REG_InitStruct = { 0 };
     LL_GPIO_InitTypeDef    GPIO_InitStruct    = { 0 };

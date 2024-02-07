@@ -99,7 +99,7 @@ typedef struct
     int32_t currlim_ki;
     int32_t currlim_kd;
 
-    // direct-PWM mode channel configuration
+    // direct-PWM mode channel configuration, use the `DIRPWM_*` enums above
     uint8_t dirpwm_chancfg_1;
     uint8_t dirpwm_chancfg_2;
     uint8_t dirpwm_chancfg_3;

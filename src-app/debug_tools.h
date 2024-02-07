@@ -30,6 +30,8 @@ void dbg_hexdump(uint32_t* data, int len);
 void dbg_button_init(void);
 bool dbg_read_btn(void);
 
+int dbg_chipInit_isDone(void);
+
 enum
 {
     DBGEVNTID_ADC                = 0,
