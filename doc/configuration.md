@@ -58,7 +58,7 @@ NOTE: the CLI will never exit until you reboot the entire ESC with the USB linke
 
  * `vsplitmode` is defaulted to the weakest mode that is easy to use, you might want to try out one of the boost modes
  * `inputmode` is obviously important if you are using CRSF or had problems doing the input wiring
- * `phasemap` is important because you don't know which motor output phase is the default common-shared phase, you can test for the correct value with the `testpwm` command (more details below)
+ * `phasemap` is important because you don't know which motor output phase is the default common-shared phase (see section "Finding the Common-Shared Phase" in [this guide](other-hardware-hacking.md))
 
 # Using the CLI
 
@@ -159,26 +159,14 @@ The switch channel output value maps to the voltage-split-mode according to this
 
 Use the command `version` to show some version information.
 
-## Testing Motor Output
-
-Because you don't really know which one of the three phases is the common-shared phase, you can test just one phase to see if it outputs a voltage.
-
-The command looks like `testpwm <arg1> <arg2> <arg3>`, for example, `testpwm 1 100 3000` will power on phase 1 with 100% power for 3 seconds.
-
-The first argument is the phase number, between 1 to 3. When you are happy with it, save it with `phasemap <n>`.
-
-The second argument is the power level, 0 to 100, 100 meaning 100% power.
-
-The thirds argument is the time duration of the test in milliseconds. Using 0 will mean "forever".
-
-The test can be stopped at any time by entering keystrokes into the serial terminal.
-
-During the test, sensor values will be displayed, which can help with finding current sensor values while running a motor.
-
-I wrote another guide on how to use the `testpwm` function for checking phase mapping. [Please see this guide](other-hardware-hacking.md)
-
 ## Debugging Hardware
 
-The command is `hwdebug`, using it will toggle ON or OFF sensor value output to the serial terminal.
+The command is `hwtest`, using it will enter into a test mode, it will ask you to press a key to choose a test mode.
 
-I wrote another guide on how to use the `tunevoltage` command and `tunecurrent` command for calibrating sensors. [Please see this sensor-calibration guide](sensor-calibration.md)
+ * key `v` will help you do voltage sensor calibration
+ * key `c` will help you do current sensor calibration
+ * key `p` will help you do test phase mapping
+
+[Please see this sensor-calibration guide](sensor-calibration.md)
+
+[Please see this hardware guide](other-hardware-hacking.md) for information on finding the common-shared phase

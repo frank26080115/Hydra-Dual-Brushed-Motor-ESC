@@ -278,7 +278,7 @@ void load_runtime_configs(void)
 }
 
 #ifdef ENABLE_COMPILE_CLI
-uint32_t eeprom_idx_of_item(char* str)
+uint32_t eeprom_idx_of_item(char* str, int* argi)
 {
     uint32_t ret32 = 0;
     uint16_t* ret16 = (uint16_t*)&ret32;
@@ -290,7 +290,7 @@ uint32_t eeprom_idx_of_item(char* str)
         if (desc->ptr == 0) {
             break; // end of list, return
         }
-        if (item_strcmp(str, (const char*)desc->name))
+        if (item_strcmp(str, (const char*)desc->name, argi))
         {
             uint32_t ptrstart = (uint32_t)&cfge;
             uint32_t itmidx = desc->ptr - ptrstart;
@@ -305,15 +305,16 @@ uint32_t eeprom_idx_of_item(char* str)
 
 bool eeprom_user_edit(char* str, int32_t* retv)
 {
-    uint32_t idxret = eeprom_idx_of_item(str);
+    int argi;
+    uint32_t idxret = eeprom_idx_of_item(str, &argi);
     uint16_t* idxret16 = (uint16_t*)&idxret;
     if (idxret16[1] <= 0) {
         return false;
     }
 
-    char* arg;
-    strtok(str, " "); // skip first string
-    arg = strtok(NULL, " ");
+    char* arg = (char*)&str[argi + 1];
+    //strtok(str, " "); // skip first string
+    //arg = strtok(NULL, " ");
     int32_t v = parse_integer((const char*)arg);
     uint16_t itmidx = idxret16[0];
     uint8_t* ptr8 = (uint8_t*)&cfg; // retarget to the struct in RAM that's actually writable

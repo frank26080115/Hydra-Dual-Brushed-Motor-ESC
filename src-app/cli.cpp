@@ -93,7 +93,7 @@ void cli_enter(void)
         int16_t c = cer->read();
         if (c >= 0) // data available
         {
-            has_interaction |= c >= 'a' || c >= 'A';
+            has_interaction |= ((c >= 'a' || c >= 'A') && c != '>');
 
             if (prev_has_interaction == false && has_interaction) {
                 // stop tone on first good keystroke
@@ -118,10 +118,6 @@ void cli_enter(void)
                 #endif
                 buff[buff_idx] = '\0';
                 if (buff_idx > 0) {
-                    if (buff[buff_idx - 1] == ' ') {
-                        // trim away trailing space
-                        buff[buff_idx - 1] = '\0';
-                    }
                     cli_execute(cer, buff);
                 }
                 buff_idx = 0;
@@ -164,7 +160,7 @@ void cli_enter(void)
                     c = c == '\t' ? ' ' : c; // convert tabs to spaces
                     buff[buff_idx] = c;
                     buff_idx++;
-                    buff[buff_idx] = 0;
+                    //buff[buff_idx] = 0;
                     #if CLI_ECHO
                     cer->write(c);
                     #endif
@@ -183,6 +179,7 @@ void cli_enter(void)
         // do other things
         tnow = millis();
         eeprom_save_if_needed();
+        #if 0
         if (cli_hwdebug) {
             // report analog values if desired
             sense_task();
@@ -192,36 +189,40 @@ void cli_enter(void)
                 cli_reportSensors(cer);
             }
         }
+        #endif
     }
 }
 
 void cli_execute(Cereal* cer, char* str)
 {
-    int argc;
-    if (item_strcmp("read", str))
+    //int argc;
+    if (item_strcmp("read", str, NULL))
     {
         cer->printf("all settings:\r\n\r\n");
         eeprom_print_all(cer);
         cer->write('\r');
         cer->write('\n');
     }
-    else if (item_strcmp("version", str))
+    else if (item_strcmp("version", str, NULL))
     {
         cer->printf("\r\nV%u.%u E %u HW 0x%08lX N:%s\r\n", firmware_info.version_major, firmware_info.version_minor, firmware_info.version_eeprom, firmware_info.device_code, firmware_info.device_name);
         cer->printf("input pin is GPIO P%c%u\r\n"
             , (char)(((uint32_t)'A') + ((firmware_info.device_code & 0xFF) / ((((uint32_t)GPIOB_BASE) - ((uint32_t)GPIOA_BASE)) >> 8)))
             , (uint8_t)((firmware_info.device_code >> 8) & 0xFF)
         );
-        cer->printf("CPU frequency %lu\r\n", (uint32_t)SystemCoreClock);
+        //cer->printf("CPU freq %lu\r\n", (uint32_t)SystemCoreClock);
     }
-    else if (item_strcmp("hwdebug", str))
+    #if 0
+    else if (item_strcmp("hwdebug", str, NULL))
     {
         argc = cmd_parseArgs(str);
-        if (argc <= 0) {
+        if (argc <= 0)
+        {
             // no arguments means toggle
             cli_hwdebug = !cli_hwdebug;
         }
-        else {
+        else
+        {
             // 0 means false
             cli_hwdebug = cmd_args[0] != 0;
         }
@@ -231,21 +232,23 @@ void cli_execute(Cereal* cer, char* str)
             swclk_init(LL_GPIO_PULL_UP);
             #endif
         }
-        cer->printf("\r\nhardware debug: %u\r\n", cli_hwdebug);
+        cer->printf("\r\nHW debug: %u\r\n", cli_hwdebug);
         // cli_hwdebug will cause periodic printout of analog sensor values
     }
-    else if (item_strcmp("factoryreset", str))
+    #endif
+    else if (item_strcmp("factoryreset", str, NULL))
     {
         eeprom_factory_reset();
-        cer->printf("\r\nfactory reset EEPROM done");
+        cer->printf("\r\nfactory reset done");
     }
-    else if (item_strcmp("reboot", str))
+    else if (item_strcmp("reboot", str, NULL))
     {
         cer->printf("\r\nrebooting...\r\n");
         cer->flush();
         NVIC_SystemReset();
     }
-    else if (item_strcmp("testpwm", str))
+    #if 0
+    else if (item_strcmp("testpwm", str, NULL))
     {
         // pulse a pin with a certain voltage
         // useful for identifying which pin is which
@@ -315,94 +318,104 @@ void cli_execute(Cereal* cer, char* str)
         pwm_set_all_duty_remapped(0, 0, 0); // end
         cer->printf("\r\ntest end, maximum detect current = %ld", max_current);
     }
-    else if (item_strcmp("tunevoltage", str))
+    #endif
+    else if (item_strcmp("hwtest", str, NULL))
     {
-        uint16_t original = cfg.voltage_divider;
-        uint32_t tick = 0;
-        uint32_t tnow;
-        int16_t c;
-        while (true)
-        {
-            sense_task();
-            tnow = millis();
-            int16_t c = cer->read();
-            if (c == '\n' || c == '\r' || c == '\0' || c == 'x' || c == 's' || c == 0x08 || c == 0x1B || c == 0x18 || c == 0x7F) {
-                break;
-            }
-            switch (c)
-            {
-                case ',' : cfg.voltage_divider -=    1; break;
-                case '.' : cfg.voltage_divider +=    1; break;
-                case ';' : cfg.voltage_divider -=   10; break;
-                case '\'': cfg.voltage_divider +=   10; break;
-            }
-            if ((tnow - tick) >= 200) {
-                cer->printf("[%lu] raw %u , calc %lu , vdiv %lu\r\n", tnow, adc_raw_voltage, sense_voltage, cfg.voltage_divider);
-                tick = tnow;
-            }
-        }
-        cer->printf("\r\ntunevoltage session end, vdiv = %lu", cfg.voltage_divider);
-        if (c == 's') { // save
-            cer->printf(" , saving\r\n");
-            eeprom_save();
-        }
-        else {
-            cer->printf(" , not saved\r\n");
-            cfg.voltage_divider = original;
-        }
-    }
-    else if (item_strcmp("tunecurrent", str))
-    {
+        pwm_set_remap(cfg.phase_map);
         pwm_set_period(PWM_DEFAULT_PERIOD);
         pwm_set_braking(true);
         pwm_set_all_duty_remapped(0, 0, 0);
 
+        uint8_t  test_mode  = 0;
+        uint16_t ori_vdiv   = cfg.voltage_divider;
         uint16_t ori_offset = cfg.current_offset;
-        uint16_t ori_scale = cfg.current_scale;
+        uint16_t ori_scale  = cfg.current_scale;
+        int8_t   phase_map  = cfg.phase_map;
         uint32_t tick = 0;
         uint32_t tnow;
-        uint16_t pwr, pwr100;
+        uint16_t pwr = 0, pwr100 = 0;
         int16_t c;
         while (true)
         {
             sense_task();
             tnow = millis();
-            int16_t c = cer->read();
-            if (c == '\n' || c == '\r' || c == '\0' || c == 'x' || c == 's' || c == 0x08 || c == 0x1B || c == 0x18 || c == 0x7F) {
+            c = cer->read();
+            if (c == 'x' || c == 0x08 || c == 0x1B || c == 0x18 || c == 0x7F) {
                 break;
             }
-            switch (c)
+            if (test_mode == 'c')
             {
-                case ',' : cfg.current_offset -=   1; break;
-                case '.' : cfg.current_offset +=   1; break;
-                case '<' : cfg.current_offset -=  10; break;
-                case '>' : cfg.current_offset +=  10; break;
-                case ';' : cfg.current_scale  -=   1; break;
-                case '\'': cfg.current_scale  +=   1; break;
-                case ':' : cfg.current_scale  -=  10; break;
-                case '"' : cfg.current_scale  +=  10; break;
+                switch (c)
+                {
+                    case ',' : cfg.current_offset   -=   1; break;
+                    case '.' : cfg.current_offset   +=   1; break;
+                    case '<' : cfg.current_offset   -=  10; break;
+                    case '>' : cfg.current_offset   +=  10; break;
+                    case ';' : cfg.current_scale    -=   1; break;
+                    case '\'': cfg.current_scale    +=   1; break;
+                    case ':' : cfg.current_scale    -=  10; break;
+                    case '"' : cfg.current_scale    +=  10; break;
+                }
             }
-            if (c >= '0' && c <= '9') {
+            else if (test_mode == 'v')
+            {
+                switch (c)
+                {
+                    case '[' : cfg.voltage_divider  -=   1; break;
+                    case ']' : cfg.voltage_divider  +=   1; break;
+                    case '{' : cfg.voltage_divider  -=  10; break;
+                    case '}' : cfg.voltage_divider  +=  10; break;
+                }
+            }
+
+            if ((test_mode == 'c' || test_mode == 'p') && c >= '0' && c <= '9') {
                 pwr    = fi_map(c, '0', '9', 0, PWM_DEFAULT_PERIOD, true);
                 pwr100 = fi_map(c, '0', '9', 0, 100               , true);
                 pwm_set_all_duty_remapped(pwr, 0, 0);
             }
-            if ((tnow - tick) >= 200) {
-                cer->printf("[%lu] raw %u , calc %lu , offset %lu , scale %lu , pwr %u\r\n", tnow, adc_raw_current, sense_current, cfg.current_offset, cfg.current_scale, pwr100);
+            if (test_mode == 'p' && (c == '-' || c == '=' || c == '+')) {
+                pwm_set_all_duty_remapped(0, 0, 0);
+                phase_map = (c == '-') ? (phase_map - 1) : (phase_map + 1);
+                phase_map = (phase_map <= 0) ? 2 : phase_map;
+                phase_map = (phase_map >  3) ? 1 : phase_map;
+                pwm_set_remap(phase_map);
+                pwm_set_all_duty_remapped(pwr, 0, 0);
+            }
+
+            if (c == 'v') {
+                test_mode = c;
+                pwr = 0;
+                pwr100 = 0;
+                pwm_set_all_duty_remapped(0, 0, 0);
+            }
+            else if (c == 'c' || c == 'p') {
+                test_mode = c;
+            }
+
+            if ((tnow - tick) >= 250) {
+                if (test_mode == 'v') {
+                    cer->printf("[%lu] raw-v %u , calc-v %lu , v-div %lu\r\n", tnow, adc_raw_voltage, sense_voltage, cfg.voltage_divider);
+                }
+                else if (test_mode == 'c') {
+                    cer->printf("[%lu] raw-c %u , calc-c %lu , c-offset %lu , c-scale %lu , pwr %u\r\n", tnow, adc_raw_current, sense_current, cfg.current_offset, cfg.current_scale, pwr100);
+                }
+                else if (test_mode == 'p') {
+                    cer->printf("[%lu] phase-map %u , pwr %u\r\n", tnow, phase_map, pwr100);
+                }
+                else {
+                    cer->printf("[%lu] press 'v' or 'c' or 'p'\r\n", tnow);
+                }
                 tick = tnow;
             }
         }
         pwm_set_all_duty_remapped(0, 0, 0);
-        cer->printf("\r\ntunecurrent session end, offset = %lu, scale = %lu", cfg.current_offset, cfg.current_scale);
-        if (c == 's') { // save
-            cer->printf(" , saving\r\n");
-            eeprom_save();
-        }
-        else {
-            cer->printf(" , not saved\r\n");
-            cfg.current_offset = ori_offset;
-            cfg.current_scale  = ori_scale;
-        }
+
+        cer->printf("\r\nsession end, voltdiv %lu , curroffset %lu , currscale %lu , phasemap %d \r\n(not saved !!!)\r\n", cfg.voltage_divider, cfg.current_offset, cfg.current_scale, phase_map);
+
+        cfg.voltage_divider = ori_vdiv;
+        cfg.current_offset  = ori_offset;
+        cfg.current_scale   = ori_scale;
+        pwm_set_remap(cfg.phase_map);
     }
     else
     {
@@ -422,6 +435,7 @@ void cli_execute(Cereal* cer, char* str)
     }
 }
 
+#if 0
 int cmd_parseArgs(char* str) // parse a list of integers delimited by space
 {
     int i = 0;
@@ -438,7 +452,9 @@ int cmd_parseArgs(char* str) // parse a list of integers delimited by space
    }
    return i;
 }
+#endif
 
+#if 0
 void cli_reportSensors(Cereal* cer)
 {
     cer->printf("[%lu]: ", millis());
@@ -463,9 +479,10 @@ void cli_reportSensors(Cereal* cer)
     #endif
     // for ESCs without a telemetry pad, enable the reading of the SWD pins
     // these will be pulled-up, and the user can short them to ground to see which pad responds
-    cer->printf("SWDIO=%d, SWCLK=%d, ", swdio_read() ? 1 : 0, swclk_read() ? 1 : 0);
+    //cer->printf("SWDIO=%d, SWCLK=%d, ", swdio_read() ? 1 : 0, swclk_read() ? 1 : 0);
     cer->printf("T=%ld, V=%ld, C=%ld, Currlim=%d, \r\n", sense_temperatureC, sense_voltage, sense_current, current_limit_duty);
 }
+#endif
 
 void eeprom_print_all(Cereal* cer)
 {

@@ -8,13 +8,6 @@
 #include <stdio.h>
 #include <string.h>
 
-void delay_ms(uint32_t x) {
-    uint32_t t = millis();
-    while ((millis() - t) < x) {
-        // do nothing;
-    }
-}
-
 // the map function, but with rounded division and an option to limit the output
 int32_t fi_map(int32_t x, int32_t in_min, int32_t in_max, int32_t out_min, int32_t out_max, bool limit)
 {
@@ -67,7 +60,7 @@ int16_t rc_pulse_map(uint16_t x)
 }
 
 // string comparison that ends at a space, also case-insensitive
-bool item_strcmp(const char* usr_inp, const char* table_item)
+bool item_strcmp(const char* usr_inp, const char* table_item, int* argi)
 {
     int slen = 32; //strlen(usr_inp);
     int i;
@@ -75,7 +68,13 @@ bool item_strcmp(const char* usr_inp, const char* table_item)
     {
         char inpc = usr_inp[i];
         char x = table_item[i];
+
+        #if defined(MCU_G071)
         #define IS_CHAR_DELIMITER(ccc)    ((ccc) <= ' ' || (ccc) >= '~' || (ccc) == '=' || (ccc) == ':')
+        #else
+        #define IS_CHAR_DELIMITER(ccc)    ((ccc) <= ' ')
+        #endif
+
         if (IS_CHAR_DELIMITER(inpc)) {
             inpc = 0;
         }
@@ -84,9 +83,12 @@ bool item_strcmp(const char* usr_inp, const char* table_item)
         }
         if (inpc == 0 && x == 0) {
             // both were delimited at the same time and so far has always matched
+            if (argi != NULL) {
+                *argi = i;
+            }
             return true;
         }
-        #if 1
+        #if defined(MCU_G071)
         // case insensitive
         if (inpc >= 'A' && inpc <= 'Z') {
             inpc -= 'A';
@@ -101,16 +103,19 @@ bool item_strcmp(const char* usr_inp, const char* table_item)
             return false; // mismatch, immediate exit
         }
     }
-    return true; // everything seems to have matched so far
+    return false; // should never exit the loop because of string length
 }
 
 int32_t parse_integer(const char* str)
 {
     int32_t v;
+    #if defined(MCU_G071)
     if (str[0] == '0' && (str[1] == 'x' || str[1] == 'X')) {
         v = strtol(&str[2], NULL, 16);
     }
-    else {
+    else
+    #endif
+    {
         v = atoi(str);
     }
     return v;

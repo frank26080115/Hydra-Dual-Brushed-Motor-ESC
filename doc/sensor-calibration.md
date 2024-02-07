@@ -13,34 +13,50 @@ Prerequisites:
  * a motor (or another load) is connected between the common-shared phase and one of the other two phases
  * you have a multimeter, and understand how to measure voltage and current
 
-## Voltage Sensor Calibration
+When you are in the CLI, start by entering the command `hwtest`. You will then be prompted to use a key to select the type of test.
 
-Calibrating the voltage sensing is easy. Use the command `tunevoltage` in CLI mode to enable the output of the sensor.
+ * key `v` will help you do voltage sensor calibration
+ * key `c` will help you do current sensor calibration
 
-Measure the voltage you are using to power the ESC with a multimeter.
-
-On you screen, you will start seeing data that looks like `[32400] raw 1234 , calc 13324 , vdiv 110`
-
-The number in the `[...]` is just a millisecond timestamp, ignore it.
-
-The `raw` value is the ADC raw reading, ignore it.
-
-The `calc` value is what is most important. If you are powering the ESC with 12 volts, then this number should read 12000. The unit is millivolts.
-
-The `vdiv` value is what we need to adjust.
-
-With your keyboard, pressing keys into the serial terminal will adjust the `vdiv` value. Adjust it until the `calc` value is as close to what it is supposed to be as possible. Remember the `vdiv` value as you do this.
+During the tests, these keys are used to adjust items
 
 | key stroke | action |
 |------------|--------|
-| `,`        | adjust **down** by 1 |
-| `.`        | adjust **up** by 1 |
-| `;`        | adjust **down** by 10 |
-| `'`        | adjust **up** by 10 |
-| `ESC` or `ENTER` <br /> or `BACKSPACE` or `DELETE` <br /> or `x` | stop and cancel |
-| `s`        | stop and save result |
+| `,`        | adjust `c-offset` **down** by 1 |
+| `.`        | adjust `c-offset` **up** by 1 |
+| `<`        | adjust `c-offset` **down** by 10 |
+| `>`        | adjust `c-offset` **up** by 10 |
+| `;`        | adjust `c-scale` **down** by 1 |
+| `'`        | adjust `c-scale` **up** by 1 |
+| `:`        | adjust `c-scale` **down** by 10 |
+| `"`        | adjust `c-scale` **up** by 10 |
+| `[`        | adjust `v-div` **down** by 1 |
+| `]`        | adjust `v-div` **up** by 1 |
+| `{`        | adjust `v-div` **down** by 10 |
+| `}`        | adjust `v-div` **up** by 10 |
+| `-`        | adjust `phase-map` **down** by 1 |
+| `=`        | adjust `phase-map` **up** by 1 |
+| `1` - '9'  | turn ON test load with selected power level |
+| `0`        | turn OFF test load |
+| `ESC` or `x` <br /> or `BACKSPACE` or `DELETE` | stop and quit |
 
-Once you've stopped, the final `vdiv` value will be displayed, this is the number that should be set as `voltdiv` in the configuration. If you've pressed the `s` key, the setting should have been saved for you.
+## Voltage Sensor Calibration
+
+Measure the voltage you are using to power the ESC with a multimeter.
+
+On you screen, you will start seeing data that looks like `[32400] raw-v 1234 , calc-v 13324 , v-div 110`
+
+The number in the `[...]` is just a millisecond timestamp, ignore it.
+
+The `raw-v` value is the ADC raw reading, ignore it.
+
+The `calc-v` value is what is most important. If you are powering the ESC with 12 volts, then this number should read 12000. The unit is millivolts.
+
+The `v-div` value is what we need to adjust.
+
+With your keyboard, pressing keys into the serial terminal will adjust the `v-div` value. Adjust it until the `calc-v` value is as close to what it is supposed to be as possible. Remember the `v-div` value as you do this.
+
+Once you've stopped, the final `v-div` value will be displayed, this is the number that should be set as `voltdiv` in the configuration.
 
 ## Electrical Current Sensor Calibration
 
@@ -67,21 +83,6 @@ The `offset` value and `scale` value are the calibration parameters that we need
 With your keyboard, pressing keys into the serial terminal will adjust the calibration parameters. Adjust them until the `calc` value is as close to what it is supposed to be as possible (read your meter as you do this).
 
 Before applying the load, adjust the `offset` such that the `calc` value is close to zero when there is no load, then move on to applying the load and adjusting `scale`.
-
-| key stroke | action |
-|------------|--------|
-| `,`        | adjust `offset` **down** by 1 |
-| `.`        | adjust `offset` **up** by 1 |
-| `<`        | adjust `offset` **down** by 10 |
-| `>`        | adjust `offset` **up** by 10 |
-| `;`        | adjust `scale` **down** by 1 |
-| `'`        | adjust `scale` **up** by 1 |
-| `:`        | adjust `scale` **down** by 10 |
-| `"`        | adjust `scale` **up** by 10 |
-| `1` - '9'  | turn ON test load with selected power level |
-| `0`        | turn OFF test load |
-| `ESC` or `ENTER` <br /> or `BACKSPACE` or `DELETE` <br /> or `x` | stop and cancel |
-| `s`        | stop and save result |
 
 Once you've stopped, the final calibration parameters will be displayed, these are the number that should be set as `curroffset` and `currscale` in the configuration. If you've pressed the `s` key, the setting should have been saved for you.
 
