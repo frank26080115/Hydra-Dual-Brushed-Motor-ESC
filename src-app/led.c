@@ -39,6 +39,9 @@ void led_blink_set(uint8_t x)
     #endif
     led_set(LED_GPIO_GREEN, LED_PIN_GREEN, BLINK_IS_GREEN(x), LED_IS_OPENDRAIN);
     led_set(LED_GPIO_BLUE , LED_PIN_BLUE , BLINK_IS_BLUE(x) , LED_IS_OPENDRAIN);
+    #ifdef LED_PIN_BLUE2
+    led_set(LED_GPIO_BLUE2, LED_PIN_BLUE2, BLINK_IS_BLUE(x) , LED_IS_OPENDRAIN);
+    #endif
     #elif defined(LED_GPIO) && defined(LED_PIN)
     led_set(LED_GPIO, LED_PIN, BLINK_IS_ON(x), LED_IS_OPENDRAIN);
     #endif
@@ -197,6 +200,9 @@ void ledblink_boot(void) {
     #endif
     led_set(LED_GPIO_GREEN, LED_PIN_GREEN, 0    , LED_IS_OPENDRAIN);
     led_set(LED_GPIO_BLUE , LED_PIN_BLUE , 0xFF , LED_IS_OPENDRAIN);
+    #ifdef LED_PIN_BLUE2
+    led_set(LED_GPIO_BLUE2, LED_PIN_BLUE2, 0xFF , LED_IS_OPENDRAIN);
+    #endif
     #elif defined(LED_GPIO) && defined(LED_PIN)
     led_state = 1;
     #endif
@@ -213,6 +219,9 @@ void ledblink_cli(void) {
     #endif
     led_set(LED_GPIO_GREEN, LED_PIN_GREEN, 0xFF , LED_IS_OPENDRAIN);
     led_set(LED_GPIO_BLUE , LED_PIN_BLUE , 0xFF , LED_IS_OPENDRAIN);
+    #ifdef LED_PIN_BLUE2
+    led_set(LED_GPIO_BLUE2, LED_PIN_BLUE2, 0xFF , LED_IS_OPENDRAIN);
+    #endif
     #elif defined(LED_GPIO) && defined(LED_PIN)
     led_state = 1;
     #endif
@@ -229,6 +238,9 @@ void ledblink_disarmed(void) {
     #endif
     led_set(LED_GPIO_GREEN, LED_PIN_GREEN, 0     , LED_IS_OPENDRAIN);
     led_set(LED_GPIO_BLUE , LED_PIN_BLUE , 0     , LED_IS_OPENDRAIN);
+    #ifdef LED_PIN_BLUE2
+    led_set(LED_GPIO_BLUE2, LED_PIN_BLUE2, 0     , LED_IS_OPENDRAIN);
+    #endif
     #elif defined(LED_GPIO) && defined(LED_PIN)
     led_state = 1;
     #endif
@@ -249,6 +261,9 @@ void ledblink_armed_stopped(void) {
     #endif
     led_set(LED_GPIO_GREEN, LED_PIN_GREEN, 0xFF , LED_IS_OPENDRAIN);
     led_set(LED_GPIO_BLUE , LED_PIN_BLUE , 0    , LED_IS_OPENDRAIN);
+    #ifdef LED_PIN_BLUE2
+    led_set(LED_GPIO_BLUE2, LED_PIN_BLUE2, 0    , LED_IS_OPENDRAIN);
+    #endif
     #elif defined(LED_GPIO) && defined(LED_PIN)
     led_state = 2;
     #endif
@@ -265,6 +280,9 @@ void ledblink_moving(void) {
     #endif
     led_set(LED_GPIO_GREEN, LED_PIN_GREEN, 0xFF  , LED_IS_OPENDRAIN);
     led_set(LED_GPIO_BLUE , LED_PIN_BLUE , 0     , LED_IS_OPENDRAIN);
+    #ifdef LED_PIN_BLUE2
+    led_set(LED_GPIO_BLUE2, LED_PIN_BLUE2, 0    , LED_IS_OPENDRAIN);
+    #endif
     #elif defined(LED_GPIO) && defined(LED_PIN)
     led_state = 3;
     #endif
@@ -281,6 +299,9 @@ void ledblink_moving(void) {
     #endif
     led_set(LED_GPIO_GREEN, LED_PIN_GREEN, 0xFF , LED_IS_OPENDRAIN);
     led_set(LED_GPIO_BLUE , LED_PIN_BLUE , 0    , LED_IS_OPENDRAIN);
+    #ifdef LED_PIN_BLUE2
+    led_set(LED_GPIO_BLUE2, LED_PIN_BLUE2, 0    , LED_IS_OPENDRAIN);
+    #endif
     #elif defined(LED_GPIO) && defined(LED_PIN)
     led_state = 3;
     #endif

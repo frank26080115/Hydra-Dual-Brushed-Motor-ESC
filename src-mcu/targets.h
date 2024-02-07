@@ -496,6 +496,8 @@
     #define USE_RGB_LED
     #define LED_PIN_RED2            LL_GPIO_PIN_15
     #define LED_GPIO_RED2           GPIOA
+    #define LED_PIN_BLUE2           LL_GPIO_PIN_4
+    #define LED_GPIO_BLUE2          GPIOB
 #endif
 
 #ifdef GENERIC_F051_PB4_RGBLED

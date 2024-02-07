@@ -69,6 +69,9 @@ void ledhw_init(void)
     #endif
     led_init_gpio(LED_GPIO_GREEN, LED_PIN_GREEN, LED_IS_OPENDRAIN);
     led_init_gpio(LED_GPIO_BLUE , LED_PIN_BLUE , LED_IS_OPENDRAIN);
+    #ifdef LED_PIN_BLUE2
+    led_init_gpio(LED_GPIO_BLUE2, LED_PIN_BLUE2, LED_IS_OPENDRAIN);
+    #endif
 #elif defined(LED_GPIO) && defined(LED_PIN)
     led_init_gpio(LED_GPIO, LED_PIN, LED_IS_OPENDRAIN);
 #endif
