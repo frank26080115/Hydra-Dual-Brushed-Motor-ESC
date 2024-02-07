@@ -4,7 +4,11 @@ This is a alpha release, features are all complete, but not fully tested.
 
 ## Test Coverage
 
- * Mathematic algorithms have all be verified, all the voltage mixing, tank-drive mixing, and direct-PWM
+ * Mathematic algorithms have all be verified:
+   * voltage mixing
+   * load balancing
+   * tank-drive mixing
+   * direct-PWM
 
  * Repeat Robotics Dual Brushless ESC
    * basic functionality with CRSF has been checked

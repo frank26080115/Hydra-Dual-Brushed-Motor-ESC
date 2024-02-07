@@ -17,7 +17,6 @@ bool braking;
 bool complementary_pwm;
 static uint8_t phase_remap = 0;
 static bool load_balance = false;
-static bool open_drain = false;
 
 static uint8_t all_pin_states;
 
@@ -92,13 +91,13 @@ void pwm_set_all_duty(uint16_t a, uint16_t b, uint16_t c)
 
 void pwm_set_all_duty_remapped(uint16_t a, uint16_t b, uint16_t c)
 {
-    if (load_balance && open_drain == false)
+    if (load_balance)
     {
         // tone down the power if one of the common-shared MOSFETs will take more power than what any of the other MOSFETs could possibly ever take
 
         uint16_t max_duty = cfg.pwm_period;
         uint16_t mid_duty = (max_duty + 1) / 2;
-        int p1, p2;
+        int p1 = 0, p2 = 0;
         if (b >= a && c >= a)
         {
             p1 = b - a;
@@ -108,6 +107,10 @@ void pwm_set_all_duty_remapped(uint16_t a, uint16_t b, uint16_t c)
         {
             p1 = a - b;
             p2 = a - c;
+        }
+        else
+        {
+            // do nothing, load is being shared by both high-side and low-side MOSFETs
         }
         int total_power = p1 + p2;
         int tries = 3;
@@ -129,7 +132,7 @@ void pwm_set_all_duty_remapped(uint16_t a, uint16_t b, uint16_t c)
         }
     }
 
-    if (braking && open_drain == false && a == b && a == c)
+    if (braking && a == b && a == c)
     {
         // math calculated stop, so actually feed no voltage
         a = 0;

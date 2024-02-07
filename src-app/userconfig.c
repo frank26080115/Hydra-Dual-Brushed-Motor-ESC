@@ -30,8 +30,8 @@ const EEPROM_data_t default_eeprom __attribute__((aligned(4))) = {
 
     .voltage_split_mode = 0,
     .load_balance       = false,
-    .input_mode         = INPUTMODE_CRSF, //DEFAULT_INPUT_MODE,
-    .tank_arcade_mix    = true,
+    .input_mode         = DEFAULT_INPUT_MODE,
+    .tank_arcade_mix    = false,
     .phase_map          = 1,
     .baud               = 0,
 
