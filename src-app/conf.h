@@ -2,9 +2,6 @@
 
 // this file is used for preprocessor configurations
 
-#define RELEASE_BUILD
-// make sure the tagged commits always have the release build flag
-
 //#define HW_TESTS
 //#define RC_LOG_JITTER
 //#define DISABLE_EEPROM
@@ -12,12 +9,11 @@
 
 #define EEPROM_DIRTY_SAVE_TIME_MS 1000 // if the user edits a EEPROM item, it will auto-save only after this amount of time
 
-#define CLI_ENTER_LOW_CRITERIA  5000 // user must leave ESC disconnected for 5 seconds to enter CLI
-#define CLI_ENTER_HIGH_CRITERIA 2000 // after the first 5 seconds, the user must plug in the USB linker for an additional 2 seconds
+#define CLI_ENTER_UNPLUG_CRITERIA 10 // user must leave ESC disconnected for 10 seconds to enter CLI
 
 #define THROTTLE_UNIT_RANGE 1000 // scales all inputs to be in the range between -1000 and 1000
 
-#define CEREAL_BUFFER_SIZE 64 // malloc is too big to compile so we have a few static buffers being used
+#define CEREAL_BUFFER_SIZE 128 // malloc is too big to compile so we have a few static buffers being used
 
 #define CLI_BAUD      19200 // baud rate used for CLI
 #define CLI_BUFF_SIZE 64

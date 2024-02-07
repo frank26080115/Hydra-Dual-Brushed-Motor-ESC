@@ -90,9 +90,9 @@ void Cereal_USART::sw_init(uint8_t id)
         fifo_tx = &fifo_tx_1;
     }
     else if (_u == CEREAL_ID_USART2) {
-        fifo_init(&fifo_rx_2, cer_buff_3, CEREAL_BUFFER_SIZE);
+        fifo_init(&fifo_rx_2, cer_buff_1, CEREAL_BUFFER_SIZE);
         fifo_rx = &fifo_rx_2;
-        fifo_init(&fifo_tx_2, cer_buff_4, CEREAL_BUFFER_SIZE);
+        fifo_init(&fifo_tx_2, cer_buff_2, CEREAL_BUFFER_SIZE);
         fifo_tx = &fifo_tx_2;
     }
 }

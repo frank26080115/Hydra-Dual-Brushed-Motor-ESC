@@ -48,8 +48,10 @@ void pwm_set_all_duty_remapped(uint16_t a, uint16_t b, uint16_t c); // accounts 
 
 #ifdef DEBUG_PRINT
 void pwm_debug_report(void);
+void pwm_debug_report_drive(void);
 #else
 #define pwm_debug_report(...)
+#define pwm_debug_report_drive(...)
 #endif
 
 void pwm_set_remap(uint8_t);    // set from application

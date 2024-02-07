@@ -34,6 +34,7 @@ void led_state_set(bool x);
 void ledblink_cliwait(void);
 void ledblink_cliplug(void);
 void ledblink_disarmed(void);
+void ledblink_1armed(void);
 void ledblink_armed_stopped(void);
 void ledblink_moving(void);
 void ledblink_cli(void);

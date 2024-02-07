@@ -1,0 +1,21 @@
+# V0.1 Release Notes
+
+This is a alpha release, features are all complete, but not fully tested.
+
+## Test Coverage
+
+ * Mathematic algorithms have all be verified, all the voltage mixing, tank-drive mixing, and direct-PWM
+
+ * Repeat Robotics Dual Brushless ESC
+   * basic functionality with CRSF has been checked
+   * sensors are working and the default calibration has been verified
+   * current limiting passes simulation, have not attempted real world current limit test
+
+ * EMAX Formula 45A ESC
+   * basic functionality with CRSF has been checked
+   * there are no sensors on this ESC
+
+ * Repeat Robotics AM32 Drive ESC 35A
+   * basic functionality with CRSF has been checked
+   * basic functionality with RC PWM input has been checked
+   * voltage sensor verified

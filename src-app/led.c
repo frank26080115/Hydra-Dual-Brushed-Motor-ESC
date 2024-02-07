@@ -167,6 +167,10 @@ void ledblink_disarmed(void) {
     led_set_pattern_primary(blinkpattern_unarmed);
 }
 
+void ledblink_1armed(void) {
+    led_set_pattern_primary(blinkpattern_1armed);
+}
+
 void ledblink_armed_stopped(void) {
     led_set_pattern_primary(blinkpattern_armed);
 }
@@ -231,6 +235,10 @@ void ledblink_disarmed(void) {
     #ifdef USE_LED_STRIP
     WS2812_setRGB(255, 0, 0);
     #endif
+}
+
+void ledblink_1armed(void) {
+    ledblink_disarmed();
 }
 
 void ledblink_armed_stopped(void) {

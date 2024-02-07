@@ -59,6 +59,13 @@ const uint8_t blinkpattern_unarmed[] = {
     BLINK_LOOP,
 };
 
+const uint8_t blinkpattern_1armed[] = {
+    // unarmed should just make red LED stay on always
+    BLINK_RGB_TIME(1, 0, 0, 6),
+    BLINK_OFF_TIME(1),
+    BLINK_LOOP,
+};
+
 const uint8_t blinkpattern_armed[] = {
     BLINK_RGB_TIME(0, 1, 0, 1),
     BLINK_OFF_TIME(4),
@@ -118,6 +125,12 @@ const uint8_t blinkpattern_cli[] = {
 const uint8_t blinkpattern_unarmed[] = {
     // unarmed should just make red LED stay on always
     BLINK_ON_TIME(5),
+    BLINK_LOOP,
+};
+
+const uint8_t blinkpattern_1armed[] = {
+    BLINK_ON_TIME(6),
+    BLINK_OFF_TIME(1),
     BLINK_LOOP,
 };
 

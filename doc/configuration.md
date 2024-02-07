@@ -34,15 +34,13 @@ These steps are different from installing the firmware. Please do not confuse th
 
  2. Power on the ESC. The LED should indicate that it is disarmed (LED will stay solid RED, or whatever colour is used).
 
- 3. Wait 5 seconds. After 5 seconds have passed, the LED blinking should have changed to a different pattern ![](imgs/ledblinks/cliwait.png) (if there is no LED, then the ESC will make the motor start buzzing at a high pitch)
+ 3. Wait 10 seconds. After 10 seconds have passed, the LED blinking should have changed to a different pattern ![](imgs/ledblinks/cliwait.png) (if there is no LED, then the ESC will make the motor start buzzing at a high pitch)
 
  4. Connect the USB linker to the computer
 
  5. Connect the USB linker to the ESC
 
- 6. Wait another 3 seconds.
-
- 7. Run the serial terminal app
+ 6. Run the serial terminal app
 
 The LED blink pattern will change again to indicate successfully entering CLI mode ![](imgs/ledblinks/climode.png)
 
@@ -107,7 +105,8 @@ This will cause the ESC to enter into the AM32 bootloader.
 | `vsplitmode  ` | 0       | 0 - 2       | voltage splitting mode <br /> 0 = boosted almost always <br  /> 1 = half voltage <br /> 2 = boosted while not turning |
 | `loadbal     ` | 0       | 0 or 1      | lowers load on common-shared MOSFET |
 | `inputmode   ` | 0       | 0 - 3       | 0 = RC PWM pulse input <br /> 1 = CRSF input <br /> 2 = RC PWM input through SWCLK <br /> 3 = CRSF input through SWCLK |
-| `phasemap    ` | 1       | 1 - 3       | selects which one of the three phases is used as the common-shared phase |  
+| `tankmix     ` | 0       | 0 or 1      | enables arcade tank drive mixing |
+| `phasemap    ` | 1       | 1 - 3       | selects which one of the three phases is used as the common-shared phase |
 | `baud        ` | 0       |             | baud rate used for CRSF <br /> 0 means default (420000) <br /> useful for taking commands from slower microcontrollers |
 | `channel_1   ` | 1       | 0 - 16      | which CRSF channel is the 1st channel, 0 = unassigned |
 | `channel_2   ` | 2       | 0 - 16      | which CRSF channel is the 2nd channel, 0 = unassigned |
@@ -118,9 +117,9 @@ This will cause the ESC to enter into the AM32 bootloader.
 | `pwm_period  ` | ????    | 0 - 65535   | PWM period, generator reload value, controls the PWM frequency <br /> unit is in clock ticks <br /> Do not modify <br /> lower value = higher frequency
 | `pwm_deadtime` | 50      | 0 - uint32  | PWM cannot be always 100% since the MOSFET drivers use a charge pump. High value means lower power for the motors, but if the value is too low then the high-side MOSFETs might stop working at full throttle. |
 | `braking     ` | 1       | 0 or 1      | If true, enables complementry PWM and never floats the output pins. If false, disables complementry PWM and floats the output pins if throttle is 0 |
-| `chanswap    ` | 0       | 0 or 1      | swaps the input channels |
-| `flip1       ` | 0       | 0 or 1      | flips (reverse) the 1st input channel |
-| `flip2       ` | 0       | 0 or 1      | flips (reverse) the 2nd input channel |
+| `chanswap    ` | 0       | 0 or 1      | swaps the output channels |
+| `flip1       ` | 0       | 0 or 1      | flips (reverse) the 1st output channel |
+| `flip2       ` | 0       | 0 or 1      | flips (reverse) the 2nd output channel |
 | `tied        ` | 0       | 0 or 1      | one channel controls both motors |
 | `armdur      ` | 100     | 0 - uint32  | arming duration required, the number of valid arming pulses (zero throttle) required before becoming armed <br /> setting 0 means **always armed** |
 | `disarmtime  ` | 3000    | 0 - uint32       | number of milliseconds of signal loss before going into disarmed state <br /> setting 0 means **never** |

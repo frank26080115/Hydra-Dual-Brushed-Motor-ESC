@@ -123,9 +123,13 @@ If the ESC is using the STM32G071 microcontroller: Make sure the settings match 
 | NRST_MODE    | 3 |
 | IRHEN        | checked |
 | PCROP_RDP    | **unchecked** |
+| WRP1A_STRT   | Value **0x3F**, Address 0x0801F800 |
 | WRP1A_END    | Value **0x00**, Address 0x08000000 |
+| WRP1B_STRT   | Value **0x3F**, Address 0x0801F800 |
 | WRP1B_END    | Value **0x00**, Address 0x08000000 |
 | BOOT_LOCK    | **unchecked** |
+
+Critically, if you get any errors during chip-erase, it's probably because `WRP1A_STRT`, `WRP1A_END`, `WRP1B_STRT`, or `WRP1B_END` are set wrong.
 
 # Step 7: Write the Firmware File
 

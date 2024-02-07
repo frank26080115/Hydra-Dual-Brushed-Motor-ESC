@@ -1,5 +1,5 @@
 cd ..
-make clean all
+make clean release
 if not exist "release" mkdir "release"
 rm -rf release
 cd tools
@@ -10,5 +10,7 @@ xcopy dist\hydra-fw-tool.exe ..\release\ /Y
 cd ../bin
 xcopy *.hex ..\release /Y /s
 xcopy with-bootloader ..\release\with-bootloader /I /Y
-cd ../tools
+cd ..
+copy src-app\release_notes.txt release\release_notes.txt
+cd tools
 pause

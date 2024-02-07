@@ -29,6 +29,7 @@ IDENTIFIER = HYDRA
 CFLAGS_COMMON  := -DVERSION_MAJOR=$(VERSION_MAJOR) -DVERSION_MINOR=$(VERSION_MINOR) -DVERSION_EEPROM=$(VERSION_EEPROM)
 CFLAGS_COMMON  += -I$(SRC_APP_DIR) -I$(SRC_HAL_DIR) -mno-unaligned-access -Wall -Wcast-align -ffunction-sections -fdata-sections -fno-exceptions -ffreestanding -flto
 CFLAGS_COMMON  += -D$(TARGET)
+CFLAGS_COMMON  += $(RELEASE_BUILD_FLAG)
 
 SRC_COMMON_C   := $(foreach dir, $(SRC_APP_DIR), $(wildcard $(dir)/*.c))
 SRC_COMMON_CPP := $(foreach dir, $(SRC_APP_DIR), $(wildcard $(dir)/*.cpp))
@@ -48,6 +49,7 @@ ALL_OBJS = $(ASM_OBJS) $(CPP_OBJS) $(C_OBJS)
 
 .PHONY : clean cleanobjs all binary f051 g071 f051disco g071nucleo f421 release
 all  : $(TARGETS_F051) $(TARGETS_G071) $(TARGETS_F051DISCO) $(TARGETS_G071NUCLEO) $(TARGETS_F421)
+release : RELEASE_BUILD_FLAG = -DRELEASE_BUILD
 release : $(TARGETS_F051) $(TARGETS_G071) $(TARGETS_F421)
 f051 : $(TARGETS_F051)
 g071 : $(TARGETS_G071)
@@ -65,13 +67,13 @@ binary : $(TARGET_BASENAME).hex
 	@$(ECHO) $@ $< done
 
 $(TARGETS_F051) :
-	@$(MAKE) -s MCU_TYPE=F051 TARGET=$@ cleanobjs binary
+	@$(MAKE) -s MCU_TYPE=F051 TARGET=$@ RELEASE_BUILD_FLAG=$(RELEASE_BUILD_FLAG) cleanobjs binary 
 
 $(TARGETS_G071) :
-	@$(MAKE) -s MCU_TYPE=G071 TARGET=$@ cleanobjs binary
+	@$(MAKE) -s MCU_TYPE=G071 TARGET=$@ RELEASE_BUILD_FLAG=$(RELEASE_BUILD_FLAG) cleanobjs binary
 
 $(TARGETS_F421) :
-	@$(MAKE) -s MCU_TYPE=F421 TARGET=$@ cleanobjs binary
+	@$(MAKE) -s MCU_TYPE=F421 TARGET=$@ RELEASE_BUILD_FLAG=$(RELEASE_BUILD_FLAG) cleanobjs binary
 
 $(TARGETS_F051DISCO) :
 	@$(MAKE) -s MCU_TYPE=F051DISCO TARGET=$@ cleanobjs binary
@@ -87,7 +89,7 @@ $(OBJ_DIR)/%.o: %.cpp
 $(OBJ_DIR)/%.o: %.c
 	@mkdir -p $(dir $@)
 #	@echo %% $(notdir $<)
-	@$(CC) $(MCU_$(MCU_TYPE)) $(CFLAGS_$(MCU_TYPE)) $(CFLAGS_COMMON) -std=gnu99 -c -o $@ $<
+	$(CC) $(MCU_$(MCU_TYPE)) $(CFLAGS_$(MCU_TYPE)) $(CFLAGS_COMMON) -std=gnu99 -c -o $@ $<
 
 $(OBJ_DIR)/%.o: %.s
 	@mkdir -p $(dir $@)

@@ -1,6 +1,6 @@
 Dual brushed motor ESC compatible with brushless motor ESCs
 
-**This project is a work in progress, nothing is done yet!!!**
+**This project is alpha status, features are completed but not completely tested on all platforms**
 
 This is a replacement firmware for brushless motor ESCs that will convert them to being brushed motor ESCs that can independently drive two brushed motors. This is advantageous because brushless motor ESCs are usually smaller and cheaper, when compared to buying dedicated dual motor brushed motor ESCs.
 
@@ -88,7 +88,7 @@ During operation, if there is a LED, then the LED indicates the ESC's state:
 
 (it is not possible to accidentally enter CLI mode, as it checks for input signal pulses)
 
-There is no "arcade mode mixing" feature in this firmware, please do this from the transmitter side. I always recommend avoiding using any mixing modes on ESCs, it is much better to do it on the transmitter.
+Arcade style tank-like drive mixing is optional, and can be enabled through the configuration CLI.
 
 # Additional Advanced Topics
 

@@ -21,6 +21,11 @@ static bool open_drain = false;
 
 static uint8_t all_pin_states;
 
+#ifdef DEBUG_PRINT
+int16_t dbg_drv_left;
+int16_t dbg_drv_right;
+#endif
+
 void pwm_all_flt()
 {
     pwm_setFlt_A();
@@ -132,6 +137,11 @@ void pwm_set_all_duty_remapped(uint16_t a, uint16_t b, uint16_t c)
         c = 0;
     }
 
+    #ifdef DEBUG_PRINT
+    dbg_drv_left  = b - a;
+    dbg_drv_right = c - a;
+    #endif
+
     switch (phase_remap)
     {
         case 0: pwm_set_all_duty(a, b, c); break;
@@ -171,6 +181,10 @@ void pwm_set_braking(bool x)
 
 void pwm_debug_report(void) {
     dbg_printf("%u, %u, %u, ", pwm_getDuty_A(), pwm_getDuty_B(), pwm_getDuty_C());
+}
+
+void pwm_debug_report_drive(void) {
+    dbg_printf("%d, %d, ", dbg_drv_left, dbg_drv_right);
 }
 
 #endif

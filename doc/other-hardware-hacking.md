@@ -97,7 +97,7 @@ Setup your measurement like this:
 
 Using the CLI, run the command `hwtest`, and it will ask you to choose a test type, press the `p` key.
 
-Pressing the keys `1` to `9` will adjust turn on the currently-selected-phase, with `9` being maximum power and `1` being minimum power. Pressing `0` will turn it off.
+Pressing the keys `1` to `9` will adjust turn on the currently selected phase, with `9` being maximum power and `1` being minimum power. Pressing `0` will turn it off.
 
 Pressing the `-` or `=` will change the which one of the three phases is being used.
 

@@ -22,21 +22,21 @@ During the tests, these keys are used to adjust items
 
 | key stroke | action |
 |------------|--------|
-| `,`        | adjust `c-offset` **down** by 1 |
-| `.`        | adjust `c-offset` **up** by 1 |
-| `<`        | adjust `c-offset` **down** by 10 |
-| `>`        | adjust `c-offset` **up** by 10 |
-| `;`        | adjust `c-scale` **down** by 1 |
-| `'`        | adjust `c-scale` **up** by 1 |
-| `:`        | adjust `c-scale` **down** by 10 |
-| `"`        | adjust `c-scale` **up** by 10 |
-| `[`        | adjust `v-div` **down** by 1 |
-| `]`        | adjust `v-div` **up** by 1 |
-| `{`        | adjust `v-div` **down** by 10 |
-| `}`        | adjust `v-div` **up** by 10 |
-| `-`        | adjust `phase-map` **down** by 1 |
-| `=`        | adjust `phase-map` **up** by 1 |
-| `1` - '9'  | turn ON test load with selected power level |
+| `,`        | adjust `c-offset` **⇓** by 1 |
+| `.`        | adjust `c-offset` **⇑** by 1 |
+| `<`        | adjust `c-offset` **⇓** by 10 |
+| `>`        | adjust `c-offset` **⇑** by 10 |
+| `;`        | adjust `c-scale` **⇓** by 1 |
+| `'`        | adjust `c-scale` **⇑** by 1 |
+| `:`        | adjust `c-scale` **⇓** by 10 |
+| `"`        | adjust `c-scale` **⇑** by 10 |
+| `[`        | adjust `v-div` **⇓** by 1 |
+| `]`        | adjust `v-div` **⇑** by 1 |
+| `{`        | adjust `v-div` **⇓** by 10 |
+| `}`        | adjust `v-div` **⇑** by 10 |
+| `-`        | adjust `phase-map` **⇓** by 1 |
+| `=`        | adjust `phase-map` **⇑** by 1 |
+| `1` - `9`  | turn ON test load with selected power level |
 | `0`        | turn OFF test load |
 | `ESC` or `x` <br /> or `BACKSPACE` or `DELETE` | stop and quit |
 

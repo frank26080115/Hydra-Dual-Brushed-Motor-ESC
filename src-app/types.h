@@ -59,6 +59,7 @@ typedef struct
     uint8_t voltage_split_mode;
     bool load_balance;
     uint8_t input_mode;
+    bool tank_arcade_mix;
     uint8_t phase_map;         // 1 to 3, which phase is the common-shared phase, 0 means 1, overflow is handled by modulo
     uint32_t baud;             // 0 means automatic, otherwise it will override CRSF baudrate
 
@@ -118,7 +119,7 @@ EEPROM_data_t;
 
 typedef struct
 {
-    char     name[32];
+    char     name[20];
     uint32_t ptr;
     uint8_t  size;
 } __attribute__((packed)) __attribute__((aligned(4)))

@@ -35,6 +35,7 @@ void cli_enter(void);
 #endif
 
 void direct_pwm(int32_t v1, int32_t v2, int32_t v3, uint32_t duty_max);
+void tank_drive_arcade_mix(int throttle, int steering, int* out_left, int* out_right);
 
 int main(void)
 {
@@ -63,6 +64,10 @@ int main(void)
     inp_pullDown();
     inp2_pullDown();
     swdpins_deinit();
+    #if defined(DISABLE_LED) || defined(ENABLE_TONE)
+    tone_stop();
+    load_runtime_configs();
+    #endif
     #endif
 
     ledblink_disarmed();
@@ -117,10 +122,12 @@ int main(void)
                         , false, true, true);
         crsf_1.init(&main_cer, cfg.channel_1);
         crsf_2.init(&main_cer, cfg.channel_2);
-        crsf_3.init(&main_cer, cfg.channel_mode); // only used in direct-PWM mode
         rc1 = &crsf_1;
         rc2 = &crsf_2;
-        rc3 = &crsf_3;
+        if (cfg.voltage_split_mode == VSPLITMODE_DIRECTPWM) {
+            crsf_3.init(&main_cer, cfg.channel_mode);
+            rc3 = &crsf_3;
+        }
 
         dbg_printf("input mode [%u] CRSF\r\n", cfg.input_mode);
     }
@@ -164,6 +171,7 @@ int main(void)
         #endif
 
         int v1, v2, v3;
+        int drv_throttle, drv_steering, drv_left, drv_right;
 
         if (cfg.tied == false)
         {
@@ -188,6 +196,15 @@ int main(void)
             v1 = armed_both ? rc1->read() : 0;
             v2 = armed_both ? rc2->read() : 0;
             v3 = armed_both && rc3 != NULL ? rc3->read() : 0;
+
+            if (cfg.tank_arcade_mix)
+            {
+                drv_throttle = v1;
+                drv_steering = v2;
+                tank_drive_arcade_mix(drv_throttle, drv_steering, &drv_left, &drv_right);
+                v1 = drv_left;
+                v2 = drv_right;
+            }
         }
         else // controls are tied, take from one channel and apply to both
         {
@@ -210,8 +227,14 @@ int main(void)
         v1 *= cfg.flip_1 ? -1 : 1;
         v2 *= cfg.flip_2 ? -1 : 1;
 
-        if (armed_both == false) {
-            ledblink_disarmed();
+        if (armed_both == false)
+        {
+            if (rc1->is_armed() || rc2->is_armed()) {
+                ledblink_1armed();
+            }
+            else {
+                ledblink_disarmed();
+            }
             pwm_all_flt();
             if (need_debug_print) {
                 dbg_printf("[%u] disarmed (%d %d), v=%lu   c=%u\r\n", millis(), rc1->read(), rc2->read(), sense_voltage, sense_current);
@@ -342,7 +365,14 @@ int main(void)
 
         if (need_debug_print) {
             dbg_printf("[%u], v=%lu   c=%u , ", millis(), sense_voltage, sense_current);
+            if (cfg.tank_arcade_mix) {
+                dbg_printf("%d, %d, %d, %d, ; ", drv_throttle, drv_steering, drv_left, drv_right);
+            }
             pwm_debug_report();
+            if (cfg.voltage_split_mode != VSPLITMODE_DIRECTPWM) {
+                dbg_printf("; ");
+                pwm_debug_report_drive();
+            }
             dbg_printf("\r\n");
         }
     }
@@ -350,11 +380,23 @@ int main(void)
     return 0;
 }
 
+void tank_drive_arcade_mix(int throttle, int steering, int* out_left, int* out_right)
+{
+    int left  = throttle + steering;
+    int right = throttle - steering;
+    left  = left  >  THROTTLE_UNIT_RANGE ?  THROTTLE_UNIT_RANGE : left;
+    right = right >  THROTTLE_UNIT_RANGE ?  THROTTLE_UNIT_RANGE : right;
+    left  = left  < -THROTTLE_UNIT_RANGE ? -THROTTLE_UNIT_RANGE : left;
+    right = right < -THROTTLE_UNIT_RANGE ? -THROTTLE_UNIT_RANGE : right;
+    *out_left  = left;
+    *out_right = right;
+}
+
 void direct_pwm(int32_t v1, int32_t v2, int32_t v3, uint32_t duty_max)
 {
-    v1 = fi_map(v1, 0, THROTTLE_UNIT_RANGE, 0, duty_max, true);
-    v2 = fi_map(v2, 0, THROTTLE_UNIT_RANGE, 0, duty_max, true);
-    v3 = fi_map(v3, 0, THROTTLE_UNIT_RANGE, 0, duty_max, true);
+    v1 = fi_map(v1 < 0 ? -v1 : v1, 0, THROTTLE_UNIT_RANGE, 0, duty_max, true);
+    v2 = fi_map(v2 < 0 ? -v2 : v2, 0, THROTTLE_UNIT_RANGE, 0, duty_max, true);
+    v3 = fi_map(v3 < 0 ? -v3 : v3, 0, THROTTLE_UNIT_RANGE, 0, duty_max, true);
     complementary_pwm = true; // this only affects the pwm_setPWM_* functions, the other functions will ignore this
 
     if (cfg.dirpwm_chancfg_1 == DIRPWM_PUSHPULL) {

@@ -30,7 +30,8 @@ const EEPROM_data_t default_eeprom __attribute__((aligned(4))) = {
 
     .voltage_split_mode = 0,
     .load_balance       = false,
-    .input_mode         = INPUTMODE_CRSF,//DEFAULT_INPUT_MODE,
+    .input_mode         = INPUTMODE_CRSF, //DEFAULT_INPUT_MODE,
+    .tank_arcade_mix    = true,
     .phase_map          = 1,
     .baud               = 0,
 
@@ -41,7 +42,7 @@ const EEPROM_data_t default_eeprom __attribute__((aligned(4))) = {
 
     .channel_1          = 1,
     .channel_2          = 2,
-    .channel_mode       = 0,
+    .channel_mode       = 3,
 
     .rc_mid             = 1500,
     .rc_range           = 500,
@@ -98,6 +99,7 @@ const EEPROM_item_t cfg_items[] __attribute__((aligned(4))) = {
     DCLR_ITM("vsplitmode"   , voltage_split_mode),
     DCLR_ITM("loadbal"      , load_balance      ),
     DCLR_ITM("inputmode"    , input_mode        ),
+    DCLR_ITM("tankmix"      , tank_arcade_mix   ),
     DCLR_ITM("phasemap"     , phase_map         ),
     DCLR_ITM("baud"         , baud              ),
     DCLR_ITM("channel_1"    , channel_1         ),
