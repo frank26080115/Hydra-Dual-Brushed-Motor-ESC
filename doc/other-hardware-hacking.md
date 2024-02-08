@@ -19,13 +19,11 @@ If the AM32 bootloader is not preloaded, then this is much more difficult, you c
  * just try different firmwares until it works
  * check against [AM32's database of known ESCs](https://github.com/AlkaMotors/AM32-MultiRotor-ESC-firmware/wiki/List-of-Supported-Hardware)
 
-If you already have Hydra firmware installed on a ESC but need to know what pin it uses for main signal input, then use the CLI and run the command `version`, and it will tell you.
-
 # Which Microcontroller?
 
 ![](imgs/whichmcu.png)
 
-You just need to look at the chip very closely. It will say `F051K6` or `G071GB` on there.
+You just need to look at the chip very closely. It will say `F051K6` or `G071GB` or `F421` on there.
 
 # Determining the LED
 

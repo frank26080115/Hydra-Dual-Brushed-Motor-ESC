@@ -2,7 +2,7 @@ Dual brushed motor ESC compatible with brushless motor ESCs
 
 **This project is alpha status, features are completed, and some ESCs have been tested, but not all of them. Please see release notes.**
 
-This is a replacement firmware for brushless motor ESCs that will convert them to being brushed motor ESCs that can independently drive two brushed motors. This is advantageous because brushless motor ESCs are usually smaller and cheaper, when compared to buying dedicated dual motor brushed motor ESCs.
+This is a replacement firmware for brushless motor ESCs that will convert them to being brushed motor ESCs that can **independently drive two brushed motors**. This is advantageous because brushless motor ESCs are usually smaller and cheaper, when compared to buying dedicated dual motor brushed motor ESCs. The number of brushed motor ESCs dedicated to remotely controlled robots (such as insect class combat robots) is quite sparse, and so this project hopes to widen the available options to robot builders by converting the more numerous brushless ESCs used by drones into brushed motor ESCs.
 
 This firmware must be installed after AM32 is installed on the ESC, as the installation needs to be done through the AM32 bootloader.
 

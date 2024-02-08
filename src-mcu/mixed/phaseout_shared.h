@@ -4,10 +4,10 @@
 
 #ifndef PWM_ENABLE_BRIDGE
 
-#define PHASEOUTTEMPLATE_pwm_setPWM_CP_x(X)    void pwm_setPWM_CP_ ## X (void) {                      \
-    LL_GPIO_SetPinMode(PHASE_GPIO_PORT_LOW_ ##X , PHASE_GPIO_LOW_ ##X , LL_GPIO_MODE_ALTERNATE);      \
-    LL_GPIO_SetPinMode(PHASE_GPIO_PORT_HIGH_ ##X , PHASE_GPIO_HIGH_ ##X , LL_GPIO_MODE_ALTERNATE);    \
-}                                                                                                     \
+#define PHASEOUTTEMPLATE_pwm_setPWM_CP_x(X)    void pwm_setPWM_CP_ ## X (void) {                   \
+    LL_GPIO_SetPinMode(PHASE_GPIO_PORT_LOW_ ##X , PHASE_GPIO_LOW_ ##X , LL_GPIO_MODE_ALTERNATE);   \
+    LL_GPIO_SetPinMode(PHASE_GPIO_PORT_HIGH_ ##X , PHASE_GPIO_HIGH_ ##X , LL_GPIO_MODE_ALTERNATE); \
+}                                                                                                  \
 
 #define PHASEOUTTEMPLATE_pwm_setPWM_OD_x(X)    void pwm_setPWM_OD_ ## X (void) {                   \
     LL_GPIO_SetPinMode(PHASE_GPIO_PORT_LOW_ ##X ,  PHASE_GPIO_LOW_ ##X ,  LL_GPIO_MODE_ALTERNATE); \
