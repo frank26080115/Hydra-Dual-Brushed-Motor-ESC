@@ -48,11 +48,9 @@ const EEPROM_data_t default_eeprom __attribute__((aligned(4))) = {
     .currlim_ki         = 0,
     .currlim_kd         = 100,
 
-    .dirpwm_chancfg_1   = 0,
-    .dirpwm_chancfg_2   = 0,
-    .dirpwm_chancfg_3   = 0,
-
-    // data after the checksum are unprotected
+    .dirpwm_chancfg_A   = 0,
+    .dirpwm_chancfg_B   = 0,
+    .dirpwm_chancfg_C   = 0,
 
     .tone_volume        = TONE_DEF_VOLUME,
 };

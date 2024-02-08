@@ -397,55 +397,28 @@ void direct_pwm(int32_t v1, int32_t v2, int32_t v3, uint32_t duty_max)
     v1 = fi_map(v1 < 0 ? -v1 : v1, 0, THROTTLE_UNIT_RANGE, 0, duty_max, true);
     v2 = fi_map(v2 < 0 ? -v2 : v2, 0, THROTTLE_UNIT_RANGE, 0, duty_max, true);
     v3 = fi_map(v3 < 0 ? -v3 : v3, 0, THROTTLE_UNIT_RANGE, 0, duty_max, true);
-    complementary_pwm = true; // this only affects the pwm_setPWM_* functions, the other functions will ignore this
 
-    if (cfg.dirpwm_chancfg_1 == DIRPWM_PUSHPULL) {
-        pwm_setPWM_A();
-    }
-    else if (cfg.dirpwm_chancfg_1 == DIRPWM_HIGHONLY) {
-        pwm_setHIPWM_A();
-    }
-    else if (cfg.dirpwm_chancfg_1 == DIRPWM_OPENDRAIN) {
-        pwm_setODPWM_A();
-        v1 = cfg.pwm_period - v1;
-    }
-    else {
-        pwm_setFlt_A();
-        v1 = 0;
-    }
-    pwm_setDuty_A(v1);
+    #define DIRPWM_TEMPLATE(lt, val)    do {                   \
+    if (cfg.dirpwm_chancfg_ ##lt == DIRPWM_PUSHPULL) {         \
+        pwm_setPWM_CP_ ##lt ();                                   \
+    }                                                          \
+    else if (cfg.dirpwm_chancfg_ ##lt == DIRPWM_HIGHONLY) {    \
+        pwm_setPWM_HI_ ##lt ();                                 \
+    }                                                          \
+    else if (cfg.dirpwm_chancfg_ ##lt == DIRPWM_OPENDRAIN) {   \
+        pwm_setPWM_OD_  ##lt ();                                \
+        val = cfg.pwm_period - val;                            \
+    }                                                          \
+    else {                                                     \
+        pwm_setFlt_ ##lt ();                                   \
+        val = 0;                                               \
+    }                                                          \
+    pwm_setDuty_ ##lt (val);                                   \
+    } while (0)                                                \
 
-    if (cfg.dirpwm_chancfg_2 == DIRPWM_PUSHPULL) {
-        pwm_setPWM_B();
-    }
-    else if (cfg.dirpwm_chancfg_2 == DIRPWM_HIGHONLY) {
-        pwm_setHIPWM_B();
-    }
-    else if (cfg.dirpwm_chancfg_2 == DIRPWM_OPENDRAIN) {
-        pwm_setODPWM_B();
-        v2 = cfg.pwm_period - v2;
-    }
-    else {
-        pwm_setFlt_B();
-        v2 = 0;
-    }
-    pwm_setDuty_B(v2);
-
-    if (cfg.dirpwm_chancfg_3 == DIRPWM_PUSHPULL) {
-        pwm_setPWM_C();
-    }
-    else if (cfg.dirpwm_chancfg_3 == DIRPWM_HIGHONLY) {
-        pwm_setHIPWM_C();
-    }
-    else if (cfg.dirpwm_chancfg_3 == DIRPWM_OPENDRAIN) {
-        pwm_setODPWM_C();
-        v3 = cfg.pwm_period - v3;
-    }
-    else {
-        pwm_setFlt_C();
-        v3 = 0;
-    }
-    pwm_setDuty_C(v3);
+    DIRPWM_TEMPLATE(A, v1);
+    DIRPWM_TEMPLATE(B, v2);
+    DIRPWM_TEMPLATE(C, v3);
 }
 
 #include "release_checks.h"

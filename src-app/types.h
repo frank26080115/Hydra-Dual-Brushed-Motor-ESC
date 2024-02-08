@@ -102,17 +102,17 @@ typedef struct
     int32_t currlim_kd;
 
     // direct-PWM mode channel configuration, use the `DIRPWM_*` enums above
-    uint8_t dirpwm_chancfg_1;
-    uint8_t dirpwm_chancfg_2;
-    uint8_t dirpwm_chancfg_3;
+    uint8_t dirpwm_chancfg_A;
+    uint8_t dirpwm_chancfg_B;
+    uint8_t dirpwm_chancfg_C;
+
+    uint8_t tone_volume; // not all ESCs support tone
 
     uint32_t useless; // just a test pattern that can be written and used to change the chksum
 
     EEPROM_chksum_t chksum;
 
     // any data after the checksum can still be saved but won't be protected
-
-    uint8_t tone_volume; // placed here because not all ESCs support tone generation
 
 } __attribute__((packed)) __attribute__((aligned(4)))
 EEPROM_data_t;

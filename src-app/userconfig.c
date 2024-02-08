@@ -73,11 +73,9 @@ const EEPROM_data_t default_eeprom __attribute__((aligned(4))) = {
     .currlim_ki         = 0,
     .currlim_kd         = 100,
 
-    .dirpwm_chancfg_1   = 0,
-    .dirpwm_chancfg_2   = 0,
-    .dirpwm_chancfg_3   = 0,
-
-    // data after the checksum are unprotected
+    .dirpwm_chancfg_A   = 0,
+    .dirpwm_chancfg_B   = 0,
+    .dirpwm_chancfg_C   = 0,
 
     .tone_volume        = TONE_DEF_VOLUME,
 };
@@ -118,7 +116,9 @@ const EEPROM_item_t cfg_items[] __attribute__((aligned(4))) = {
     DCLR_ITM("rc_deadzone"  , rc_deadzone       ),
     DCLR_ITM("pwm_period"   , pwm_period        ),
     DCLR_ITM("pwm_deadtime" , pwm_deadtime      ),
+    #ifndef PWM_ENABLE_BRIDGE
     DCLR_ITM("braking"      , braking           ),
+    #endif
     DCLR_ITM("chanswap"     , chan_swap         ),
     DCLR_ITM("flip1"        , flip_1            ),
     DCLR_ITM("flip2"        , flip_2            ),
@@ -135,9 +135,9 @@ const EEPROM_item_t cfg_items[] __attribute__((aligned(4))) = {
     DCLR_ITM("curlimkp"     , currlim_kp        ),
     DCLR_ITM("curlimki"     , currlim_ki        ),
     DCLR_ITM("curlimkd"     , currlim_kd        ),
-    DCLR_ITM("dirpwm_1"     , dirpwm_chancfg_1  ),
-    DCLR_ITM("dirpwm_2"     , dirpwm_chancfg_2  ),
-    DCLR_ITM("dirpwm_3"     , dirpwm_chancfg_3  ),
+    DCLR_ITM("dirpwm_1"     , dirpwm_chancfg_A  ),
+    DCLR_ITM("dirpwm_2"     , dirpwm_chancfg_B  ),
+    DCLR_ITM("dirpwm_3"     , dirpwm_chancfg_C  ),
     #if defined(DISABLE_LED) || defined(ENABLE_TONE)
     DCLR_ITM("tonevol"      , tone_volume       ),
     #endif

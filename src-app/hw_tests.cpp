@@ -117,7 +117,6 @@ void hwtest_pwm(void)
     dbg_switch_to_pwm();
     pwm_all_flt();
     pwm_set_braking(true);
-    pwm_all_pwm();
     pwm_set_remap(1);
     pwm_set_loadbalance(false);
     while (true)
@@ -156,7 +155,6 @@ void hwtest_pwm_max(void)
     dbg_switch_to_pwm();
     pwm_all_flt();
     pwm_set_braking(true);
-    pwm_all_pwm();
     pwm_set_period(PWM_DEFAULT_PERIOD);
     pwm_set_deadtime(PWM_DEFAULT_DEADTIME);
     pwm_set_remap(1);
