@@ -2,7 +2,7 @@
 
 void SystemClock_Config(void)
 {
-    #if defined(DEVELOPMENT_BOARD) || true // disable this section to save code space, as there is a bootloader that has already done all this
+    #ifndef AGGRESSIVE_BOOT // disable this section to save code space, as there is a bootloader that has already done all this
     LL_FLASH_SetLatency(LL_FLASH_LATENCY_1);
 
     if (LL_FLASH_GetLatency() != LL_FLASH_LATENCY_1) {

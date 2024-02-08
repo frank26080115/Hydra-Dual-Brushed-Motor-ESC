@@ -41,9 +41,11 @@ enum
 
 typedef struct
 {
-    uint8_t fool_am32_bootloader_0; // the first few bytes are being checked by the AM32 bootloader, it needs to be a specific value to boot
+    // the bootloader of AM32 will check the 3rd byte for a version number, and erase the entire EEPROM if it doesn't like it
+    // https://github.com/frank26080115/Hydra-Dual-Brushed-Motor-ESC/issues/7
+    uint8_t fool_am32_bootloader_0;
     uint8_t fool_am32_bootloader_1;
-    uint8_t fool_am32_bootloader_2;
+    uint8_t fool_am32_bootloader_2; // this one is the most important
     uint8_t fool_am32_eeprom_layout;
     uint8_t fool_am32_version_major;
     uint8_t fool_am32_version_minor;

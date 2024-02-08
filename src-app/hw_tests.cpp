@@ -49,7 +49,7 @@ void hw_test(void)
     //hwtest_eeprom();
     //hwtest_cli();
     //hwtest_tone();
-    hwtest_rc_led_pwm();
+    //hwtest_rc_led_pwm();
     //hwtest_rc_led_crsf();
     //hwtest_rc_tone_crsf();
     //hwtest_simCurrentLimit();

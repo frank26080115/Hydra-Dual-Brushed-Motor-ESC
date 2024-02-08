@@ -608,6 +608,7 @@
     #define HARDWARE_GROUP_G0_N
     #define HAS_TELEMETRY_PIN
     #define SIXTY_FOUR_KB_MEMORY
+    #define HW_PHASES_REMAP         1
     #define USE_LED_STRIP
 #endif
 

@@ -63,6 +63,7 @@ unsigned int system_core_clock           = HICK_VALUE; /*!< system clock frequen
   */
 void SystemInit(void)
 {
+    #ifndef AGGRESSIVE_BOOT
     /* reset the crm clock configuration to the default reset state(for debug purpose) */
     /* set hicken bit */
     CRM->ctrl_bit.hicken = TRUE;
@@ -114,6 +115,7 @@ void SystemInit(void)
 #else
     SCB->VTOR = FLASH_BASE | VECT_TAB_OFFSET;  /* vector table relocation in internal flash. */
 #endif
+    #endif
 }
 
 /**

@@ -50,6 +50,11 @@ def main():
         args.firmware = sys.argv[1]
         print("input file: \"%s\"" % args.firmware)
 
+    if got_file or (args.firmware is not None and len(args.firmware) > 4):
+        if os.path.isfile(args.firmware) == False:
+            print("ERROR: the file \"%s\" does not exist" % args.firmware)
+            quit_nicely(-1)
+
     no_wait = args.nowait
 
     ports = get_all_comports(False)
@@ -330,7 +335,7 @@ def main():
                 quit_nicely(-1)
 
     else: # full save
-        should_be = [mcuid_f051, mcuid_g071_64k, mcuid_g071_128k, mcuid_g071_128k, mcuid_at32f421]
+        should_be = [mcuid_f051, mcuid_g071_64k, mcuid_g071_128k, mcuid_at32f421]
         match_res = bootloader_match(bootloader_id, should_be)
         if match_res < 0:
             print("ERROR: hardware bootloader identity cannot be verified: { %s }" % hex_id)
@@ -350,6 +355,8 @@ def main():
             print("assuming large size of 64K")
             fw_size = 1024 * 64
             addr_multi = 1
+        if args.verbose:
+            print("FW size %u , addr-multi %u" % (fw_size, addr_multi))
 
     if len(args.fwaddr) > 0:
         if "0x" in args.fwaddr.lower():
@@ -427,14 +434,14 @@ def main():
                 send_setaddress(ser, int(j / addr_multi))
                 data = send_readcmd(ser, j, thischunk)
                 if len(barr) != len(data):
-                    raise Exception("verification read length at 0x%04X does not match, %u != %u" % (j, len(barr), len(data)))
+                    data_exception("verification read length at 0x%04X does not match, %u != %u" % (j, len(barr), len(data)))
                 wcrc = crc16(barr)
                 rcrc = crc16(data)
                 tries -= 1
                 if wcrc == rcrc or args.demo:
                     break
                 if wcrc != rcrc and tries <= 0:
-                    raise Exception("verification read contents at 0x%04X does not match,\r\n\tdata %s\r\n\tread %s (%u %u %u)\r\n" % (j, format_arr(barr), format_arr(data), i, thischunk, len(fw_binarr)))
+                    data_exception("verification read contents at 0x%04X does not match,\r\n\tdata %s\r\n\tread %s (%u %u %u)\r\n" % (j, format_arr(barr), format_arr(data), i, thischunk, len(fw_binarr)))
             i += thischunk
             j += thischunk
         blank_progress_bar()
@@ -458,7 +465,7 @@ def main():
                     fw_barr.extend(data)
                     break
                 elif tries <= 0:
-                    raise Exception("too many CRC errors at 0x%04X\r\n" % (i))
+                    data_exception("too many CRC errors at 0x%04X\r\n" % (i))
             i += thischunk
         blank_progress_bar()
         print("\rfinished reading")
@@ -555,6 +562,7 @@ def bootloader_match(bootloader_id, should_be):
             i += 1
         if submatch:
             return j
+        j += 1
     return -1
 
 def append_crc(data):
@@ -630,7 +638,7 @@ def send_setaddress(ser, addr):
             raise Exception("did not get valid ack, 0x%02X" % y[-1])
         time.sleep(0.001) # this is only here to put a gap in the logic analyzer display, so I can decipher the stream visially
     except Exception as ex:
-        print("ERROR during set address command (@ 0x%04X), exception: %s" % (addr, ex))
+        print("\n\rERROR during set address command (@ 0x%04X), exception: %s" % (addr, ex))
         quit_nicely(-1)
 
 def send_setbuffer(ser, addr, buflen):
@@ -642,7 +650,7 @@ def send_setbuffer(ser, addr, buflen):
             raise Exception("did not read enough data, len %u < %u" % (len(y), len(x)))
         time.sleep(0.0035) # requires a long timeout, the bootloader code is reliant on a timeout before running the parser, but we have no ACK to indicate if this has occured, so we must hard-code a delay
     except Exception as ex:
-        print("ERROR during set buffer command (@ 0x%04X %u), exception: %s" % (addr, buflen, ex))
+        print("\n\rERROR during set buffer command (@ 0x%04X %u), exception: %s" % (addr, buflen, ex))
         quit_nicely(-1)
 
 def send_payload(ser, addr, x):
@@ -654,7 +662,7 @@ def send_payload(ser, addr, x):
         if y[-1] != 0x30:
             raise Exception("did not get valid ack, 0x%02X" % y[-1])
     except Exception as ex:
-        print("ERROR during payload transfer (@ 0x%04X), exception: %s" % (addr, ex))
+        print("\n\rERROR during payload transfer (@ 0x%04X), exception: %s" % (addr, ex))
         quit_nicely(-1)
 
 def send_flash(ser, addr):
@@ -667,7 +675,7 @@ def send_flash(ser, addr):
         if y[-1] != 0x30:
             raise Exception("did not get valid ack, 0x%02X" % y[-1])
     except Exception as ex:
-        print("ERROR during flash command (@ 0x%04X), exception: %s" % (addr, ex))
+        print("\n\rERROR during flash command (@ 0x%04X), exception: %s" % (addr, ex))
         quit_nicely(-1)
 
 def send_readcmd(ser, addr, buflen):
@@ -688,7 +696,7 @@ def send_readcmd(ser, addr, buflen):
         #    print("\nWARNING: CRC mismatch @ 0x%04X, rx 0x%04X != calc 0x%04X" % (addr, rxedcrc, calcedcrc))
         return data
     except Exception as ex:
-        print("ERROR during read command (@ 0x%04X %u), exception: %s" % (addr, buflen, ex))
+        print("\n\rERROR during read command (@ 0x%04X %u), exception: %s" % (addr, buflen, ex))
         quit_nicely(-1)
 
 def format_arr(data):
@@ -729,6 +737,10 @@ def blank_progress_bar():
         print(" ", end="")
         i += 1
 
+def data_exception(s):
+    print("\n\r" + s)
+    quit_nicely(-1)
+
 def try_windows_openfiledialog():
     try:
         import easygui
@@ -744,7 +756,7 @@ if __name__ == '__main__':
     try:
         main()
     except Exception as ex:
-        print("ERROR: unexpected fatal exception occured")
+        print("\r\nERROR: unexpected fatal exception occured")
         try:
             exc_type, value, exc_traceback = sys.exc_info()
             print(exc_type)

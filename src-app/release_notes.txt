@@ -23,3 +23,12 @@ This is a alpha release, features are all complete, but not fully tested.
    * basic functionality with CRSF has been checked
    * basic functionality with RC PWM input has been checked
    * voltage sensor verified
+   * there is no current senseor on thiS ESC
+
+ * NeutronRC 70A
+   * basic functionality with CRSF has been checked
+   * basic functionality with RC PWM input has been checked
+   * voltage sensor verified
+   * current sensor works but I have not fully calibrated it yet
+
+No other targets were tested in this release

@@ -9,6 +9,7 @@ tools/dist export-ignore
 tools/downloaded_bootloaders export-ignore
 src-mcu/f051/Drivers export-ignore
 src-mcu/g071/Drivers export-ignore
+src-mcu/at32f421/Drivers export-ignore
 .vscode export-ignore
 
 # Auto detect text files and perform LF normalization

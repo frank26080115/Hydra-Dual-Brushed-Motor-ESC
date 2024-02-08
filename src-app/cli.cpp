@@ -39,6 +39,10 @@ void eeprom_print_all(Cereal* cer);
 extern "C" {
 extern const EEPROM_item_t cfg_items[];
 extern const EEPROM_data_t cfge;
+extern int eeprom_quick_validate(void);
+#ifndef RELEASE_BUILD
+extern uint8_t eeprom_error_log;
+#endif
 }
 
 void cli_enter(void)
@@ -174,7 +178,19 @@ void cli_enter(void)
         }
 
         // do other things
+        #if defined(RELEASE_BUILD)
         eeprom_save_if_needed();
+        #else
+        if (eeprom_save_if_needed()) {
+            int i = eeprom_quick_validate();
+            if (i != 0) {
+                cer->printf("ERROR: EEPROM save validation failed %d\r\n", i);
+            }
+            else {
+                cer->printf("\r\nEEPROM saved!\r\n");
+            }
+        }
+        #endif
         sense_task();
 
         #if defined(DISABLE_LED) || defined(ENABLE_TONE)
@@ -241,6 +257,7 @@ void cli_execute(Cereal* cer, char* str)
         int16_t c;
         while (true)
         {
+            led_task(false);
             sense_task();
             tnow = millis();
             c = cer->read();
@@ -324,6 +341,12 @@ void cli_execute(Cereal* cer, char* str)
         cfg.current_scale   = ori_scale;
         pwm_set_remap(cfg.phase_map);
     }
+    #ifndef RELEASE_BUILD
+    else if (item_strcmp("viewlog", str, NULL))
+    {
+        cer->printf("\r\nEEPROM load log = %d\r\n", eeprom_error_log);
+    }
+    #endif
     else
     {
         // none of the commands match, loop through the potential settings to see if it's something to save

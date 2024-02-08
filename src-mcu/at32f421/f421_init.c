@@ -2,7 +2,7 @@
 
 void system_clock_config(void)
 {
-    #if defined(DEVELOPMENT_BOARD) || true // disable this section to save code space, as there is a bootloader that has already done all this
+    #ifndef AGGRESSIVE_BOOT // disable this section to save code space, as there is a bootloader that has already done all this
     flash_psr_set(FLASH_WAIT_CYCLE_3);
     crm_reset();
     crm_clock_source_enable(CRM_CLOCK_SOURCE_HICK, TRUE);
@@ -22,7 +22,9 @@ void system_clock_config(void)
     crm_auto_step_mode_enable(FALSE);
     system_core_clock_update();
     #else
-    #error
     system_core_clock = 120000000;
+    #endif
+    #ifndef DEVELOPMENT_BOARD
+    SCB->VTOR = APPLICATION_ADDRESS;
     #endif
 }

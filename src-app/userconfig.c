@@ -9,10 +9,12 @@
 #define DEFAULT_INPUT_MODE     INPUTMODE_RC
 #endif
 
+// the bootloader of AM32 will check the 3rd byte for a version number, and erase the entire EEPROM if it doesn't like it
+// https://github.com/frank26080115/Hydra-Dual-Brushed-Motor-ESC/issues/7
 #define FOOL_AM32                     \
     .fool_am32_bootloader_0   = 0x01, \
     .fool_am32_bootloader_1   = 0x01, \
-    .fool_am32_bootloader_2   = 0x08, \
+    .fool_am32_bootloader_2   = 0x00, \
     .fool_am32_eeprom_layout  = 0x0A, \
     .fool_am32_version_major  = 1,    \
     .fool_am32_version_minor  = 99,   \
@@ -144,6 +146,10 @@ const EEPROM_item_t cfg_items[] __attribute__((aligned(4))) = {
 
 #endif
 
+#ifndef RELEASE_BUILD
+uint8_t eeprom_error_log = 0;
+#endif
+
 EEPROM_chksum_t eeprom_checksum(uint8_t* data, int len)
 {
     #if 0
@@ -180,16 +186,40 @@ bool eeprom_verify_checksum(uint32_t* ptr8)
     return calculated_chksum == ptre->chksum;
 }
 
+#if defined(ENABLE_COMPILE_CLI) && !defined(RELEASE_BUILD)
+int eeprom_quick_validate(void)
+{
+    bool x = eeprom_verify_checksum((uint32_t*)cfg_addr);
+    if (!x) {
+        return 1;
+    }
+    memcpy((void*)&cfg, (void*)cfg_addr, sizeof(EEPROM_data_t));
+    if (cfg.magic != EEPROM_MAGIC) {
+        return 2;
+    }
+    if (cfg.version_eeprom != VERSION_EEPROM) {
+        return 3;
+    }
+    return 0;
+}
+#endif
+
 bool eeprom_load_or_default(void)
 {
     bool x = eeprom_verify_checksum((uint32_t*)cfg_addr);
     if (x) {
         memcpy((void*)&cfg, (void*)cfg_addr, sizeof(EEPROM_data_t));
         if (cfg.magic != EEPROM_MAGIC) {
+            #ifndef RELEASE_BUILD
+            eeprom_error_log |= 0x02;
+            #endif
             x = false;
             dbg_printf("ERR: EEPROM magic does not match (0x%08X)\r\n", cfg.magic);
         }
         if (cfg.version_eeprom != VERSION_EEPROM) {
+            #ifndef RELEASE_BUILD
+            eeprom_error_log |= 0x04;
+            #endif
             x = false;
             dbg_printf("ERR: EEPROM version does not match (%u != %u)\r\n", cfg.version_eeprom, VERSION_EEPROM);
         }
@@ -199,6 +229,11 @@ bool eeprom_load_or_default(void)
         }
         #endif
     }
+    #ifndef RELEASE_BUILD
+    else {
+        eeprom_error_log |= 0x01;
+    }
+    #endif
     if (x) {
         dbg_printf("EEPROM is valid\r\n");
         eeprom_has_loaded = true;
@@ -250,14 +285,16 @@ void eeprom_save(void)
     dbg_printf("EEPROM saved\r\n");
 }
 
-void eeprom_save_if_needed(void)
+bool eeprom_save_if_needed(void)
 {
     if (eeprom_save_time > 0) {
         uint32_t now = millis();
         if ((now - eeprom_save_time) > EEPROM_DIRTY_SAVE_TIME_MS) {
             eeprom_save();
+            return true;
         }
     }
+    return false;
 }
 
 void eeprom_mark_dirty(void)

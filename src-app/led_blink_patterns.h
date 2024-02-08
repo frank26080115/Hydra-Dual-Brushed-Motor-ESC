@@ -28,7 +28,7 @@
 
 const uint8_t blinkpattern_cliwait[] = {
     // like disarmed but with a pause
-    BLINK_RGB_TIME(1, 0, 0, 8),
+    BLINK_RGB_TIME(1, 0, 0, 9),
     BLINK_OFF_TIME(1),
     BLINK_LOOP,
 };
@@ -68,15 +68,15 @@ const uint8_t blinkpattern_1armed[] = {
 
 const uint8_t blinkpattern_armed[] = {
     BLINK_RGB_TIME(0, 1, 0, 1),
-    BLINK_OFF_TIME(4),
+    BLINK_OFF_TIME(6),
     BLINK_LOOP,
 };
 
 const uint8_t blinkpattern_running[] = {
-    BLINK_RGB_TIME(0, 1, 0, 2),
-    BLINK_OFF_TIME(2),
-    BLINK_RGB_TIME(0, 1, 0, 2),
-    BLINK_OFF_TIME(2),
+    BLINK_RGB_TIME(0, 1, 0, 1),
+    BLINK_OFF_TIME(1),
+    BLINK_RGB_TIME(0, 1, 0, 1),
+    BLINK_OFF_TIME(1),
     BLINK_LOOP,
 };
 
