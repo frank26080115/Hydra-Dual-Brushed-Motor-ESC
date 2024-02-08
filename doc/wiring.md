@@ -12,7 +12,7 @@ To deliver the full voltage to the motors, they have to be wired in the correct 
 
 If the behavior is not correct, then the `phasemap` can be changed through the CLI. The command is `phasemap <num>` where `<num>` should be a number that is 1 or 2 or 3. For example, `phasemap 1`. Change it until it works.
 
-(refer to the [page on configuration](configuration.md))
+(refer to the [page on configuration](configuration.md), and the [guide of finding the phasemap value](finding-common-shared-phase.md))
 
 ## How to Find the Telemetry and SWD Signal Pads
 

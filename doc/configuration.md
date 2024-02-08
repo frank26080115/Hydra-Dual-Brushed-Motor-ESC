@@ -56,7 +56,7 @@ NOTE: the CLI will never exit until you reboot the entire ESC with the USB linke
 
  * `vsplitmode` is defaulted to the weakest mode that is easy to use, you might want to try out one of the boost modes
  * `inputmode` is obviously important if you are using CRSF or had problems doing the input wiring
- * `phasemap` is important because you don't know which motor output phase is the default common-shared phase (see section "Finding the Common-Shared Phase" in [this guide](other-hardware-hacking.md))
+ * `phasemap` is important because you don't know which motor output phase is the default common-shared phase (see [this guide](finding-common-shared-phase.md))
 
 # Using the CLI
 
@@ -106,7 +106,7 @@ This will cause the ESC to enter into the AM32 bootloader.
 | `loadbal     ` | 0       | 0 or 1      | lowers load on common-shared MOSFET |
 | `inputmode   ` | 0       | 0 - 3       | 0 = RC PWM pulse input <br /> 1 = CRSF input <br /> 2 = RC PWM input through SWCLK <br /> 3 = CRSF input through SWCLK |
 | `tankmix     ` | 0       | 0 or 1      | enables arcade tank drive mixing |
-| `phasemap    ` | 1       | 1 - 3       | selects which one of the three phases is used as the common-shared phase |
+| `phasemap    ` | 1       | 1 - 3       | selects which one of the three phases is used as the [common-shared phase](finding-common-shared-phase.md) |
 | `baud        ` | 0       |             | baud rate used for CRSF <br /> 0 means default (420000) <br /> useful for taking commands from slower microcontrollers |
 | `channel_1   ` | 1       | 0 - 16      | which CRSF channel is the 1st channel, 0 = unassigned |
 | `channel_2   ` | 2       | 0 - 16      | which CRSF channel is the 2nd channel, 0 = unassigned |
