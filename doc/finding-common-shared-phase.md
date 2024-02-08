@@ -1,9 +1,13 @@
 # Finding the Common-Shared Phase
 
+![](imgs/tryingtofindcenter.png)
+
+Or rather, we are tring to configure the firmware to use the correct MOSFET half-bridge as the common-shared phase
+
 Prerequisites:
 
  * Hydra firmware is [installed](install-firmware.md)
- * you understand how to use [CLI mode](configuration.md)
+ * you understand how to use [CLI mode for configuration](configuration.md)
  * you have a multimeter and knows how to measure voltage
 
 Setup your measurement like this:
