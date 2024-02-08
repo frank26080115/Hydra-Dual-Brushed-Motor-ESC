@@ -41,6 +41,7 @@ __pycache__
 *.pyc
 tools/*.spec
 tools/*.hex
+tools/kivy_venv
 downloaded_bootloaders
 release
 

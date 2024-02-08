@@ -34,9 +34,9 @@ Depending on which direction the two motors spin, the motors can get either up t
 
 ![](doc/imgs/operating_voltage_modes.png)
 
-The completely linear half-voltage mode might make driving more predictable, but it is wasting potential performance. The other two modes will have a slight non-linear feeling as the robot begins to turn, but this can be resolved with another curve set on the transmitter.
+The completely linear half-voltage mode might make driving more predictable, but it is wasting potential performance. The other two modes will have a slight non-linear feeling as the robot begins to turn, but this can be resolved with another curve set on the transmitter. There is a feature to allow a switch on the radio transmitter to change the voltage mixing mode on-the-fly, allowing you to get linear driving most of the time, but also drive at full power when you hit the switch.
 
-Also, when used for brushless motors, each MOSFET is only turned on for a brief moment, all of the MOSFET share the same load. But when used for brushless motors, it is possible for one MOSFET to be on all of the time while another one is turned off all of the time, and the shared-common half-bridge passes more current through it than the other MOSFETs. For these reasons, the effective new current handling rating of the ESC is about 20% of the original ESC rating. If you purchased a ESC rated for 45A, then you should only use motors that require up to 9A each.
+When used for brushless motors, each MOSFET is only turned on for a brief moment, all of the MOSFET share the same load. But when used for brushless motors, it is possible for one MOSFET to be on all of the time while another one is turned off all of the time, and the shared-common half-bridge passes more current through it than the other MOSFETs. For these reasons, the effective new current handling rating of the ESC is about 20% of the original ESC rating. If you purchased a ESC rated for 45A, then you should only use motors that require up to 9A each.
 
 # Supported Hardware
 
@@ -52,7 +52,7 @@ The hardware that are fully supported are the ones I personally own and use
 | Ranglebox Mars AM32 35A | 35A | 15A | 7A | 5S | https://ranglebox.com/shop/product/mars-am32-controller/ |
 | SEQURE (must select AM32 option) | ? | ? | ? | ? | https://sequremall.com/collections/sqesc |
 
-The EMAX Formula 45A ([official link](https://emax-usa.com/collections/electronic-speed-controller/products/emax-formula-series-45a-esc-support-blheli-32-2-5s), [store link](https://pyrodrone.com/collections/individual/products/emax-formula-series-45a-esc-support-blheli_32-2-5s)) will get full support because I own them and I do want to use them since they are small. This does not come with AM32 preinstalled and will require advanced tools to install AM32. (this EMAX model can only support CRSF input)
+The EMAX Formula 45A ([official link](https://emax-usa.com/collections/electronic-speed-controller/products/emax-formula-series-45a-esc-support-blheli-32-2-5s), [store link](https://pyrodrone.com/collections/individual/products/emax-formula-series-45a-esc-support-blheli_32-2-5s)) will get full support because I own them and I do want to use them since they are small. This does not come with AM32 preinstalled and will require advanced tools to install AM32. (this EMAX model can only support CRSF input, and have no sensors)
 
 Other models potentially will work if they meet the following criteria:
 
@@ -74,7 +74,7 @@ Once you've done all of the above, it's ready to use as any other dual ESC.
 
 If arming is enabled (by default, it is enabled), then the motors won't start moving until the signal is indicating center throttle (center stick position), meaning stop. This is to prevent the motor from moving unexpectedly.
 
-The ESC is always commanded in bi-directional mode. Braking mode is enabled by default and is prefered for better responsiveness.
+The ESC is always commanded in bi-directional mode. Braking mode is enabled by default and is preferred for better responsiveness.
 
 During operation, if there is a LED, then the LED indicates the ESC's state:
 
@@ -88,14 +88,14 @@ During operation, if there is a LED, then the LED indicates the ESC's state:
 
 (it is not possible to accidentally enter CLI mode, as it checks for input signal pulses)
 
-Arcade style tank-like drive mixing is optional, and can be enabled through the configuration CLI.
+Arcade style tank-like drive mixing is optional, and can be enabled through the configuration CLI. If this mode is enabled, input 1 is the throttle signal, input 2 is the steering signal.
 
 # Additional Advanced Topics
 
  * [Firmware Build Instructions](doc/build-instructions.md)
  * [Install AM32](doc/install-am32.md)
  * [Developer Commentary](doc/developer-commentary.md)
- * [Direct-PWM Mode](doc/direct-pwm-mode.md) for directly controlling the MOSFETs, useful for remotely controlling LEDs and other loads
+ * [Direct-PWM Mode](doc/direct-pwm-mode.md) for directly controlling the MOSFETs, useful for remotely controlling LEDs, or being used as a general purpose power switch for electrical loads
 
 # This still seems expensive
 

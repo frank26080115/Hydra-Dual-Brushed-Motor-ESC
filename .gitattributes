@@ -7,6 +7,7 @@ tools/make-release.bat export-ignore
 tools/fw-post-processor.py export-ignore
 tools/dist export-ignore
 tools/downloaded_bootloaders export-ignore
+tools/kivy_venv export-ignore
 src-mcu/f051/Drivers export-ignore
 src-mcu/g071/Drivers export-ignore
 src-mcu/at32f421/Drivers export-ignore
