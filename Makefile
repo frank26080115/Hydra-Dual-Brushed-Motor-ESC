@@ -22,7 +22,7 @@ include src-mcu/at32f421/makefile-f421.mk
 # default build, override from command line
 MCU_TYPE ?= F051
 VERSION_MAJOR = 0
-VERSION_MINOR = 1
+VERSION_MINOR = 2
 VERSION_EEPROM = 1
 IDENTIFIER = HYDRA
 
