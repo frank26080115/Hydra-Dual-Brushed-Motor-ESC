@@ -408,13 +408,13 @@ void direct_pwm(int32_t v1, int32_t v2, int32_t v3, uint32_t duty_max)
 
     #define DIRPWM_TEMPLATE(lt, val)    do {                   \
     if (cfg.dirpwm_chancfg_ ##lt == DIRPWM_PUSHPULL) {         \
-        pwm_setPWM_CP_ ##lt ();                                   \
+        pwm_setPWM_CP_ ##lt ();                                \
     }                                                          \
     else if (cfg.dirpwm_chancfg_ ##lt == DIRPWM_HIGHONLY) {    \
-        pwm_setPWM_HI_ ##lt ();                                 \
+        pwm_setPWM_HI_ ##lt ();                                \
     }                                                          \
     else if (cfg.dirpwm_chancfg_ ##lt == DIRPWM_OPENDRAIN) {   \
-        pwm_setPWM_OD_  ##lt ();                                \
+        pwm_setPWM_OD_ ##lt ();                                \
         val = cfg.pwm_period - val;                            \
     }                                                          \
     else {                                                     \
