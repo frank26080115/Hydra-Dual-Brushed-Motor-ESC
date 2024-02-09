@@ -12,6 +12,7 @@ src-mcu/f051/Drivers export-ignore
 src-mcu/g071/Drivers export-ignore
 src-mcu/at32f421/Drivers export-ignore
 .vscode export-ignore
+wiki export-ignore
 
 # Auto detect text files and perform LF normalization
 * text=auto

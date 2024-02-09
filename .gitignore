@@ -34,6 +34,8 @@ bin/*
 *.out
 *.app
 
+wiki
+
 .vscode
 tools/dist
 tools/build

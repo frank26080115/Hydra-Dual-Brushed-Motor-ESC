@@ -60,15 +60,15 @@ Other models potentially will work if they meet the following criteria:
  * Has enough exposed signal pads to support the desired input mode
  * Has the microcontroller STM32F051, STM32G071, and AT32F421
 
-[Here's a full guide on using other hardware not on the list](doc/other-hardware-hacking.md)
+[Here's a full guide on using other hardware not on the list](../../wiki/Other-Hardware-Hacking.md)
 
-To install, update, and configure Hydra firmware, you must use a USB-linker meant for communicating with ESCs. These USB-linkers are used with AM32, BLHeli_32, and BLHeli_S, for configuration and firmware updating. See this [wiki page](../../wiki/USB-Linker) for a list of USB-linkers you can use.
+To install, update, and configure Hydra firmware, you must use a USB-linker meant for communicating with ESCs. These USB-linkers are used with AM32, BLHeli_32, and BLHeli_S, for configuration and firmware updating. See this [wiki page](../../wiki/USB-Linker.md) for a list of USB-linkers you can use.
 
 # Instructions
  
- * [Wiring](doc/wiring.md)
- * [Install Firmware](doc/install-firmware.md)
- * [Configuration](doc/configuration.md)
+ * [Wiring](../../wiki/Wiring.md)
+ * [Install Firmware](../../wiki/Install-Firmware.md)
+ * [Configuration](../../wiki/Configuration.md)
 
 Once you've done all of the above, it's ready to use as any other dual ESC.
 
@@ -92,10 +92,10 @@ Arcade style tank-like drive mixing is optional, and can be enabled through the 
 
 # Additional Advanced Topics
 
- * [Firmware Build Instructions](doc/build-instructions.md)
- * [Install AM32](doc/install-am32.md)
- * [Developer Commentary](doc/developer-commentary.md)
- * [Direct-PWM Mode](doc/direct-pwm-mode.md) for directly controlling the MOSFETs, useful for remotely controlling LEDs, or being used as a general purpose power switch for electrical loads
+ * [Firmware Build Instructions](../../wiki/Firmware-Build-Instructions.md)
+ * [Install AM32](../../wiki/Install-AM32.md)
+ * [Developer Commentary](../../wiki/Developer-Commentary.md)
+ * [Direct-PWM Mode](../../wiki/Direct-PWM-Mode.md) for directly controlling the MOSFETs, useful for remotely controlling LEDs, or being used as a general purpose power switch for electrical loads
 
 # This still seems expensive
 
