@@ -94,3 +94,35 @@ void load_config_pid(void)
     current_pid.Kd    = fi_map(cfg.currlim_kd, 0, 100, 0, cfg.pwm_period / 20, false); // for a period of 2000, this gives a kp of 100, which is ideal
     current_limit_duty = cfg.pwm_period;
 }
+
+uint8_t batt_cell_cnt = 0;
+uint32_t batt_starting_voltage = 0;
+uint32_t batt_max_voltage = 0;
+uint32_t voltage_limit = 0; // specified in millivolts
+
+void battery_task(void)
+{
+    if (voltage_limit != 0) { // once set, this function never does anything ever again
+        return;
+    }
+    if (cfg.voltage_limit <= 0) {
+        return;
+    }
+    if (cfg.voltage_limit > 3300) {
+        voltage_limit = cfg.voltage_limit;
+        return;
+    }
+
+    static uint32_t prev_voltage;
+
+    if (batt_cell_cnt <= 0 || batt_starting_voltage <= 0 || voltage_limit <= 0)
+    {
+        batt_max_voltage = sense_voltage > batt_max_voltage ? sense_voltage : batt_max_voltage;
+        if (sense_voltage < prev_voltage || millis() >= BATTERY_RISE_MAX_TIME) { // calculate the cell count when the voltage stops rising, or when enough time passed
+            batt_starting_voltage = batt_max_voltage;
+            batt_cell_cnt = batt_starting_voltage / (cfg.voltage_limit + 100); // rely on interger rounding!
+            voltage_limit = batt_cell_cnt * cfg.voltage_limit;
+        }
+    }
+    prev_voltage = sense_voltage;
+}

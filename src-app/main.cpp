@@ -156,6 +156,8 @@ int main(void)
         led_task(false);
         sense_task();
         current_limit_task();
+        battery_task();
+
         rc1->task();
         rc2->task();
         if (rc3 != NULL) { rc3->task(); }
@@ -266,9 +268,9 @@ int main(void)
         }
 
         // impose voltage limit if desired
-        if (cfg.voltage_limit > 0) {
-            if (sense_voltage < cfg.voltage_limit) {
-                duty_max = fi_map(sense_voltage, cfg.voltage_limit - UNDERVOLTAGE, cfg.voltage_limit, 0, duty_max, true);
+        if (voltage_limit > 0) {
+            if (sense_voltage < voltage_limit) {
+                duty_max = fi_map(sense_voltage, voltage_limit - UNDERVOLTAGE, voltage_limit, 0, duty_max, true);
                 ledblink_lowbatt();
             }
         }

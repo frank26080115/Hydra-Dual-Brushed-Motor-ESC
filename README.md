@@ -10,7 +10,7 @@ To control the ESC, RC pulse signals (PWM) are supported, and also the CRSF seri
 
 To configure the ESC, there is a command-line-interface (CLI) implemented, where various commands are used to manipulate stored settings.
 
-(other features: current limiting, temperature limiting, low-battery limiting)
+(other features: software adjustable current limiting, temperature limiting, low-battery limiting)
 
 # Demo Video
 

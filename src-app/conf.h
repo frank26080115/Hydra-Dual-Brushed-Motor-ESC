@@ -33,5 +33,7 @@
 #define TEMPERATURE_OVER    20      // if the thermal limit is set at 80, then 80 is when the power starts to drop, and 100 is when power is completly off
 #define UNDERVOLTAGE        100     // if the voltage limit is set at 3000, then 3000 is when the power starts to drop, and 2900 is when power is completly off
 
+#define BATTERY_RISE_MAX_TIME 3000  // time in milliseconds it takes before battery cell count takes place
+
 #define TONE_DEF_VOLUME     80      // range 0 to 100
 #define PWM_TONE_RELOAD     (PWM_DEFAULT_DEADTIME * 40) // want a faster reload for tone generation

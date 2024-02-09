@@ -122,10 +122,10 @@ This will cause the ESC to enter into the AM32 bootloader.
 | `flip2       ` | 0       | 0 or 1      | flips (reverse) the 2nd output channel |
 | `tied        ` | 0       | 0 or 1      | one channel controls both motors |
 | `armdur      ` | 100     | 0 - uint32  | arming duration required, the number of valid arming pulses (zero throttle) required before becoming armed <br /> setting 0 means **always armed** |
-| `disarmtime  ` | 3000    | 0 - uint32       | number of milliseconds of signal loss before going into disarmed state <br /> setting 0 means **never** |
+| `disarmtime  ` | 3000    | 0 - uint32  | number of milliseconds of signal loss before going into disarmed state <br /> setting 0 means **never** |
 | `templim     ` | 0       | 0 - 255     | temperature limit in degrees-Celcius <br /> setting 0 means limit disabled |
 | `currlim     ` | 0       | 0 - 255     | current limit in milliamps <br /> setting 0 means limit disabled |
-| `voltlim     ` | 0       | 0 - 65535   | low battery voltage limit in millivolts <br /> setting 0 means limit disabled |
+| `voltlim     ` | 0       | 0 - 65535   | low battery voltage limit in millivolts <br /> setting 0 means limit disabled <br /> values under 3300 means the limit is specified as per-cell, and the cell count is automatically determined <br /> values over 3300 means a non-automatic voltage limit is being used |
 | `voltdiv     ` | ????    | 0 - uint32  | hardware voltage divider adjustment <br /> default is dependant of hardware, do not adjust if you don't need to |
 | `curroffset  ` | ????    | 0 - uint32  | hardware current sensor offset adjustment <br /> default is dependant of hardware, do not adjust if you don't need to |
 | `currscale   ` | ????    | 0 - uint32  | hardware current sensor scaling adjustment <br /> default is dependant of hardware, do not adjust if you don't need to |
