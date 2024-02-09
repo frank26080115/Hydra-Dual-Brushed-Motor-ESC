@@ -6,5 +6,6 @@ This is a alpha release, features are all complete, but not fully tested.
 
  * coasting mode works (aka. the opposite of braking mode)
  * new ways of setting low battery voltage limits
+ * allows for a transmitter switch to control braking mode
 
 TODO write this

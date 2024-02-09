@@ -100,8 +100,8 @@ This will cause the ESC to enter into the AM32 bootloader.
 
 # Available Settings and What They Mean
 
-| command        | default | range       | description |
-|----------------|---------|-------------|-------------|
+| command          | default | range       | description |
+|------------------|---------|-------------|-------------|
 | `vsplitmode    ` | 0       | 0 - 2       | voltage splitting mode <br /> 0 = boosted almost always <br  /> 1 = half voltage <br /> 2 = boosted while not turning |
 | `loadbal       ` | 0       | 0 or 1      | lowers load on common-shared MOSFET |
 | `inputmode     ` | 0       | 0 - 3       | 0 = RC PWM pulse input <br /> 1 = CRSF input <br /> 2 = RC PWM input through SWCLK <br /> 3 = CRSF input through SWCLK |
@@ -111,12 +111,13 @@ This will cause the ESC to enter into the AM32 bootloader.
 | `channel_1     ` | 1       | 0 - 16      | which CRSF channel is the 1st channel, 0 = unassigned |
 | `channel_2     ` | 2       | 0 - 16      | which CRSF channel is the 2nd channel, 0 = unassigned |
 | `channel_mode  ` | 0       | 0 - 16      | which CRSF channel can control the voltage splitting mode, useful for temporary voltage boosting, 0 = unassigned |
+| `channel_brake ` | 0       | 0 - 16      | which CRSF channel can control the braking mode, 0 = unassigned |
 | `rc_mid        ` | 1500    | 800 - 2200  | RC PWM pulse middle value, in microseconds, does not affect CRSF |
 | `rc_range      ` | 500     | 0 - 1000    | RC PWM pulse range, 500 means 1000 to 2000, does not affect CRSF |
-| `rc_deadzone   ` | 10      | 0 - uint16  | RC PWM pusle deadzone around the center <br /> used if the signal is noisy <br /> unit is in microseconds <br /> does also apply to CRSF |
+| `rc_deadzone   ` | 10      | 0 - uint16  | RC PWM pulse deadzone around the center <br /> used if the signal is noisy <br /> unit is in microseconds <br /> does also apply to CRSF |
 | `pwm_period    ` | ????    | 0 - 65535   | PWM period, generator reload value, controls the PWM frequency <br /> unit is in clock ticks <br /> Do not modify <br /> lower value = higher frequency
 | `pwm_deadtime  ` | 50      | 0 - uint32  | PWM cannot be always 100% since the MOSFET drivers use a charge pump. High value means lower power for the motors, but if the value is too low then the high-side MOSFETs might stop working at full throttle. |
-| `braking       ` | 1       | 0 or 1      | If true, enables complementry PWM and never floats the output pins. If false, disables complementry PWM and floats the output pins if throttle is 0 |
+| `braking       ` | 1       | 0 or 1      | If true, enables complementary PWM and never floats the output pins. If false, disables complementary PWM and floats the output pins if throttle is 0 |
 | `chanswap      ` | 0       | 0 or 1      | swaps the output channels |
 | `flip1         ` | 0       | 0 or 1      | flips (reverse) the 1st output channel |
 | `flip2         ` | 0       | 0 or 1      | flips (reverse) the 2nd output channel |

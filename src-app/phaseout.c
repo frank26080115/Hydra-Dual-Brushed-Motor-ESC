@@ -110,7 +110,7 @@ void pwm_set_all_duty_remapped(uint16_t p_common, uint16_t p_left, uint16_t p_ri
     #endif
 
     uint16_t a = p_common, b = p_left, c = p_right;
-    uint8_t ma = braking ? PWMPINSTATE_PWM_COMP : PWMPINSTATE_FLT;
+    uint8_t ma = braking ? PWMPINSTATE_PWM_COMP : (p_common == 0 && p_left == 0 && p_right == 0 ? PWMPINSTATE_FLT : PWMPINSTATE_PWM_COMP);
     uint8_t mb = braking ? PWMPINSTATE_PWM_COMP : (p1 > 0 ? PWMPINSTATE_PWM_HI : (p1 < 0 ? PWMPINSTATE_PWM_OD : PWMPINSTATE_FLT));
     uint8_t mc = braking ? PWMPINSTATE_PWM_COMP : (p2 > 0 ? PWMPINSTATE_PWM_HI : (p2 < 0 ? PWMPINSTATE_PWM_OD : PWMPINSTATE_FLT));
 

@@ -24,7 +24,7 @@
 // this copy of the config needs to remain unmodified, to avoid mistakes in configuration during a release build
 #include "default_config.h"
 #else
-// this copy of the config can be modified for testing purposes
+// this copy of the config can be modified for testing purposes, for the release factory-default config, see "default_config.h"
 // this stores a default settings copy in flash, somewhere inside the application flash memory
 // this is read-only, and can never be corrupted. it is used for factory-reset
 const EEPROM_data_t default_eeprom __attribute__((aligned(4))) = {
@@ -37,7 +37,7 @@ const EEPROM_data_t default_eeprom __attribute__((aligned(4))) = {
 
     .voltage_split_mode = 0,
     .load_balance       = false,
-    .input_mode         = DEFAULT_INPUT_MODE,
+    .input_mode         = INPUTMODE_CRSF,
     .tank_arcade_mix    = false,
     .phase_map          = 1,
     .baud               = 0,
@@ -49,7 +49,8 @@ const EEPROM_data_t default_eeprom __attribute__((aligned(4))) = {
 
     .channel_1          = 1,
     .channel_2          = 2,
-    .channel_mode       = 0,
+    .channel_mode       = 3,
+    .channel_brake      = 4,
 
     .rc_mid             = 1500,
     .rc_range           = 500,
@@ -58,7 +59,7 @@ const EEPROM_data_t default_eeprom __attribute__((aligned(4))) = {
     .pwm_period         = PWM_DEFAULT_PERIOD,
     .pwm_deadtime       = PWM_DEFAULT_DEADTIME,
 
-    .braking            = true,
+    .braking            = false,
     .chan_swap          = false,
     .flip_1             = false,
     .flip_2             = false,
@@ -113,6 +114,7 @@ const EEPROM_item_t cfg_items[] __attribute__((aligned(4))) = {
     DCLR_ITM("channel_1"      , channel_1         ),
     DCLR_ITM("channel_2"      , channel_2         ),
     DCLR_ITM("channel_mode"   , channel_mode      ),
+    DCLR_ITM("channel_brake"  , channel_brake     ),
     DCLR_ITM("rc_mid"         , rc_mid            ),
     DCLR_ITM("rc_range"       , rc_range          ),
     DCLR_ITM("rc_deadzone"    , rc_deadzone       ),

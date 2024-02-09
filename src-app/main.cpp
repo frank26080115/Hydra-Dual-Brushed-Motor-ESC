@@ -289,6 +289,11 @@ int main(void)
                 cfg.voltage_split_mode
                 ); // % VSPLITMODE_END;
 
+        // set braking mode live from a switch on the transmitter
+        if (cfg.channel_brake > 0) {
+            pwm_set_braking(crsf_readChan(cfg.channel_brake) >= CRSF_CHANNEL_VALUE_MID);
+        }
+
         int a1 = v1 >= 0 ? v1 : -v1;
         int a2 = v2 >= 0 ? v2 : -v2;
         int p1 = fi_map(a1, 0, THROTTLE_UNIT_RANGE, 0, duty_max, true);

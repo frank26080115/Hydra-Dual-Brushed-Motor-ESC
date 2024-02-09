@@ -71,11 +71,11 @@ typedef struct
     uint32_t current_scale;    // default uses target hardware definition
     uint16_t adc_filter;       // 0 to 100, 10 meaning 10% of new-value and 90% of old-value
 
-    // CRSF channel selection
+    // CRSF channel selection, 0 if not used
     uint8_t channel_1;
     uint8_t channel_2;
-    uint8_t channel_mode; // used for either setting the volt-split mode during run-time, or used as the 3rd channel for direct-PWM mode
-    // use 0 if not used
+    uint8_t channel_mode;  // used for either setting the volt-split mode during run-time, or used as the 3rd channel for direct-PWM mode
+    uint8_t channel_brake; // used to enable or disable braking during run-time
 
     // RC signal calibration, units are microseconds
     uint16_t rc_mid;       // do not apply to CRSF data
