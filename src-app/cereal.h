@@ -112,6 +112,8 @@ class Cereal_USART : public Cereal
 
 class Cereal_TimerBitbang : public Cereal
 {
+    // WARNING: this class does not seem to work on pin PA2, it only works on PB4
+
     public:
         Cereal_TimerBitbang(void);
 

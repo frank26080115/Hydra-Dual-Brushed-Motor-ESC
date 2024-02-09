@@ -93,9 +93,11 @@ typedef struct
     bool tied;
     uint32_t arm_duration;
     uint32_t disarm_timeout;
-    uint8_t temperature_limit;
+    uint8_t  temperature_limit;
     uint32_t current_limit;
     uint32_t voltage_limit;
+    uint16_t cell_max_volt;
+    uint16_t lowbatt_stretch;
 
     int32_t currlim_kp;
     int32_t currlim_ki;

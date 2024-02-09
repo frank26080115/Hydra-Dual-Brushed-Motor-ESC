@@ -270,7 +270,8 @@ int main(void)
         // impose voltage limit if desired
         if (voltage_limit > 0) {
             if (sense_voltage < voltage_limit) {
-                duty_max = fi_map(sense_voltage, voltage_limit - UNDERVOLTAGE, voltage_limit, 0, duty_max, true);
+                int32_t lower_limit = ((int32_t)voltage_limit) - (cfg.lowbatt_stretch > UNDERVOLTAGE ? cfg.lowbatt_stretch : UNDERVOLTAGE);
+                duty_max = fi_map(sense_voltage, lower_limit, voltage_limit, 0, duty_max, true);
                 ledblink_lowbatt();
             }
         }

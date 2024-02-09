@@ -37,7 +37,7 @@ void hw_test(void)
     //hwtest_adc();
     //hwtest_sense();
     //hwtest_gpio(GPIOA, LL_GPIO_PIN_8 | LL_GPIO_PIN_9 | LL_GPIO_PIN_10);
-    hwtest_led();
+    //hwtest_led();
     //hwtest_pwm();
     //hwtest_pwm_max();
     //hwtest_phases();
@@ -52,7 +52,7 @@ void hw_test(void)
     //hwtest_rc_led_pwm();
     //hwtest_rc_led_crsf();
     //hwtest_rc_tone_crsf();
-    hwtest_simCurrentLimit();
+    //hwtest_simCurrentLimit();
     //hwtest_simLowBatt();
 }
 #endif
@@ -801,38 +801,39 @@ void hwtest_simLowBatt(void)
     dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false);
     #endif
 
-    //NVIC_DisableIRQ(SysTick_IRQn);
-
     uint32_t starting_voltage;
+    int32_t configured_limit;
 
-    for (starting_voltage = 6000; starting_voltage < 4200 * 9; starting_voltage += 200)
+    cfg.cell_max_volt = 4350;
+
+    for (configured_limit = 3100; configured_limit >= 2900; configured_limit -= 50)
     {
-        int32_t configured_limit;
-        for (configured_limit = 3300; configured_limit >= 0; configured_limit -= 50)
+        for (starting_voltage = 6000; starting_voltage < cfg.cell_max_volt * 9; starting_voltage += 200)
         {
             dbg_printf("sim start = %lu mv , lim %ld mv/cell\r\n", starting_voltage, configured_limit);
             battery_reset();
             systick_cnt = 0;
             sense_voltage = 0;
+            cfg.voltage_limit = configured_limit;
             while (voltage_limit == 0) {
                 sense_voltage = sense_voltage + (sense_voltage < starting_voltage ? 200 : 0);
                 systick_cnt += 1;
                 battery_task();
             }
-            sense_voltage = voltage_limit + 1000;
-            while (true)
-            {
-                battery_task();
-                //systick_cnt += 1;
-                sense_voltage -= 10;
-                if (sense_voltage < voltage_limit) {
-                    uint32_t duty_max = fi_map(sense_voltage, voltage_limit - UNDERVOLTAGE, voltage_limit, 0, 2000, true);
-                    dbg_printf("v = %u , duty = %u / 2000\r\n", sense_voltage, duty_max);
-                    if (duty_max <= 1) {
-                        break;
-                    }
-                }
-            }
+            //sense_voltage = voltage_limit + 1000;
+            //while (true)
+            //{
+            //    battery_task();
+            //    //systick_cnt += 1;
+            //    sense_voltage -= 10;
+            //    if (sense_voltage < voltage_limit) {
+            //        uint32_t duty_max = fi_map(sense_voltage, voltage_limit - UNDERVOLTAGE, voltage_limit, 0, 2000, true);
+            //        dbg_printf("v = %u , duty = %u / 2000\r\n", sense_voltage, duty_max);
+            //        if (duty_max <= 1) {
+            //            break;
+            //        }
+            //    }
+            //}
         }
     }
     while (true) {

@@ -13,6 +13,8 @@ Prerequisites:
  * a motor (or another load) is connected between the common-shared phase and one of the other two phases
  * you have a multimeter, and understand how to measure voltage and current
 
+Later, you will be able use these sensors for [current limiting and low-battery limit](current-limiting-and-low-battery-limit.md)
+
 When you are in the CLI, start by entering the command `hwtest`. You will then be prompted to use a key to select the type of test.
 
  * key `v` will help you do voltage sensor calibration
@@ -83,11 +85,3 @@ With your keyboard, pressing keys into the serial terminal will adjust the calib
 Before applying the load, adjust the `c-offset` such that the `calc-c` value is close to zero when there is no load, then move on to applying the load and adjusting `c-scale`.
 
 Once you've stopped, the final calibration parameters will be displayed, these are the number that should be set as `curroffset` and `currscale` in the configuration.
-
-## Current Limiting Tuning
-
-The current limit value is set in milliamps. If you want the current limit to be set at 10A, then the value `currlim` should be configured to 10000.
-
-The default settings should have a `curlimkp` (current limit PID loop's kP) value of around 100 by default. If the current draw is 1A over the limit, this should cut the power completely in under half of a second. It's not a hard sharp power cut, the PID loop will gradually lower the voltage during this time. Simulation shows that the current should reach a steady state in around 120 milliseconds, but at a current slightly higher than the specified limit (for example, a current limit set at 10A will settle at 10.5A).
-
-If you want to operate at the current limit frequently or for long durations, then lower `curlimkp` and also have a slightly lower `currlim`.

@@ -99,6 +99,7 @@ uint8_t  batt_cell_cnt         = 0;
 uint32_t batt_starting_voltage = 0;
 uint32_t batt_max_voltage      = 0;
 uint32_t voltage_limit         = 0; // specified in millivolts
+static uint32_t prev_voltage   = 0;
 
 void battery_task(void)
 {
@@ -108,22 +109,21 @@ void battery_task(void)
     if (cfg.voltage_limit <= 0) {
         return;
     }
-    if (cfg.voltage_limit > 3300) {
+    if (cfg.voltage_limit > cfg.cell_max_volt) {
         voltage_limit = cfg.voltage_limit;
         return;
     }
-
-    static uint32_t prev_voltage;
 
     if (batt_cell_cnt <= 0 || batt_starting_voltage <= 0 || voltage_limit <= 0)
     {
         batt_max_voltage = sense_voltage > batt_max_voltage ? sense_voltage : batt_max_voltage;
         if (sense_voltage < prev_voltage || millis() >= BATTERY_RISE_MAX_TIME) { // calculate the cell count when the voltage stops rising, or when enough time passed
             batt_starting_voltage = batt_max_voltage;
-            batt_cell_cnt = batt_starting_voltage / (cfg.voltage_limit + 100); // rely on interger rounding!
+            batt_cell_cnt = batt_starting_voltage / (cfg.cell_max_volt + 100);
+            batt_cell_cnt += 1;
             voltage_limit = batt_cell_cnt * cfg.voltage_limit;
 
-            dbg_printf("batt task t=%ms, cnt %u , maxv %u , v-lim %u\r\n", millis(), batt_cell_cnt, batt_max_voltage, voltage_limit);
+            dbg_printf("batt task t=%lums, cnt %u , maxv %u , v-lim %u\r\n", millis(), batt_cell_cnt, batt_max_voltage, voltage_limit);
         }
     }
     prev_voltage = sense_voltage;
@@ -136,5 +136,6 @@ void battery_reset(void)
     batt_starting_voltage = 0;
     batt_max_voltage      = 0;
     voltage_limit         = 0;
+    prev_voltage          = 0;
 }
 #endif

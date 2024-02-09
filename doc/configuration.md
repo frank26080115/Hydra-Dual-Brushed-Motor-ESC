@@ -102,37 +102,39 @@ This will cause the ESC to enter into the AM32 bootloader.
 
 | command        | default | range       | description |
 |----------------|---------|-------------|-------------|
-| `vsplitmode  ` | 0       | 0 - 2       | voltage splitting mode <br /> 0 = boosted almost always <br  /> 1 = half voltage <br /> 2 = boosted while not turning |
-| `loadbal     ` | 0       | 0 or 1      | lowers load on common-shared MOSFET |
-| `inputmode   ` | 0       | 0 - 3       | 0 = RC PWM pulse input <br /> 1 = CRSF input <br /> 2 = RC PWM input through SWCLK <br /> 3 = CRSF input through SWCLK |
-| `tankmix     ` | 0       | 0 or 1      | enables arcade tank drive mixing |
-| `phasemap    ` | 1       | 1 - 3       | selects which one of the three phases is used as the [common-shared phase](finding-common-shared-phase.md) |
-| `baud        ` | 0       |             | baud rate used for CRSF <br /> 0 means default (420000) <br /> useful for taking commands from slower microcontrollers |
-| `channel_1   ` | 1       | 0 - 16      | which CRSF channel is the 1st channel, 0 = unassigned |
-| `channel_2   ` | 2       | 0 - 16      | which CRSF channel is the 2nd channel, 0 = unassigned |
-| `channel_mode` | 0       | 0 - 16      | which CRSF channel can control the voltage splitting mode, useful for temporary voltage boosting, 0 = unassigned |
-| `rc_mid      ` | 1500    | 800 - 2200  | RC PWM pulse middle value, in microseconds, does not affect CRSF |
-| `rc_range    ` | 500     | 0 - 1000    | RC PWM pulse range, 500 means 1000 to 2000, does not affect CRSF |
-| `rc_deadzone ` | 10      | 0 - uint16  | RC PWM pusle deadzone around the center <br /> used if the signal is noisy <br /> unit is in microseconds <br /> does also apply to CRSF |
-| `pwm_period  ` | ????    | 0 - 65535   | PWM period, generator reload value, controls the PWM frequency <br /> unit is in clock ticks <br /> Do not modify <br /> lower value = higher frequency
-| `pwm_deadtime` | 50      | 0 - uint32  | PWM cannot be always 100% since the MOSFET drivers use a charge pump. High value means lower power for the motors, but if the value is too low then the high-side MOSFETs might stop working at full throttle. |
-| `braking     ` | 1       | 0 or 1      | If true, enables complementry PWM and never floats the output pins. If false, disables complementry PWM and floats the output pins if throttle is 0 |
-| `chanswap    ` | 0       | 0 or 1      | swaps the output channels |
-| `flip1       ` | 0       | 0 or 1      | flips (reverse) the 1st output channel |
-| `flip2       ` | 0       | 0 or 1      | flips (reverse) the 2nd output channel |
-| `tied        ` | 0       | 0 or 1      | one channel controls both motors |
-| `armdur      ` | 100     | 0 - uint32  | arming duration required, the number of valid arming pulses (zero throttle) required before becoming armed <br /> setting 0 means **always armed** |
-| `disarmtime  ` | 3000    | 0 - uint32  | number of milliseconds of signal loss before going into disarmed state <br /> setting 0 means **never** |
-| `templim     ` | 0       | 0 - 255     | temperature limit in degrees-Celcius <br /> setting 0 means limit disabled |
-| `currlim     ` | 0       | 0 - 255     | current limit in milliamps <br /> setting 0 means limit disabled |
-| `voltlim     ` | 0       | 0 - 65535   | low battery voltage limit in millivolts <br /> setting 0 means limit disabled <br /> values under 3300 means the limit is specified as per-cell, and the cell count is automatically determined <br /> values over 3300 means a non-automatic voltage limit is being used |
-| `voltdiv     ` | ????    | 0 - uint32  | hardware voltage divider adjustment <br /> default is dependant of hardware, do not adjust if you don't need to |
-| `curroffset  ` | ????    | 0 - uint32  | hardware current sensor offset adjustment <br /> default is dependant of hardware, do not adjust if you don't need to |
-| `currscale   ` | ????    | 0 - uint32  | hardware current sensor scaling adjustment <br /> default is dependant of hardware, do not adjust if you don't need to |
-| `adcfilter   ` | 10      | 1 - 100     | analog signal low-pass filtering constant, for avoiding noisy sensor measurements <br /> low value means strong filtering, slow changes <br /> high value means weak filtering, fast changes <br /> 0 and 100 both mean "disable filter" |
-| `curlimkp    ` | 100     | percentage  | PID constant P for the current limiting feature <br /> do not adjust, 100% is default and ideal |
-| `curlimki    ` | 0       | sint32      | PID constant I for the current limiting feature <br /> do not adjust |
-| `curlimkd    ` | 100     | percentage  | PID constant D for the current limiting feature <br /> do not adjust, 100% is default and ideal |
+| `vsplitmode    ` | 0       | 0 - 2       | voltage splitting mode <br /> 0 = boosted almost always <br  /> 1 = half voltage <br /> 2 = boosted while not turning |
+| `loadbal       ` | 0       | 0 or 1      | lowers load on common-shared MOSFET |
+| `inputmode     ` | 0       | 0 - 3       | 0 = RC PWM pulse input <br /> 1 = CRSF input <br /> 2 = RC PWM input through SWCLK <br /> 3 = CRSF input through SWCLK |
+| `tankmix       ` | 0       | 0 or 1      | enables arcade tank drive mixing |
+| `phasemap      ` | 1       | 1 - 3       | selects which one of the three phases is used as the [common-shared phase](finding-common-shared-phase.md) |
+| `baud          ` | 0       |             | baud rate used for CRSF <br /> 0 means default (420000) <br /> useful for taking commands from slower microcontrollers |
+| `channel_1     ` | 1       | 0 - 16      | which CRSF channel is the 1st channel, 0 = unassigned |
+| `channel_2     ` | 2       | 0 - 16      | which CRSF channel is the 2nd channel, 0 = unassigned |
+| `channel_mode  ` | 0       | 0 - 16      | which CRSF channel can control the voltage splitting mode, useful for temporary voltage boosting, 0 = unassigned |
+| `rc_mid        ` | 1500    | 800 - 2200  | RC PWM pulse middle value, in microseconds, does not affect CRSF |
+| `rc_range      ` | 500     | 0 - 1000    | RC PWM pulse range, 500 means 1000 to 2000, does not affect CRSF |
+| `rc_deadzone   ` | 10      | 0 - uint16  | RC PWM pusle deadzone around the center <br /> used if the signal is noisy <br /> unit is in microseconds <br /> does also apply to CRSF |
+| `pwm_period    ` | ????    | 0 - 65535   | PWM period, generator reload value, controls the PWM frequency <br /> unit is in clock ticks <br /> Do not modify <br /> lower value = higher frequency
+| `pwm_deadtime  ` | 50      | 0 - uint32  | PWM cannot be always 100% since the MOSFET drivers use a charge pump. High value means lower power for the motors, but if the value is too low then the high-side MOSFETs might stop working at full throttle. |
+| `braking       ` | 1       | 0 or 1      | If true, enables complementry PWM and never floats the output pins. If false, disables complementry PWM and floats the output pins if throttle is 0 |
+| `chanswap      ` | 0       | 0 or 1      | swaps the output channels |
+| `flip1         ` | 0       | 0 or 1      | flips (reverse) the 1st output channel |
+| `flip2         ` | 0       | 0 or 1      | flips (reverse) the 2nd output channel |
+| `tied          ` | 0       | 0 or 1      | one channel controls both motors |
+| `armdur        ` | 100     | 0 - uint32  | arming duration required, the number of valid arming pulses (zero throttle) required before becoming armed <br /> setting 0 means **always armed** |
+| `disarmtime    ` | 3000    | 0 - uint32  | number of milliseconds of signal loss before going into disarmed state <br /> setting 0 means **never** |
+| `templim       ` | 0       | 0 - 255     | temperature limit in degrees-Celcius <br /> setting 0 means limit disabled |
+| `currlim       ` | 0       | 0 - 255     | current limit in milliamps <br /> setting 0 means limit disabled |
+| `voltlim       ` | 0       | 0 - 65535   | low battery voltage limit in millivolts <br /> setting 0 means limit disabled <br /> please read [this guide](current-limiting-and-low-battery-limit.md) to understand this item |
+| `cellmaxvolt   ` | 0       | 0 - 65535   | per cell maximum voltage in millivolts <br /> setting 0 means "use absolute limit instead" <br /> please read [this guide](current-limiting-and-low-battery-limit.md) to understand this item |
+| `lowbattstretch` | 0       | 0 - 65535   | determines if reaching the low-battery limit will stop the motors or simply slow it down <br /> please read [this guide](current-limiting-and-low-battery-limit.md) to understand this item |
+| `voltdiv       ` | ????    | 0 - uint32  | hardware voltage divider adjustment <br /> default is dependant of hardware, do not adjust if you don't need to |
+| `curroffset    ` | ????    | 0 - uint32  | hardware current sensor offset adjustment <br /> default is dependant of hardware, do not adjust if you don't need to |
+| `currscale     ` | ????    | 0 - uint32  | hardware current sensor scaling adjustment <br /> default is dependant of hardware, do not adjust if you don't need to |
+| `adcfilter     ` | 10      | 1 - 100     | analog signal low-pass filtering constant, for avoiding noisy sensor measurements <br /> low value means strong filtering, slow changes <br /> high value means weak filtering, fast changes <br /> 0 and 100 both mean "disable filter" |
+| `curlimkp      ` | 100     | percentage  | PID constant P for the current limiting feature <br /> do not adjust, 100% is default and ideal |
+| `curlimki      ` | 0       | sint32      | PID constant I for the current limiting feature <br /> do not adjust |
+| `curlimkd      ` | 100     | percentage  | PID constant D for the current limiting feature <br /> do not adjust, 100% is default and ideal |
 
 There are other items that are not always used, they are described in other usage guides.
 

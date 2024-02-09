@@ -2,7 +2,7 @@
 
 // this file is used for preprocessor configurations
 
-#define HW_TESTS
+//#define HW_TESTS
 //#define RC_LOG_JITTER
 //#define DISABLE_EEPROM
 //#define ENABLE_TONE
@@ -30,8 +30,9 @@
 #define RC_DISARM_TIMEOUT   3000    // this can be adjusted in EEPROM
 #define RC_ARMING_CNT_REQ   10      // this can be adjusted in EEPROM
 
-#define TEMPERATURE_OVER    20      // if the thermal limit is set at 80, then 80 is when the power starts to drop, and 100 is when power is completly off
-#define UNDERVOLTAGE        100     // if the voltage limit is set at 3000, then 3000 is when the power starts to drop, and 2900 is when power is completly off
+#define TEMPERATURE_OVER    20      // if the thermal limit is set at 80, then 80 is when the power starts to drop, and 100 is when power is completely off
+#define UNDERVOLTAGE        100     // if the voltage limit is set at 3000, then 3000 is when the power starts to drop, and 2900 is when power is completely off
+// `UNDERVOLTAGE` will be overridden if the user specifies `lowbattstretch`
 
 #define BATTERY_RISE_MAX_TIME 3000  // time in milliseconds it takes before battery cell count takes place
 

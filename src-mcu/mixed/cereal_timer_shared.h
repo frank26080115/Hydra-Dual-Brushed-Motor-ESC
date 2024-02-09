@@ -1,5 +1,7 @@
 // this file is meant to be included inline, do not include this file where it's not supposed to go
 
+// WARNING: this class does not seem to work on pin PA2, it only works on PB4
+
 #define RC_IC_TIMx IC_TIMER_REGISTER
 
 // only one instance of this cereal port is allowed
