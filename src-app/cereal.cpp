@@ -10,10 +10,6 @@ uint8_t cer_buff_2[CEREAL_BUFFER_SIZE];
 //uint8_t cer_buff_3[CEREAL_BUFFER_SIZE];
 //uint8_t cer_buff_4[CEREAL_BUFFER_SIZE];
 
-#if defined(ENABLE_COMPILE_CLI) || defined(DEBUG_PRINT)
-uint8_t cer_buff_5[CEREAL_BUFFER_SIZE];
-#endif
-
 #ifdef __cplusplus
 }
 #endif
@@ -23,7 +19,7 @@ uint8_t cer_buff_5[CEREAL_BUFFER_SIZE];
 size_t Cereal::vprintf(const char *format, va_list arg)
 {
     // got this code from https://github.com/espressif/arduino-esp32/blob/826a426905191a246c96f21ba80372ec8324c59a/cores/esp32/Print.cpp
-    char* loc_buf = (char*)cer_buff_5;
+    static char loc_buf[CEREAL_BUFFER_SIZE];
     char * temp = loc_buf;
     va_list copy;
     va_copy(copy, arg);

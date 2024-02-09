@@ -61,10 +61,6 @@ extern uint8_t cer_buff_2[CEREAL_BUFFER_SIZE];
 //extern uint8_t cer_buff_3[CEREAL_BUFFER_SIZE];
 //extern uint8_t cer_buff_4[CEREAL_BUFFER_SIZE];
 
-#if defined(ENABLE_COMPILE_CLI) || defined(DEVELOPMENT_BOARD)
-extern uint8_t cer_buff_5[CEREAL_BUFFER_SIZE];
-#endif
-
 #ifdef __cplusplus
 }
 #endif

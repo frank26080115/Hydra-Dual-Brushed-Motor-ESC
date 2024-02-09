@@ -95,10 +95,10 @@ void load_config_pid(void)
     current_limit_duty = cfg.pwm_period;
 }
 
-uint8_t batt_cell_cnt = 0;
+uint8_t  batt_cell_cnt         = 0;
 uint32_t batt_starting_voltage = 0;
-uint32_t batt_max_voltage = 0;
-uint32_t voltage_limit = 0; // specified in millivolts
+uint32_t batt_max_voltage      = 0;
+uint32_t voltage_limit         = 0; // specified in millivolts
 
 void battery_task(void)
 {
@@ -122,7 +122,19 @@ void battery_task(void)
             batt_starting_voltage = batt_max_voltage;
             batt_cell_cnt = batt_starting_voltage / (cfg.voltage_limit + 100); // rely on interger rounding!
             voltage_limit = batt_cell_cnt * cfg.voltage_limit;
+
+            dbg_printf("batt task t=%ms, cnt %u , maxv %u , v-lim %u\r\n", millis(), batt_cell_cnt, batt_max_voltage, voltage_limit);
         }
     }
     prev_voltage = sense_voltage;
 }
+
+#ifndef RELEASE_BUILD
+void battery_reset(void)
+{
+    batt_cell_cnt         = 0;
+    batt_starting_voltage = 0;
+    batt_max_voltage      = 0;
+    voltage_limit         = 0;
+}
+#endif

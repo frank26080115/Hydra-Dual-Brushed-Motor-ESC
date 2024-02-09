@@ -30,6 +30,7 @@ void current_limit_task(void);
 
 extern uint32_t voltage_limit;
 void battery_task(void);
+void battery_reset(void);
 
 void load_config_pid(void);
 
