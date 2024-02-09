@@ -24,6 +24,10 @@ This means the voltage limiting is active when the detected voltage is below a v
 
 This means the ESC will try and guess how many battery cells are being used, and automatically determine the low battery voltage limit. You need to specify the limit as `voltlim` in millivolts-per-cell, and also specify each cell's maximum voltage with `cellmaxvolt`. For example, regular Li-ion and Li-poly batteries should use `cellmaxvolt` set to 4200, and Li-HV batteries should use `cellmaxvolt` set at 4350. `voltlim` should be set at about 3000, but you can raise or lower this according to preference.
 
+WARNING: This automatic-cell-counting feature only works well if your battery is not already dead. For example, if you used a 6S battery that's so dead that it is at 18V, the firmware might think it is a 5S battery instead, since a full 5S battery is 21V.
+
+It is recommended to use the absolute voltage limit method instead.
+
 #### Immediate Stop
 
 Set `lowbattstretch` to `0` and the ESC will completely stop if the measured voltage goes below the voltage limit.
