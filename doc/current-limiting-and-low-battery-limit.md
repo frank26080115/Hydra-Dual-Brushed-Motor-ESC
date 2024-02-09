@@ -34,7 +34,7 @@ Set `lowbattstretch` to `0` and the ESC will completely stop if the measured vol
 
 #### Slow Down Gradually
 
-Set `lowbattstretch` to a very high number, such as 1000. For example, if the voltage limit is at 6000 millivolts, and the `lowbattstretch` is set to 1000, then it means when the ESC measures 6000 millivolts from the battery, it will begin to slow down, and when battery voltage reaches 5000 millivolts, the ESC will have come to a complete stop.
+Set `lowbattstretch` to a very high number, such as 1000. For example, if the voltage limit is at 6000 millivolts, and the `lowbattstretch` is set to 1000, then it means when the ESC measures 6000 millivolts from the battery, it will begin to slow down, and when battery voltage reaches 5000 millivolts, the ESC will have come to a complete stop. If you want to use this feature, you will want a slightly higher voltage limit, so that the motors slow down earlier.
 
 This is useful in a competitive environment, where you want to sacrifice the health of your battery to win. This is also how RC boat ESCs typically behave, it makes the boat slower but you'll be able to safely bring home the boat.
 
