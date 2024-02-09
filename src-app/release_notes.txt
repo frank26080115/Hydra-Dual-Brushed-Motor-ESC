@@ -2,4 +2,9 @@
 
 This is a alpha release, features are all complete, but not fully tested.
 
+## New features
+
+ * coasting mode works (aka. the opposite of braking mode)
+ * new ways of setting low battery voltage limits
+
 TODO write this
