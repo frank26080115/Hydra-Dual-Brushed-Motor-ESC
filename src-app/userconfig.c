@@ -11,10 +11,17 @@
 
 // the bootloader of AM32 will check the 3rd byte for a version number, and erase the entire EEPROM if it doesn't like it
 // https://github.com/frank26080115/Hydra-Dual-Brushed-Motor-ESC/issues/7
+
+#if defined(MCU_F051)
+#define FOOL_AM32_BOOTLOADER_VERSION 0x08
+#else
+#define FOOL_AM32_BOOTLOADER_VERSION 0x00
+#endif
+
 #define FOOL_AM32                     \
     .fool_am32_bootloader_0   = 0x01, \
     .fool_am32_bootloader_1   = 0x01, \
-    .fool_am32_bootloader_2   = 0x00, \
+    .fool_am32_bootloader_version = FOOL_AM32_BOOTLOADER_VERSION, \
     .fool_am32_eeprom_layout  = 0x0A, \
     .fool_am32_version_major  = 1,    \
     .fool_am32_version_minor  = 99,   \
@@ -81,6 +88,10 @@ const EEPROM_data_t default_eeprom __attribute__((aligned(4))) = {
     .dirpwm_chancfg_C   = 0,
 
     .tone_volume        = TONE_DEF_VOLUME,
+
+    .write_cnt          = 0,
+    .boot_log           = 0,
+    .magic_end          = EEPROM_MAGIC,
 };
 #endif
 
@@ -88,7 +99,10 @@ const EEPROM_data_t default_eeprom __attribute__((aligned(4))) = {
 __attribute__((__section__(".eeprom")))
 const EEPROM_data_t cfge = {
     FOOL_AM32
-    .magic = EEPROM_MAGIC,
+    .magic      = EEPROM_MAGIC,
+    .write_cnt  = 0,
+    .boot_log   = 0,
+    .magic_end  = EEPROM_MAGIC,
 };
 #define cfg_addr    ((uint32_t)(&cfge))
 
@@ -176,6 +190,16 @@ EEPROM_chksum_t eeprom_checksum(uint8_t* data, int len)
     #endif
 }
 
+uint8_t eeprom_get_bootloader_ver(void)
+{
+    #ifndef DEVELOPMENT_BOARD
+    uint8_t* blv_ptr = (uint8_t*)(0x80000C0);
+    return *blv_ptr;
+    #else
+    return 0;
+    #endif
+}
+
 bool eeprom_verify_checksum(uint32_t* ptr8)
 {
     volatile EEPROM_data_t* ptre = (volatile EEPROM_data_t*)ptr8; // https://github.com/frank26080115/Hydra-Dual-Brushed-Motor-ESC/issues/4
@@ -184,12 +208,38 @@ bool eeprom_verify_checksum(uint32_t* ptr8)
     volatile EEPROM_chksum_t calculated_chksum = eeprom_checksum(start_addr, (int)(((uint32_t)end_addr) - ((uint32_t)start_addr)));
     if (calculated_chksum != ptre->chksum) {
         dbg_printf("ERR: EEPROM checksum does not match (0x%02X != 0x%02X)\r\n", calculated_chksum, ptre->chksum);
-        #ifdef DEVELOPMENT_BOARD
-        dbg_printf("addr 0x%08lX\r\n", (uint32_t)ptr8);
-        dbg_hexdump(ptr8, sizeof(EEPROM_data_t));
-        #endif
     }
     return calculated_chksum == ptre->chksum;
+}
+
+bool eeprom_verify_header(uint32_t* ptr8)
+{
+    volatile EEPROM_data_t* ptre = (volatile EEPROM_data_t*)ptr8;
+    bool ret = true;
+    if (ptre->magic != EEPROM_MAGIC) {
+        ret = false;
+        dbg_printf("ERR: EEPROM magic does not match (0x%08X)\r\n", ptre->magic);
+        #ifndef RELEASE_BUILD
+        eeprom_error_log |= 0x02;
+        #endif
+    }
+    if (ptre->version_eeprom != VERSION_EEPROM) {
+        ret = false;
+        dbg_printf("ERR: EEPROM version does not match (%u != %u)\r\n", ptre->version_eeprom, VERSION_EEPROM);
+        #ifndef RELEASE_BUILD
+        eeprom_error_log |= 0x04;
+        #endif
+    }
+    #ifndef DEVELOPMENT_BOARD
+    if (ptre->fool_am32_bootloader_version != eeprom_get_bootloader_ver()) {
+        ret = false;
+        dbg_printf("ERR: bootloader version does not match (%u != %u)\r\n", ptre->fool_am32_bootloader_version, eeprom_get_bootloader_ver());
+        #ifndef RELEASE_BUILD
+        eeprom_error_log |= 0x08;
+        #endif
+    }
+    #endif
+    return ret;
 }
 
 #if defined(ENABLE_COMPILE_CLI) && !defined(RELEASE_BUILD)
@@ -212,41 +262,40 @@ int eeprom_quick_validate(void)
 
 bool eeprom_load_or_default(void)
 {
-    bool x = eeprom_verify_checksum((uint32_t*)cfg_addr);
-    if (x) {
-        memcpy((void*)&cfg, (void*)cfg_addr, sizeof(EEPROM_data_t));
-        if (cfg.magic != EEPROM_MAGIC) {
-            #ifndef RELEASE_BUILD
-            eeprom_error_log |= 0x02;
-            #endif
-            x = false;
-            dbg_printf("ERR: EEPROM magic does not match (0x%08X)\r\n", cfg.magic);
-        }
-        if (cfg.version_eeprom != VERSION_EEPROM) {
-            #ifndef RELEASE_BUILD
-            eeprom_error_log |= 0x04;
-            #endif
-            x = false;
-            dbg_printf("ERR: EEPROM version does not match (%u != %u)\r\n", cfg.version_eeprom, VERSION_EEPROM);
-        }
-        #ifdef DEVELOPMENT_BOARD
-        if (x == false) {
-            dbg_hexdump((uint32_t*)&cfg, sizeof(EEPROM_data_t));
-        }
+    bool x;
+
+    x = eeprom_verify_header((uint32_t*)cfg_addr);
+
+    x &= eeprom_verify_checksum((uint32_t*)cfg_addr);
+    if (x == false) {
+        #ifndef RELEASE_BUILD
+        eeprom_error_log |= 0x01;
         #endif
     }
-    #ifndef RELEASE_BUILD
-    else {
-        eeprom_error_log |= 0x01;
-    }
-    #endif
-    if (x) {
+
+    if (x)
+    {
         dbg_printf("EEPROM is valid\r\n");
+        memcpy((void*)&cfg, (void*)cfg_addr, sizeof(EEPROM_data_t));
         eeprom_has_loaded = true;
+
+        #ifndef RELEASE_BUILD
+        if (cfg.boot_log != 0) {
+            dbg_printf("EEPROM clearing stale boot log\r\n");
+            cfg.boot_log = 0;
+            eeprom_save();
+        }
+        #endif
+
         return true;
     }
-    else {
+    else
+    {
         dbg_printf("EEPROM is invalid\r\n");
+        #ifdef DEVELOPMENT_BOARD
+        dbg_hexdump((uint32_t*)&cfg, sizeof(EEPROM_data_t));
+        #endif
+
         eeprom_factory_reset();
         #ifdef DEVELOPMENT_BOARD
         bool x2 = eeprom_verify_checksum((uint32_t*)cfg_addr);
@@ -267,7 +316,9 @@ void eeprom_load_defaults(void)
 void eeprom_factory_reset(void)
 {
     dbg_printf("EEPROM factory resetting\r\n");
+    uint32_t write_cnt = cfg.write_cnt;
     eeprom_load_defaults();
+    cfg.write_cnt = write_cnt;
     eeprom_save();
 }
 
@@ -285,7 +336,14 @@ void eeprom_save(void)
     uint32_t head_len   = ((uint32_t)start_addr) - ((uint32_t)ptre);
     EEPROM_chksum_t calculated_chksum = eeprom_checksum(start_addr, (int)(((uint32_t)end_addr) - ((uint32_t)start_addr)));
     ptre->chksum = calculated_chksum;
-    memcpy((void*)&cfg, &default_eeprom, head_len);                        // ensures header is written
+    memcpy((void*)&cfg, &default_eeprom, head_len); // ensures header is written
+
+    cfg.write_cnt++;
+    cfg.fool_am32_bootloader_version = eeprom_get_bootloader_ver(); // ensure header has proper bootloader version, so the bootloader doesn't erase the EEPROM
+    #ifndef RELEASE_BUILD
+    cfg.boot_log = eeprom_error_log;
+    #endif
+
     eeprom_write((uint32_t*)&cfg, sizeof(EEPROM_data_t), cfg_addr); // commit to flash
     eeprom_save_time = 0; // remove dirty flag
     dbg_printf("EEPROM saved\r\n");
@@ -306,6 +364,13 @@ bool eeprom_save_if_needed(void)
 void eeprom_mark_dirty(void)
 {
     eeprom_save_time = millis();
+}
+
+void eeprom_delay_dirty(void)
+{
+    if (eeprom_save_time > 0) {
+        eeprom_save_time = millis();
+    }
 }
 
 extern uint32_t arm_pulses_required;

@@ -145,6 +145,11 @@ def proc_hex_file(fpath):
                     fw_ihex[j] = d
                     j += 1
 
+                # embed the correct bootloader version into the EEPROM region so that AM32 does not erase it
+                blver = fw_ihex[0xC0]
+                blver_addr = flash_start + eep_addr + 2
+                fw_ihex[blver_addr] = blver
+
                 fw_ihex.tofile(fw_new_path, format='hex')
                 print("saved new file: \"%s\"" % fw_new_path)
 

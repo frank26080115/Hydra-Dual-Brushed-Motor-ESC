@@ -55,4 +55,8 @@ const EEPROM_data_t default_eeprom __attribute__((aligned(4))) = {
     .dirpwm_chancfg_C   = 0,
 
     .tone_volume        = TONE_DEF_VOLUME,
+
+    .write_cnt          = 0,
+    .boot_log           = 0,
+    .magic_end          = EEPROM_MAGIC,
 };

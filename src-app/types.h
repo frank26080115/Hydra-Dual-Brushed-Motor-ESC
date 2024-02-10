@@ -45,7 +45,7 @@ typedef struct
     // https://github.com/frank26080115/Hydra-Dual-Brushed-Motor-ESC/issues/7
     uint8_t fool_am32_bootloader_0;
     uint8_t fool_am32_bootloader_1;
-    uint8_t fool_am32_bootloader_2; // this one is the most important
+    uint8_t fool_am32_bootloader_version;
     uint8_t fool_am32_eeprom_layout;
     uint8_t fool_am32_version_major;
     uint8_t fool_am32_version_minor;
@@ -115,6 +115,11 @@ typedef struct
     EEPROM_chksum_t chksum;
 
     // any data after the checksum can still be saved but won't be protected
+
+    uint32_t write_cnt;
+    uint32_t boot_log;  // can be used to store some sort of boot log
+
+    uint32_t magic_end; // used to visually indicate end of EEPROM when examining dumps
 
 } __attribute__((packed)) __attribute__((aligned(4)))
 EEPROM_data_t;

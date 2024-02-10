@@ -94,6 +94,8 @@ void cli_enter(void)
         int16_t c = cer->read();
         if (c >= 0) // data available
         {
+            eeprom_delay_dirty();
+
             has_interaction |= ((c >= 'a' || c >= 'A') && c != '>');
 
             if (prev_has_interaction == false && has_interaction) {
@@ -216,6 +218,9 @@ void cli_execute(Cereal* cer, char* str)
         eeprom_print_all(cer);
         cer->write('\r');
         cer->write('\n');
+        #ifndef RELEASE_BUILD
+        cer->printf("write count: %lu\r\n", cfg.write_cnt);
+        #endif
     }
     else if (item_strcmp("version", str, NULL))
     {
