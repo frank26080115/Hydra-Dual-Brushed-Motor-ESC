@@ -20,9 +20,8 @@
 
 #define FOOL_AM32                     \
     .fool_am32_bootloader_0   = 0x01, \
-    .fool_am32_bootloader_1   = 0x01, \
+    .fool_am32_eeprom_layout  = 0x02, \
     .fool_am32_bootloader_version = FOOL_AM32_BOOTLOADER_VERSION, \
-    .fool_am32_eeprom_layout  = 0x0A, \
     .fool_am32_version_major  = 1,    \
     .fool_am32_version_minor  = 99,   \
     .fool_am32_name           = { 'H', 'Y', 'D', 'R', 'A', '\0', }, \
