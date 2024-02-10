@@ -70,9 +70,9 @@ def main():
                 elif x.lower().strip()[0] == 'n':
                     quit_nicely(-1)
                 elif x.lower().strip()[0] == 'y':
-                    print("ERROR: cannot understand input \"%s\", if you meant YES, please type it in all capital letters" % s)
+                    print("ERROR: cannot understand input \"%s\", if you meant YES, please type it in all capital letters" % x)
                 else:
-                    print("ERROR: cannot understand input \"%s\"" % s)
+                    print("ERROR: cannot understand input \"%s\"" % x)
             else:
                 tries = 2
                 while True:
@@ -761,6 +761,7 @@ def try_windows_openfiledialog():
         if x is None:
             # user explicitly cancelled, we can quit
             sys.exit(-1)
+        return x
     except Exception as ex:
         pass
     return None
