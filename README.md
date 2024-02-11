@@ -69,7 +69,7 @@ To install, update, and configure Hydra firmware, you must use a USB-linker mean
  * [Wiring](../../wiki/Wiring)
  * [Install Firmware](../../wiki/Install-Firmware)
  * [Configuration](../../wiki/Configuration)
- * [Fancy Features](../../wiki/Fancy-Features)
+ * [Features](../../wiki/Features)
 
 Once you've done all of the above, it's ready to use as any other dual ESC.
 

@@ -12,6 +12,8 @@ extern volatile EEPROM_data_t cfg;
 extern bool eeprom_has_loaded;
 extern uint32_t cfg_addr;
 
+extern volatile uint32_t eeprom_unlock_key; // must be the magic word for eeprom_save to work
+
 bool eeprom_verify_checksum(uint32_t* ptr8);
 bool eeprom_load_or_default(void);
 void eeprom_load_defaults(void);

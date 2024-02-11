@@ -2,7 +2,7 @@
 
 // this file is used for preprocessor configurations
 
-//#define HW_TESTS
+#define HW_TESTS
 //#define RC_LOG_JITTER
 //#define DISABLE_EEPROM
 //#define ENABLE_TONE

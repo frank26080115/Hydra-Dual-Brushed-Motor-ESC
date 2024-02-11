@@ -56,7 +56,10 @@ int main(void)
     sense_init();
     dbg_printf("low level init done at %u\r\n", millis());
 
+    eeprom_unlock_key = EEPROM_MAGIC;
     eeprom_load_or_default();
+    eeprom_unlock_key = 0;
+
     load_runtime_configs();
 
     #ifdef ENABLE_COMPILE_CLI
@@ -69,6 +72,8 @@ int main(void)
     load_runtime_configs();
     #endif
     #endif
+
+    eeprom_unlock_key = 0; // prevents any writes to EEPROM
 
     ledblink_disarmed();
 
@@ -106,7 +111,7 @@ int main(void)
             // unknown guess means wait for the one of the signals to become high, which means a USART is connected
             led_task(false);
             sense_task();
-            current_limit_task();
+            current_limit_task(0, 0);
             if (inp_read() != 0) { // this is checking PA2/USART2
                 crsf_inputGuess = 2;
                 break;
@@ -155,7 +160,6 @@ int main(void)
     {
         led_task(false);
         sense_task();
-        current_limit_task();
         battery_task();
 
         rc1->task();
@@ -241,6 +245,7 @@ int main(void)
             if (need_debug_print) {
                 dbg_printf("[%u] disarmed (%d %d), v=%lu   c=%u\r\n", millis(), rc1->read(), rc2->read(), sense_voltage, sense_current);
             }
+            current_limit_task(0, 0);
             continue; // do not execute the rest of the logic
         }
         else if (v1 == 0 && v2 == 0) {
@@ -261,6 +266,7 @@ int main(void)
 
         // impose current limiting if desired
         if (cfg.current_limit > 0) {
+            current_limit_task(v1, v2);
             if (duty_max > current_limit_duty) {
                 limit_reached |= (current_limit_duty < (duty_max - (duty_max / 8)));
                 duty_max = current_limit_duty;

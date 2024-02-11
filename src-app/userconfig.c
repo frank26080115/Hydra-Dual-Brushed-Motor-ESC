@@ -112,6 +112,7 @@ volatile EEPROM_data_t cfg __attribute__((aligned(4)));
 // please see https://github.com/frank26080115/Hydra-Dual-Brushed-Motor-ESC/issues/3 for more explanation
 
 bool eeprom_has_loaded = false;
+volatile uint32_t eeprom_unlock_key = 0;
 
 #ifdef ENABLE_COMPILE_CLI
 
@@ -325,6 +326,10 @@ uint32_t eeprom_save_time;
 
 void eeprom_save(void)
 {
+    if (eeprom_unlock_key != EEPROM_MAGIC) {
+        return;
+    }
+
     cfg.magic           = EEPROM_MAGIC;
     cfg.version_major   = VERSION_MAJOR;
     cfg.version_minor   = VERSION_MINOR;
@@ -350,6 +355,9 @@ void eeprom_save(void)
 
 bool eeprom_save_if_needed(void)
 {
+    if (eeprom_unlock_key != EEPROM_MAGIC) {
+        return false;
+    }
     if (eeprom_save_time > 0) {
         uint32_t now = millis();
         if ((now - eeprom_save_time) > EEPROM_DIRTY_SAVE_TIME_MS) {

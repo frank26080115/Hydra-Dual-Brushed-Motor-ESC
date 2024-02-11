@@ -26,7 +26,7 @@ extern bool sense_newData;
 
 extern pidloop_t current_pid;
 extern uint16_t current_limit_duty;
-void current_limit_task(void);
+void current_limit_task(int, int);
 
 extern uint32_t voltage_limit;
 void battery_task(void);

@@ -30,6 +30,7 @@ extern void cli_enter(void);
 #ifdef HW_TESTS
 void hw_test(void)
 {
+    eeprom_unlock_key = EEPROM_MAGIC;
     //hwtest_uart();
     //hwtest_uart1();
     //hwtest_uart2();
@@ -753,7 +754,7 @@ void hwtest_simCurrentLimit(void)
     for (tick = 0; tick < 3000 && current_limit_duty >= 0; tick++)
     {
         systick_cnt = start_time + tick;
-        current_limit_task();
+        current_limit_task(0, 0);
 
         dbg_printf("[t=%lu] curr = %d / %d ; duty = %d\r\n", tick, sense_current, cfg.current_limit, current_limit_duty);
         if (current_limit_duty <= DEAD_TIME) {
@@ -772,7 +773,7 @@ void hwtest_simCurrentLimit(void)
     for (tick = 0; tick < 3000 && current_limit_duty >= 0; tick++)
     {
         systick_cnt = start_time + tick;
-        current_limit_task();
+        current_limit_task(0, 0);
         sense_current = fi_map(current_limit_duty, 0, cfg.pwm_period, 0, cfg.current_limit + 1000, true);
         if (current_limit_duty == prev) {
             steady++;

@@ -61,7 +61,7 @@ bool sense_task(void)
     return false;
 }
 
-void current_limit_task(void)
+void current_limit_task(int v1, int v2)
 {
     static uint32_t last_time = 0;
     if (cfg.current_limit <= 0) { // user disabled the limit
@@ -74,7 +74,19 @@ void current_limit_task(void)
         return;
     }
     last_time = now;
-    current_limit_duty -= pid_calc(&current_pid, sense_current, cfg.current_limit) / 10000;
+
+    uint32_t limit = cfg.current_limit;
+
+    // lower the current limit if one motor is not using power
+    v1 = v1 < 0 ? -v1 : v1;
+    v2 = v2 < 0 ? -v2 : v2;
+    int mx = v1 > v2 ? v1 : v2;
+    int diff = (v1 > v2) ? (v1 - v2) : (v2 - v1);
+    if (mx >= 4 && limit >= 2) {
+        limit -= fi_map(diff, 0, mx, 0, limit / 2, true);
+    }
+
+    current_limit_duty -= pid_calc(&current_pid, sense_current, limit) / 10000;
 
     const int32_t duty_min = DEAD_TIME;
     if (current_limit_duty < duty_min) {

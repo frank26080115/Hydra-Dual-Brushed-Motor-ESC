@@ -20,7 +20,7 @@
 #include "version.h"
 
 extern uint16_t current_limit_duty;
-extern void current_limit_task(void);
+extern void current_limit_task(int v1, int v2);
 
 #if defined(DEVELOPMENT_BOARD)
 extern Cereal_USART dbg_cer;
@@ -360,6 +360,7 @@ void cli_execute(Cereal* cer, char* str)
         if (res) {
             cer->printf("\r\nOK (%s = %li)", str, nv);
             load_runtime_configs();
+            eeprom_unlock_key = EEPROM_MAGIC;
             return;
         }
         else {
