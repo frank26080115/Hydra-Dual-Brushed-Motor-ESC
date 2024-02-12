@@ -46,7 +46,7 @@ def main():
 
     if args.verbose:
         print("verbose output is ON")
-        print("version: V1.1")
+        print("version: V1.2")
 
     if got_file:
         args.firmware = sys.argv[1]
