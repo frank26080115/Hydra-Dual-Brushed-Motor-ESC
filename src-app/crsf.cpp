@@ -301,6 +301,10 @@ void CrsfChannel::disarm(void)
     arming_cnt = 0;
 }
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 uint16_t crsf_readChan(uint8_t i)
 {
     if (i <= 0) {
@@ -308,6 +312,10 @@ uint16_t crsf_readChan(uint8_t i)
     }
     return crsf_channels[i - 1];
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef RC_LOG_JITTER
 uint32_t CrsfChannel::readJitter(void) { return 0; } // reads 0 for CRSF, any noise can be measured from the transmitter

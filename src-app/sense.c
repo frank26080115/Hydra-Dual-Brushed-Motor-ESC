@@ -3,6 +3,8 @@
 #include "funcs.h"
 #include "systick.h"
 
+#include "crsf.h" // only for simulation
+
 extern volatile EEPROM_data_t cfg;
 
 uint32_t sense_current = 0;
@@ -55,6 +57,19 @@ bool sense_task(void)
 
         adc_raw_current_filtered = fi_lpf(adc_raw_current_filtered, adc_raw_current * 10, filter_const);
         sense_current = ((adc_raw_current_filtered * 3300 / 41) - (cfg.current_offset * 1000)) / (cfg.current_scale);
+
+        #ifdef SIMULATE_CURRENT_LIMIT
+        cfg.current_limit = 10000;
+        sense_current = fi_map(crsf_readChan(3), CRSF_CHANNEL_VALUE_1000, CRSF_CHANNEL_VALUE_2000, cfg.current_limit / 4, cfg.current_limit + (cfg.current_limit / 2), false);
+        #endif
+        #ifdef SIMULATE_VOLTAGE_LIMIT
+        cfg.voltage_limit = 6000;
+        sense_voltage = fi_map(crsf_readChan(3), CRSF_CHANNEL_VALUE_1000, CRSF_CHANNEL_VALUE_2000, cfg.voltage_limit / 2, cfg.voltage_limit + (cfg.voltage_limit / 2), false);
+        #endif
+        #ifdef SIMULATE_TEMPERATURE_LIMIT
+        cfg.temperature_limit = 80;
+        sense_temperatureC = fi_map(crsf_readChan(3), CRSF_CHANNEL_VALUE_1000, CRSF_CHANNEL_VALUE_2000, cfg.temperature_limit / 2, cfg.temperature_limit + (cfg.temperature_limit / 2), false);
+        #endif
 
         return true;
     }

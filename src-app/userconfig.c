@@ -55,8 +55,8 @@ const EEPROM_data_t default_eeprom __attribute__((aligned(4))) = {
 
     .channel_1          = 1,
     .channel_2          = 2,
-    .channel_mode       = 3,
-    .channel_brake      = 4,
+    .channel_mode       = 0,
+    .channel_brake      = 0,
 
     .rc_mid             = 1500,
     .rc_range           = 500,

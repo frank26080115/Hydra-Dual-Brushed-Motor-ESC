@@ -2,10 +2,14 @@
 
 // this file is used for preprocessor configurations
 
-#define HW_TESTS
+//#define HW_TESTS
 //#define RC_LOG_JITTER
 //#define DISABLE_EEPROM
 //#define ENABLE_TONE
+
+//#define SIMULATE_CURRENT_LIMIT
+//#define SIMULATE_VOLTAGE_LIMIT
+//#define SIMULATE_TEMPERATURE_LIMIT
 
 #define EEPROM_DIRTY_SAVE_TIME_MS 200 // if the user edits a EEPROM item, it will auto-save only after this amount of time
 

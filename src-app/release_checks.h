@@ -28,4 +28,14 @@
 #error
 #endif
 
+#ifdef SIMULATE_CURRENT_LIMIT
+#error
+#endif
+#ifdef SIMULATE_VOLTAGE_LIMIT
+#error
+#endif
+#ifdef SIMULATE_TEMPERATURE_LIMIT
+#error
+#endif
+
 #endif

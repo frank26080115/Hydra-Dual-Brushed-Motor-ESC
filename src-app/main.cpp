@@ -387,6 +387,9 @@ int main(void)
                 dbg_printf("; ");
                 pwm_debug_report_drive();
             }
+            if (cfg.current_limit > 0) {
+                dbg_printf("; %u ", current_limit_duty);
+            }
             dbg_printf("\r\n");
         }
     }
