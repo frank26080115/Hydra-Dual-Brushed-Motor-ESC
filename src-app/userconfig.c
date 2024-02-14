@@ -192,8 +192,8 @@ EEPROM_chksum_t eeprom_checksum(uint8_t* data, int len)
 
 uint8_t eeprom_get_bootloader_ver(void)
 {
-    #ifndef DEVELOPMENT_BOARD
-    uint8_t* blv_ptr = (uint8_t*)(0x80000C0);
+    #if !defined(DEVELOPMENT_BOARD) && !defined(MCU_G071)
+    uint8_t* blv_ptr = (uint8_t*)(0x8000FFC);
     return *blv_ptr;
     #else
     return 0;

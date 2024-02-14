@@ -1,4 +1,4 @@
-# V0.3 Release Notes
+# V0.4 Release Notes
 
 This is a alpha release, features are all complete, but not fully tested.
 

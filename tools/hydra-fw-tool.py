@@ -47,7 +47,7 @@ def main():
 
     if args.verbose:
         print("verbose output is ON")
-        print("version: V1.2")
+        print("version: V1.3")
 
     if got_file:
         args.firmware = sys.argv[1]
@@ -339,13 +339,14 @@ def main():
             else:
                 quit_nicely(-1)
 
-        # embed the correct bootloader version into the EEPROM region so that AM32 does not erase it
-        blversion = get_am32_bootloader_version(ser, addr_multi)
-        if blversion > 0 and blversion != 0xFF:
-            blversion_addr = (fwaddr & 0xFF000000) + eep_addr + 2
-            fw_ihex[blversion_addr] = blversion
-            if args.verbose:
-                print("automatic embed bootloader version 0x%02X to 0x%08X" % (blversion, blversion_addr))
+        if mcu_id == 0x51:
+            # embed the correct bootloader version into the EEPROM region so that AM32 does not erase it
+            blversion = get_am32_bootloader_version(ser, addr_multi)
+            if blversion > 0 and blversion != 0xFF:
+                blversion_addr = (fwaddr & 0xFF000000) + eep_addr + 2
+                fw_ihex[blversion_addr] = blversion
+                if args.verbose:
+                    print("automatic embed bootloader version 0x%02X to 0x%08X" % (blversion, blversion_addr))
 
     else: # full save
         should_be = [mcuid_f051, mcuid_g071_64k, mcuid_g071_128k, mcuid_at32f421]
@@ -639,8 +640,8 @@ def bootloader_query(ser):
         quit_nicely(-1)
 
 def get_am32_bootloader_version(ser, addr_multi = 1):
-    send_setaddress(ser, int(0xC0 / addr_multi))
-    data = send_readcmd(ser, 0xC0, 32)
+    send_setaddress(ser, int(0x0FFC / addr_multi))
+    data = send_readcmd(ser, 0x0FFC, 32)
     return data[0]
 
 def check_firmware_name(ser, ihex, addr_multi = 1):

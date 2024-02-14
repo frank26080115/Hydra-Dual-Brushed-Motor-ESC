@@ -108,8 +108,9 @@ def proc_hex_file(fpath):
 
             bootloader_file = None
             mcu_id = int((fwfile_id & 0x00FF0000) >> 16)
+            pin_str = "p%s%u" % (chr(ord('a') + port_num), pin_num)
             if mcu_id == 0x51:
-                bootloader_file = "bootloader_f051_p%s%u.bin" % (chr(ord('a') + port_num), pin_num)
+                bootloader_file = "bootloader_f051_%s.bin" % pin_str
                 fwaddr     = 0x08001000
                 eep_addr   = 0x7C00
             elif mcu_id == 0x71:
@@ -117,11 +118,11 @@ def proc_hex_file(fpath):
                 fwaddr     = 0x08001000
                 eep_addr   = 0xF800
             elif mcu_id == 0x21:
-                bootloader_file = "bootloader_at421_p%s%u.hex" % (chr(ord('a') + port_num), pin_num)
+                bootloader_file = "bootloader_at421_%s.hex" % pin_str
                 fwaddr     = 0x08001000
                 eep_addr   = 0x7C00
             elif mcu_id == 0x35:
-                bootloader_file = "bootloader_gd32f350_64k.bin"
+                bootloader_file = "bootloader_gd32f350_%s.bin" % pin_str
                 fwaddr     = 0x08001000
                 eep_addr   = 0xF800
 
@@ -150,10 +151,11 @@ def proc_hex_file(fpath):
                     fw_ihex[j] = d
                     j += 1
 
-                # embed the correct bootloader version into the EEPROM region so that AM32 does not erase it
-                blver = fw_ihex[0xC0]
-                blver_addr = flash_start + eep_addr + 2
-                fw_ihex[blver_addr] = blver
+                if mcu_id == 0x51:
+                    # embed the correct bootloader version into the EEPROM region so that AM32 does not erase it
+                    blver = fw_ihex[flash_start + 0x0FFC]
+                    blver_addr = flash_start + eep_addr + 2
+                    fw_ihex[blver_addr] = blver
 
                 fw_ihex.tofile(fw_new_path, format='hex')
                 print("saved new file: \"%s\"" % fw_new_path)
@@ -171,6 +173,8 @@ def download_bootloaders():
             ["https://github.com/AlkaMotors/g071Bootloader/releases/download/v7/G071_Bootloader_64_v7.bin"    , "bootloader_g071_64k.bin"],
             ["https://raw.githubusercontent.com/AlkaMotors/AT32F421_AM32_Bootloader/922493dd0e54bae1c92cecdd9fd5472ce099dd21/Objects/F421_PA2_BOOTLOADER_V2.hex", "bootloader_at421_pa2.hex"],
             ["https://raw.githubusercontent.com/AlkaMotors/AT32F421_AM32_Bootloader/922493dd0e54bae1c92cecdd9fd5472ce099dd21/Objects/F421_PB4_BOOTLOADER_V2.hex", "bootloader_at421_pb4.hex"],
+            #["https://raw.githubusercontent.com/frank26080115/g071Bootloader/gd32f350/Release/GD32F350_PA2_BOOTLOADER_V8.bin", "bootloader_gd32f350_pa2.bin"],
+            #["https://raw.githubusercontent.com/frank26080115/g071Bootloader/gd32f350/Release/GD32F350_PB4_BOOTLOADER_V8.bin", "bootloader_gd32f350_pb4.bin"],
             ]
     dl_dir = "downloaded_bootloaders"
     if os.path.exists(dl_dir) == False:

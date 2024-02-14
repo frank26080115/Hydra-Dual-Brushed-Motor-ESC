@@ -43,9 +43,9 @@ typedef struct
 {
     // the bootloader of AM32 will check the 3rd byte for a version number, and erase the entire EEPROM if it doesn't like it
     // https://github.com/frank26080115/Hydra-Dual-Brushed-Motor-ESC/issues/7
-    uint8_t fool_am32_bootloader_0;
+    uint8_t fool_am32_bootloader_0;       // this has to be exactly 0x01 always or else the bootloader won't jump
     uint8_t fool_am32_eeprom_layout;
-    uint8_t fool_am32_bootloader_version;
+    uint8_t fool_am32_bootloader_version; // this has to be the correct version, some newer bootloaders will accept 0x00 or 0xFF
     uint8_t fool_am32_version_major;
     uint8_t fool_am32_version_minor;
     uint8_t fool_am32_name[12];
