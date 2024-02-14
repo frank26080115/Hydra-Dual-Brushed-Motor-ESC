@@ -39,7 +39,7 @@ void WS2812_init(void)
     #if defined(MCU_G071)
     LL_DMA_SetPeriphRequest        (WS2812_DMAx, WS2812_DMA_CH, LL_DMAMUX_REQ_TIM16_CH1);
     #elif defined(MCU_GD32F350)
-    LL_DMA_SetPeriphAddress        (WS2812_DMAx, WS2812_DMA_CH, 0); // TODO: figure out how to implement
+    // TODO: do I need to set the address at all here?
     #endif
     LL_DMA_SetDataTransferDirection(WS2812_DMAx, WS2812_DMA_CH, LL_DMA_DIRECTION_MEMORY_TO_PERIPH);
     LL_DMA_SetChannelPriorityLevel (WS2812_DMAx, WS2812_DMA_CH, LL_DMA_PRIORITY_HIGH);
@@ -92,11 +92,11 @@ void WS2812_sendDMA(void)
 {
     dma_busy = true;
     WS2812_TIMx->CNT = 0;
-    LL_DMA_ConfigAddresses (WS2812_DMAx, LL_DMA_CHANNEL_6, (uint32_t)&led_buffer, (uint32_t)&TIM16->CCR1, LL_DMA_GetDataTransferDirection(DMA1, WS2812_DMA_CH));
-    LL_DMA_SetDataLength   (WS2812_DMAx, LL_DMA_CHANNEL_6, WS2812_LED_BUFF_LEN);
-    //LL_DMA_EnableIT_TC     (WS2812_DMAx, LL_DMA_CHANNEL_6);
-    //LL_DMA_EnableIT_TE     (WS2812_DMAx, LL_DMA_CHANNEL_6);
-    LL_DMA_EnableChannel   (WS2812_DMAx, LL_DMA_CHANNEL_6);
+    LL_DMA_ConfigAddresses (WS2812_DMAx, WS2812_DMA_CH, (uint32_t)&led_buffer, (uint32_t)&TIM16->CCR1, LL_DMA_GetDataTransferDirection(DMA1, WS2812_DMA_CH));
+    LL_DMA_SetDataLength   (WS2812_DMAx, WS2812_DMA_CH, WS2812_LED_BUFF_LEN);
+    //LL_DMA_EnableIT_TC     (WS2812_DMAx, WS2812_DMA_CH);
+    //LL_DMA_EnableIT_TE     (WS2812_DMAx, WS2812_DMA_CH);
+    LL_DMA_EnableChannel   (WS2812_DMAx, WS2812_DMA_CH);
     LL_TIM_EnableDMAReq_CC1(WS2812_TIMx);
     LL_TIM_CC_EnableChannel(WS2812_TIMx, WS2812_TIM_CH);
     LL_TIM_EnableAllOutputs(WS2812_TIMx);
