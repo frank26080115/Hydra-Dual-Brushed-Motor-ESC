@@ -8,7 +8,11 @@
 
 #define WS2812_DMAx   DMA1
 #define WS2812_TIMx   TIM16
+#if defined(MCU_G071)
 #define WS2812_DMA_CH LL_DMA_CHANNEL_6
+#elif defined(MCU_GD32F350)
+#define WS2812_DMA_CH LL_DMA_CHANNEL_3
+#endif
 #define WS2812_TIM_CH LL_TIM_CHANNEL_CH1
 
 #define WS2812_LED_BUFF_LEN 28
@@ -27,15 +31,16 @@ static bool     new_pending = false;
 
 void WS2812_init(void)
 {
-    NVIC_SetPriority(DMA1_Ch4_7_DMAMUX1_OVR_IRQn, 3);
-    NVIC_EnableIRQ  (DMA1_Ch4_7_DMAMUX1_OVR_IRQn);
-
     LL_TIM_InitTypeDef      TIM_InitStruct     = {0};
     LL_TIM_OC_InitTypeDef   TIM_OC_InitStruct  = {0};
     LL_TIM_BDTR_InitTypeDef TIM_BDTRInitStruct = {0};
     LL_GPIO_InitTypeDef     GPIO_InitStruct    = {0};
 
+    #if defined(MCU_G071)
     LL_DMA_SetPeriphRequest        (WS2812_DMAx, WS2812_DMA_CH, LL_DMAMUX_REQ_TIM16_CH1);
+    #elif defined(MCU_GD32F350)
+    LL_DMA_SetPeriphAddress        (WS2812_DMAx, WS2812_DMA_CH, 0); // TODO: figure out how to implement
+    #endif
     LL_DMA_SetDataTransferDirection(WS2812_DMAx, WS2812_DMA_CH, LL_DMA_DIRECTION_MEMORY_TO_PERIPH);
     LL_DMA_SetChannelPriorityLevel (WS2812_DMAx, WS2812_DMA_CH, LL_DMA_PRIORITY_HIGH);
     LL_DMA_SetMode                 (WS2812_DMAx, WS2812_DMA_CH, LL_DMA_MODE_NORMAL);
@@ -72,9 +77,6 @@ void WS2812_init(void)
     TIM_BDTRInitStruct.AutomaticOutput = LL_TIM_AUTOMATICOUTPUT_DISABLE;
     LL_TIM_BDTR_Init(WS2812_TIMx, &TIM_BDTRInitStruct);
 
-    //  NVIC_SetPriority(TIM16_IRQn, 0);
-    //  NVIC_EnableIRQ(TIM16_IRQn);
-
     GPIO_InitStruct.Pin        = LL_GPIO_PIN_8;
     GPIO_InitStruct.Mode       = LL_GPIO_MODE_ALTERNATE;
     GPIO_InitStruct.Speed      = LL_GPIO_SPEED_FREQ_HIGH;
@@ -90,10 +92,10 @@ void WS2812_sendDMA(void)
 {
     dma_busy = true;
     WS2812_TIMx->CNT = 0;
-    LL_DMA_ConfigAddresses (WS2812_DMAx, LL_DMA_CHANNEL_6, (uint32_t)&led_buffer, (uint32_t)&TIM16->CCR1, LL_DMA_GetDataTransferDirection(DMA1, LL_DMA_CHANNEL_6));
+    LL_DMA_ConfigAddresses (WS2812_DMAx, LL_DMA_CHANNEL_6, (uint32_t)&led_buffer, (uint32_t)&TIM16->CCR1, LL_DMA_GetDataTransferDirection(DMA1, WS2812_DMA_CH));
     LL_DMA_SetDataLength   (WS2812_DMAx, LL_DMA_CHANNEL_6, WS2812_LED_BUFF_LEN);
-    LL_DMA_EnableIT_TC     (WS2812_DMAx, LL_DMA_CHANNEL_6);
-    LL_DMA_EnableIT_TE     (WS2812_DMAx, LL_DMA_CHANNEL_6);
+    //LL_DMA_EnableIT_TC     (WS2812_DMAx, LL_DMA_CHANNEL_6);
+    //LL_DMA_EnableIT_TE     (WS2812_DMAx, LL_DMA_CHANNEL_6);
     LL_DMA_EnableChannel   (WS2812_DMAx, LL_DMA_CHANNEL_6);
     LL_TIM_EnableDMAReq_CC1(WS2812_TIMx);
     LL_TIM_CC_EnableChannel(WS2812_TIMx, WS2812_TIM_CH);
@@ -109,36 +111,6 @@ void WS2812_setRGB(uint8_t red, uint8_t green, uint8_t blue)
 }
 
 void WS2812_task(void)
-{
-    if (new_pending && !dma_busy)
-    {
-        uint32_t twenty_four_bit_color_number = rgb_pending;
-
-        for (int i = 0; i < 24 ; i ++) {
-            led_buffer[i + 2] = (((twenty_four_bit_color_number >> (23 - i)) & 1) * 40) + 20;
-        }
-        WS2812_sendDMA();
-        new_pending = false;
-    }
-}
-
-// NVIC is not called to enable this particular handler, so it is never called
-#if 0
-void TIM16_IRQHandler(void)
-{
-    if (LL_TIM_IsActiveFlag_CC1(TIM16) == 1) {
-        LL_TIM_ClearFlag_CC1(TIM16);
-    }
-    if (LL_TIM_IsActiveFlag_UPDATE(TIM16) == 1) {
-        LL_TIM_ClearFlag_UPDATE(TIM16);
-    }
-}
-#endif
-
-// this interrupt is actually enabled
-// this won't be too busy, once every 100 milliseconds, with lowest priority
-// it should not cause jitter for the RC input
-void DMA1_Ch4_7_DMAMUX1_OVR_IRQHandler(void)
 {
     if (LL_DMA_IsActiveFlag_HT6(WS2812_DMAx)) {
     }
@@ -159,6 +131,17 @@ void DMA1_Ch4_7_DMAMUX1_OVR_IRQHandler(void)
         LL_TIM_DisableCounter(WS2812_TIMx);
         dma_busy = false;
         LL_DMA_ClearFlag_GI6(WS2812_DMAx);
+    }
+
+    if (new_pending && !dma_busy)
+    {
+        uint32_t twenty_four_bit_color_number = rgb_pending;
+
+        for (int i = 0; i < 24 ; i ++) {
+            led_buffer[i + 2] = (((twenty_four_bit_color_number >> (23 - i)) & 1) * 40) + 20;
+        }
+        WS2812_sendDMA();
+        new_pending = false;
     }
 }
 

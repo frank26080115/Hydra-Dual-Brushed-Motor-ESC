@@ -55,6 +55,23 @@ void mcu_init(void)
     //#if defined(DMA2)
     //LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_DMA2);
     //#endif
+    #elif defined(MCU_GD32F350)
+    LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_SYSCFG);
+    LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_PWR);
+    LL_FLASH_EnablePrefetch();
+    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOA);
+    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOB);
+    #if defined(DEVELOPMENT_BOARD)
+    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_GPIOC);
+    #endif
+    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_ADC12);
+    LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_USART1);
+    LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_USART2);
+    LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_TIM1);
+    LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM3);
+    LL_APB1_GRP1_EnableClock(LL_APB1_GRP1_PERIPH_TIM6);
+    LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_TIM16);
+    LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_DMA1);
     #endif
 
     STM32_Sys_Init(); // this sets the vector table

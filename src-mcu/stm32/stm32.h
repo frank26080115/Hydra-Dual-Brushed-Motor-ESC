@@ -39,6 +39,22 @@
 #include "stm32g0xx_ll_rcc.h"
 #endif
 
+#ifdef MCU_GD32F350
+#include "stm32f302xc.h"
+#include "stm32f3xx.h"
+#include "system_stm32f3xx.h"
+#include "stm32f3xx_ll_utils.h"
+#include "stm32f3xx_ll_bus.h"
+#include "stm32f3xx_ll_system.h"
+#include "stm32f3xx_ll_dma.h"
+#include "stm32f3xx_ll_gpio.h"
+#include "stm32f3xx_ll_usart.h"
+#include "stm32f3xx_ll_tim.h"
+#include "stm32f3xx_ll_adc.h"
+#include "stm32f3xx_ll_exti.h"
+#include "stm32f3xx_ll_rcc.h"
+#endif
+
 #define GPIO_PIN_SWDIO LL_GPIO_PIN_13
 #define GPIO_PIN_SWCLK LL_GPIO_PIN_14
 

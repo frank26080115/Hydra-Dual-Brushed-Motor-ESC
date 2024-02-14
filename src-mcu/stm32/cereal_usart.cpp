@@ -5,6 +5,7 @@
 #define CEREAL_DMA_CHAN    LL_DMA_CHANNEL_5
 // for MCU_F051, channel 5 is for USART2, but can be used for USART1 if SYSCFG remaps using USART1_RX_DMA_RMP
 // for MCU_G071, this doesn't matter since all channels can be mux'ed
+// for MCU_GD32F350, follow rules as MCU_F051
 
 #include "cereal_usart_shared.h"
 
@@ -12,7 +13,9 @@ void Cereal_USART::init(uint8_t id, uint32_t baud, bool halfdup, bool swap, bool
 {
     sw_init(id);
 
+    #if defined(LL_RCC_USART1_CLKSOURCE_PCLK1)
     LL_RCC_SetUSARTClockSource(LL_RCC_USART1_CLKSOURCE_PCLK1);
+    #endif
     #if defined(RCC_CFGR3_USART2SW)
     LL_RCC_SetUSARTClockSource(LL_RCC_USART2_CLKSOURCE_PCLK1);
     #endif
@@ -49,7 +52,7 @@ void Cereal_USART::init(uint8_t id, uint32_t baud, bool halfdup, bool swap, bool
     else
     {
         cr1 |= USART_CR1_TE | USART_CR1_TCIE | USART_CR1_RE |
-        #if defined(MCU_F051)
+        #if defined(MCU_F051) || defined(MCU_GD32F350)
             USART_CR1_RXNEIE
         #elif defined(MCU_G071)
             USART_CR1_RXNEIE_RXFNEIE
@@ -119,7 +122,7 @@ void Cereal_USART::init(uint8_t id, uint32_t baud, bool halfdup, bool swap, bool
         #ifdef MCU_G071
         LL_DMA_SetPeriphRequest(CEREAL_DMAx, CEREAL_DMA_CHAN, _u == CEREAL_ID_USART2 ? LL_DMAMUX_REQ_USART2_RX : LL_DMAMUX_REQ_USART1_RX);
         #endif
-        #ifdef MCU_F051
+        #if defined(MCU_F051) || defined(MCU_GD32F350)
         if (_u == CEREAL_ID_USART1) {
             LL_SYSCFG_SetRemapDMA_USART(LL_SYSCFG_USART1RX_RMP_DMA1CH5);
         }

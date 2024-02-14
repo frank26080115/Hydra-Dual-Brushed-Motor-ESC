@@ -18,6 +18,7 @@ include src-mcu/g071/makefile-g071.mk
 include src-mcu/f051/makefile-f051disco.mk
 include src-mcu/g071/makefile-g071nucleo.mk
 include src-mcu/at32f421/makefile-f421.mk
+include src-mcu/gd32f350/makefile-gdf350.mk
 
 # default build, override from command line
 MCU_TYPE ?= F051
@@ -47,13 +48,14 @@ CPP_OBJS = $(addsuffix .o,$(addprefix $(OBJ_DIR)/,$(basename $(SRC_COMMON_CPP)))
 ASM_OBJS = $(addsuffix .o,$(addprefix $(OBJ_DIR)/,$(basename $(SRC_COMMON_S))))   $(addsuffix .o,$(addprefix $(OBJ_DIR)/,$(basename $(SRC_$(MCU_TYPE)_S))))
 ALL_OBJS = $(ASM_OBJS) $(CPP_OBJS) $(C_OBJS)
 
-.PHONY : clean cleanobjs all binary f051 g071 f051disco g071nucleo f421 release
+.PHONY : clean cleanobjs all binary f051 g071 f051disco g071nucleo f421 gdf350 release
 all  : $(TARGETS_F051) $(TARGETS_G071) $(TARGETS_F051DISCO) $(TARGETS_G071NUCLEO) $(TARGETS_F421)
 release : RELEASE_BUILD_FLAG = -DRELEASE_BUILD
 release : $(TARGETS_F051) $(TARGETS_G071) $(TARGETS_F421)
 f051 : $(TARGETS_F051)
 g071 : $(TARGETS_G071)
 f421 : $(TARGETS_F421)
+gdf350 : $(TARGETS_GDF350)
 f051disco  : $(TARGETS_F051DISCO)
 g071nucleo : $(TARGETS_G071NUCLEO)
 
@@ -74,6 +76,9 @@ $(TARGETS_G071) :
 
 $(TARGETS_F421) :
 	@$(MAKE) -s MCU_TYPE=F421 TARGET=$@ RELEASE_BUILD_FLAG=$(RELEASE_BUILD_FLAG) cleanobjs binary
+
+$(TARGETS_GDF350) :
+	@$(MAKE) -s MCU_TYPE=GDF350 TARGET=$@ RELEASE_BUILD_FLAG=$(RELEASE_BUILD_FLAG) cleanobjs binary
 
 $(TARGETS_F051DISCO) :
 	@$(MAKE) -s MCU_TYPE=F051DISCO TARGET=$@ cleanobjs binary

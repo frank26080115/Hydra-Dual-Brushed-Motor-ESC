@@ -4,7 +4,7 @@
 #include "mcu.h"
 #include "debug_tools.h"
 
-#if defined(MCU_F051)
+#if defined(MCU_F051) || defined(MCU_GD32F350)
 // PB6 is telemetry pin
 #define GPIOEXTI_TIMx              TIM6
 #define GPIOEXTI_Pin               LL_GPIO_PIN_6
@@ -14,8 +14,13 @@
 #define GPIOEXTI_Port              LL_SYSCFG_EXTI_PORTB
 #define GPIOEXTI_Line              LL_EXTI_LINE_6
 #define GPIOEXTI_SYSCFG_Line       LL_SYSCFG_EXTI_LINE6
+#if defined(MCU_F051)
 #define GPIOEXTI_TIM_IRQHandler    TIM6_IRQHandler
 #define GPIOEXTI_TIM_IRQn          TIM6_IRQn
+#elif defined(MCU_GD32F350)
+#define GPIOEXTI_TIM_IRQHandler    TIM6_DAC_IRQHandler
+#define GPIOEXTI_TIM_IRQn          TIM6_DAC_IRQn
+#endif
 #define GPIO_RC_PULSE_OFFSET       0
 #elif defined(MCU_G071)
 // PB6 is telemetry pin
@@ -30,6 +35,8 @@
 #define GPIOEXTI_TIM_IRQHandler    TIM6_DAC_LPTIM1_IRQHandler
 #define GPIOEXTI_TIM_IRQn          TIM6_DAC_LPTIM1_IRQn
 #define GPIO_RC_PULSE_OFFSET       0
+#else
+#error
 #endif
 
 // on the STM32 platform, there are two ways of measuring a RC pulse

@@ -107,18 +107,23 @@ def proc_hex_file(fpath):
                 print("embedded identification: 0x%08X , GPIO %s  pin %u" % (fwfile_id, chr(ord('A') + port_num), pin_num))
 
             bootloader_file = None
-            if (fwfile_id & 0x00FF0000) == 0x00510000:
+            mcu_id = int((fwfile_id & 0x00FF0000) >> 16)
+            if mcu_id == 0x51:
                 bootloader_file = "bootloader_f051_p%s%u.bin" % (chr(ord('a') + port_num), pin_num)
                 fwaddr     = 0x08001000
                 eep_addr   = 0x7C00
-            elif (fwfile_id & 0x00FF0000) == 0x00710000:
+            elif mcu_id == 0x71:
                 bootloader_file = "bootloader_g071_64k.bin"
                 fwaddr     = 0x08001000
                 eep_addr   = 0xF800
-            elif (fwfile_id & 0x00FF0000) == 0x00210000:
+            elif mcu_id == 0x21:
                 bootloader_file = "bootloader_at421_p%s%u.hex" % (chr(ord('a') + port_num), pin_num)
                 fwaddr     = 0x08001000
                 eep_addr   = 0x7C00
+            elif mcu_id == 0x35:
+                bootloader_file = "bootloader_gd32f350_64k.bin"
+                fwaddr     = 0x08001000
+                eep_addr   = 0xF800
 
             if bootloader_file is not None:
                 bootloader_file = os.path.join(dl_dir, bootloader_file)

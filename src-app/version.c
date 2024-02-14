@@ -58,17 +58,19 @@ const firmware_info_s firmware_info = {
             #error
         #endif
         << 8)
-        |
+        | (
         #if defined(MCU_F051)
-        (0x51 << 16)
+        0x51
         #elif defined(MCU_G071)
-        (0x71 << 16)
+        0x71
         #elif defined(MCU_AT421)
-        (0x21 << 16)
+        0x21
+        #elif defined(MCU_GD32F350)
+        0x35
         #else
         #error
         #endif
-        ,
+        << 16),
 
     device_name    : "Hydra " FIRMWARE_NAME
 };

@@ -111,7 +111,7 @@ extern volatile bool WS2812_sendOccured;
 #endif
 
 void
-#if defined(MCU_F051)
+#if defined(MCU_F051) || defined(MCU_GD32F350)
 EXTI4_15_IRQHandler
 #elif defined(MCU_G071)
 EXTI4_15_IRQHandler
@@ -123,10 +123,10 @@ EXINT15_4_IRQHandler
 (void)
 {
     uint32_t t = LL_TIM_GetCounter(rc_tim);
-    #if defined(MCU_F051)
+    #if defined(MCU_F051) || defined(MCU_GD32F350)
     LL_EXTI_ClearFlag_0_31(rc_exti_line);
     #endif
-    #if defined(MCU_F051) || defined(MCU_AT421)
+    #if defined(MCU_F051) || defined(MCU_AT421) || defined(MCU_GD32F350)
     if (LL_GPIO_IsInputPinSet(rc_gpio, rc_pin) == 0)
     #elif defined(MCU_G071)
     if (LL_EXTI_IsActiveFallingFlag_0_31(rc_exti_line))
@@ -173,7 +173,7 @@ EXINT15_4_IRQHandler
         WS2812_sendOccured = false; // does not need to invalidate the next pulse
         #endif
     }
-    #if defined(MCU_F051) || defined(MCU_AT421)
+    #if defined(MCU_F051) || defined(MCU_AT421) || defined(MCU_GD32F350)
     else
     #elif defined(MCU_G071)
     if (LL_EXTI_IsActiveRisingFlag_0_31(rc_exti_line))
@@ -199,6 +199,8 @@ EXINT15_4_IRQHandler
 void
 #if defined(MCU_F051)
 TIM6_IRQHandler
+#elif defined(MCU_GD32F350)
+TIM6_DAC_IRQHandler
 #elif defined(MCU_G071)
 TIM6_DAC_LPTIM1_IRQHandler
 #elif defined(MCU_AT421)

@@ -18,6 +18,13 @@
 #define FLASH_SR_BSY     FLASH_SR_BSY1
 #endif
 
+#ifdef MCU_GD32F350
+#define EEPROM_PAGE_SIZE 0x800
+#define FLASH_FKEY1      (uint32_t)0x45670123
+#define FLASH_FKEY2      (uint32_t)0xCDEF89AB
+#define WRITE_SIZE_TYPE  uint16_t
+#endif
+
 void eeprom_write(uint32_t* data, int len, uint32_t addr)
 {
     #ifdef DISABLE_EEPROM
@@ -46,7 +53,7 @@ void eeprom_write(uint32_t* data, int len, uint32_t addr)
 
     // erase page
     FLASH->CR |= FLASH_CR_PER;
-    #if defined(MCU_F051) || defined(MCU_F031)
+    #if defined(MCU_F051) || defined(MCU_F031) || defined(MCU_GD32F350)
     FLASH->AR = addr;
     #elif defined(MCU_G071)
     FLASH->CR |= (addr / EEPROM_PAGE_SIZE) << 3;

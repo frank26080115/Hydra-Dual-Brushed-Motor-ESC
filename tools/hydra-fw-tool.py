@@ -247,15 +247,16 @@ def main():
     if args.fullsave == False:
         bypass_mismatch = False
 
+        mcu_id = int((fwfile_id & 0x00FF0000) >> 16)
         should_be = []
-        if (fwfile_id & 0x00FF0000) == 0x00510000:
+        if mcu_id == 0x51:
             should_be.append(mcuid_f051)
             if args.verbose:
                 print("firmware file metadata claims  MCU = F051")
             fwaddr     = 0x08001000
             eep_addr   = 0x7C00
             addr_multi = 1
-        elif (fwfile_id & 0x00FF0000) == 0x00710000:
+        elif mcu_id == 0x71:
             should_be.append(mcuid_g071_64k)
             should_be.append(mcuid_g071_128k)
             if args.verbose:
@@ -263,12 +264,19 @@ def main():
             fwaddr     = 0x08001000
             eep_addr   = 0xF800
             addr_multi = 1
-        elif (fwfile_id & 0x00FF0000) == 0x00210000:
+        elif mcu_id == 0x21:
             should_be.append(mcuid_at32f421)
             if args.verbose:
                 print("firmware file metadata claims  MCU = AT32F421")
             fwaddr     = 0x08001000
             eep_addr   = 0x7C00
+            addr_multi = 1
+        elif mcu_id == 0x35:
+            # TODO make the actual bootloader
+            if args.verbose:
+                print("firmware file metadata claims MCU = GD32F350")
+            fwaddr     = 0x08001000
+            eep_addr   = 0xF800
             addr_multi = 1
         else:
             print("ERROR: firmware file cannot be verified, the embedded metadata cannot be parsed (0x%08X)" % fwfile_id)

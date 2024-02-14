@@ -49,7 +49,7 @@ void pwm_init()
     TIM_OC_InitStruct.OCNState     = LL_TIM_OCSTATE_DISABLE;
     TIM_OC_InitStruct.CompareValue = 0;
 
-#if defined(MCU_F051)
+#if defined(MCU_F051) || defined(MCU_GD32F350)
 #ifdef USE_INVERTED_HIGH
     TIM_OC_InitStruct.OCPolarity   = LL_TIM_OCPOLARITY_LOW;
     TIM_OC_InitStruct.OCIdleState  = LL_TIM_OCIDLESTATE_HIGH;
@@ -64,7 +64,7 @@ void pwm_init()
     TIM_OC_InitStruct.OCNPolarity  = LL_TIM_OCPOLARITY_HIGH;
     TIM_OC_InitStruct.OCNIdleState = LL_TIM_OCIDLESTATE_LOW;
 #endif
-#elif defined(MCU_G071)
+#elif defined(MCU_G071) || defined(MCU_GD32F350)
     TIM_OC_InitStruct.OCPolarity   = LL_TIM_OCPOLARITY_HIGH;
     TIM_OC_InitStruct.OCIdleState  = LL_TIM_OCIDLESTATE_LOW;
     TIM_OC_InitStruct.OCNPolarity  = LL_TIM_OCPOLARITY_HIGH;
@@ -103,7 +103,7 @@ void pwm_init()
 #endif
 
     LL_TIM_SetTriggerOutput(PWMOUTTIMx, LL_TIM_TRGO_RESET);
-    #ifdef MCU_G071
+    #if defined(MCU_G071) || defined(MCU_GD32F350)
     LL_TIM_SetTriggerOutput2(PWMOUTTIMx, LL_TIM_TRGO2_RESET);
     #endif
     LL_TIM_DisableMasterSlaveMode(PWMOUTTIMx);
@@ -114,15 +114,23 @@ void pwm_init()
     TIM_BDTRInitStruct.DeadTime       = DEAD_TIME;
     TIM_BDTRInitStruct.BreakState     = LL_TIM_BREAK_DISABLE;
     TIM_BDTRInitStruct.BreakPolarity  = LL_TIM_BREAK_POLARITY_HIGH;
-    #ifdef MCU_G071
+    #if defined(MCU_G071) || defined(MCU_GD32F350)
     TIM_BDTRInitStruct.BreakFilter    = LL_TIM_BREAK_FILTER_FDIV1;
+    #if defined(MCU_G071)
     TIM_BDTRInitStruct.BreakAFMode    = LL_TIM_BREAK_AFMODE_INPUT;
+    #endif
     TIM_BDTRInitStruct.Break2State    = LL_TIM_BREAK2_DISABLE;
     TIM_BDTRInitStruct.Break2Polarity = LL_TIM_BREAK2_POLARITY_HIGH;
     TIM_BDTRInitStruct.Break2Filter   = LL_TIM_BREAK2_FILTER_FDIV1;
+    #if defined(MCU_G071)
     TIM_BDTRInitStruct.Break2AFMode   = LL_TIM_BREAK_AFMODE_INPUT;
     #endif
-    TIM_BDTRInitStruct.AutomaticOutput = LL_TIM_AUTOMATICOUTPUT_ENABLE; // LL_TIM_AUTOMATICOUTPUT_DISABLE;
+    #endif
+    #if defined(MCU_GD32F350)
+    TIM_BDTRInitStruct.AutomaticOutput = LL_TIM_AUTOMATICOUTPUT_DISABLE;
+    #else
+    TIM_BDTRInitStruct.AutomaticOutput = LL_TIM_AUTOMATICOUTPUT_ENABLE;
+    #endif
     LL_TIM_BDTR_Init(PWMOUTTIMx, &TIM_BDTRInitStruct);
     PWMOUTTIMx->BDTR |= DEAD_TIME;
 
@@ -159,7 +167,7 @@ void pwm_init()
 
 #endif // MCU_G071
 
-#ifdef MCU_F051
+#if defined(MCU_F051) || defined(MCU_GD32F350)
 #ifdef USE_OPEN_DRAIN_LOW
 #define LOW_OUTPUT_TYPE            LL_GPIO_OUTPUT_OPENDRAIN
 #else

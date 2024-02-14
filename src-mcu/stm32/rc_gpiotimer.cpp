@@ -36,7 +36,7 @@ void RcPulse_GpioIsr::init(TIM_TypeDef* TIMx, GPIO_TypeDef* GPIOx, uint32_t pin)
     GPIO_InitStruct.Pull         = LL_GPIO_PULL_DOWN;
     LL_GPIO_Init(rc_gpio, &GPIO_InitStruct);
 
-    #if defined(MCU_F051)
+    #if defined(MCU_F051) || defined(MCU_GD32F350)
     LL_SYSCFG_SetEXTISource(rc_exti_port, rc_exti_sysline);
     #elif defined(MCU_G071)
     LL_EXTI_SetEXTISource(rc_exti_port, rc_exti_sysline);
