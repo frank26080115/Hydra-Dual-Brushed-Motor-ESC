@@ -10,7 +10,7 @@ To control the ESC, RC pulse signals (PWM) are supported, and also the CRSF seri
 
 To configure the ESC, there is a command-line-interface (CLI) implemented, where various commands are used to manipulate stored settings.
 
-(other features: software adjustable current limiting, temperature limiting, low-battery limiting)
+(other features: software adjustable current limiting, low-battery limiting, etc, [full list of features here](../../wiki/Features))
 
 # Demo Video
 
@@ -53,6 +53,8 @@ The hardware that are fully supported are the ones I personally own and use
 | SEQURE (must select AM32 option) | ? | ? | ? | ? | https://sequremall.com/collections/sqesc |
 
 The EMAX Formula 45A ([official link](https://emax-usa.com/collections/electronic-speed-controller/products/emax-formula-series-45a-esc-support-blheli-32-2-5s), [store link](https://pyrodrone.com/collections/individual/products/emax-formula-series-45a-esc-support-blheli_32-2-5s)) will get full support because I own them and I do want to use them since they are small. This does not come with AM32 preinstalled and will require advanced tools to install AM32. (this EMAX model can only support CRSF input, and have no sensors)
+
+![](doc/imgs/20240207_231808s.jpg)
 
 Other models potentially will work if they meet the following criteria:
 
