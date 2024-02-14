@@ -21,6 +21,7 @@ except ImportError:
     sys.exit()
 
 def main():
+    global args
     global no_wait
 
     got_file = False
@@ -63,16 +64,12 @@ def main():
         while got_port == False:
             if len(ports) == 1:
                 print("auto detected serial port: %s" % ports[0])
-                x = input("confirm start using \"%s\"? (YES or no): " % ports[0])
-                if x.strip() == "YES":
+                x = ask_user_confirm("confirm start using \"%s\"?", auto = False)
+                if x:
                     got_port = True
                     args.serialport = ports[0]
-                elif x.lower().strip()[0] == 'n':
-                    quit_nicely(-1)
-                elif x.lower().strip()[0] == 'y':
-                    print("ERROR: cannot understand input \"%s\", if you meant YES, please type it in all capital letters" % x)
                 else:
-                    print("ERROR: cannot understand input \"%s\"" % x)
+                    quit_nicely(-1)
             else:
                 tries = 2
                 while True:
@@ -510,9 +507,9 @@ def quit_nicely(c = 0):
     except:
         sys.exit(c)
 
-def ask_user_confirm(p):
+def ask_user_confirm(p, auto = True):
     global no_wait
-    if no_wait:
+    if no_wait and auto:
         return False
         
     tries = 2
@@ -637,6 +634,53 @@ def get_am32_bootloader_version(ser, addr_multi = 1):
     send_setaddress(ser, int(0xC0 / addr_multi))
     data = send_readcmd(ser, 0xC0, 32)
     return data[0]
+
+def check_firmware_name(ser, ihex, addr_multi = 1):
+    global args
+    addr = 0x08001100
+    send_setaddress(ser, int((addr & 0x00FFFFFF) / addr_multi))
+    data = send_readcmd(ser, (addr & 0x00FFFFFF), 40)
+    fnname_read = ""
+    i = 7
+    while i < 40:
+        d = data[i]
+        if d != 0:
+            fnname_read += chr(d)
+        else:
+            break
+        i += 1
+    if fnname_read.startswith("Hydra "):
+        i = 0
+        mismatch_i = -1
+        match = True
+        while i < 40:
+            if i != 4 and i != 5 and i != 6: # version numbers don't matter
+                d  = int(data[i])
+                d2 = int(ihex[addr + i])
+                if d == d2 and d == 0:
+                    break
+                elif d != d2:
+                    mismatch_i = i
+                    match = False
+                    break
+            i += 1
+        if match:
+            if args.verbose:
+                print("hardware previous firmware name matches firmware file")
+            return True
+        else:
+            if mismatch_i < 7:
+                print("WARNING: previous Hydra HW ID 0x%02X%02X%02X%02X does not match new firmware file HW ID 0x%02X%02X%02X%02X" % (data[3], data[2], data[1], data[0], ihex[addr + 3], ihex[addr + 2], ihex[addr + 1], ihex[addr + 0]))
+            else:
+                print("WARNING: previously installed firmware name is \"%s\", does not match the new firmware name \"%s\"")
+            x = ask_user_confirm("continue the installation?", auto = False)
+            if x == False:
+                quit_nicely(-1)
+            return True
+    else:
+        if args.verbose:
+            print("hardware previous firmware name is not Hydra")
+        return False
 
 def send_setaddress(ser, addr):
     try:
