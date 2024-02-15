@@ -173,8 +173,8 @@ def download_bootloaders():
             ["https://github.com/AlkaMotors/g071Bootloader/releases/download/v7/G071_Bootloader_64_v7.bin"    , "bootloader_g071_64k.bin"],
             ["https://raw.githubusercontent.com/AlkaMotors/AT32F421_AM32_Bootloader/922493dd0e54bae1c92cecdd9fd5472ce099dd21/Objects/F421_PA2_BOOTLOADER_V2.hex", "bootloader_at421_pa2.hex"],
             ["https://raw.githubusercontent.com/AlkaMotors/AT32F421_AM32_Bootloader/922493dd0e54bae1c92cecdd9fd5472ce099dd21/Objects/F421_PB4_BOOTLOADER_V2.hex", "bootloader_at421_pb4.hex"],
-            #["https://raw.githubusercontent.com/frank26080115/g071Bootloader/gd32f350/Release/GD32F350_PA2_BOOTLOADER_V8.bin", "bootloader_gd32f350_pa2.bin"],
-            #["https://raw.githubusercontent.com/frank26080115/g071Bootloader/gd32f350/Release/GD32F350_PB4_BOOTLOADER_V8.bin", "bootloader_gd32f350_pb4.bin"],
+            ["https://raw.githubusercontent.com/frank26080115/g071Bootloader/gd32f350/AM32_GD32F350_BOOTLOADER_PA2_V8.bin", "bootloader_gd32f350_pa2.bin"],
+            ["https://raw.githubusercontent.com/frank26080115/g071Bootloader/gd32f350/AM32_GD32F350_BOOTLOADER_PB4_V8.bin", "bootloader_gd32f350_pb4.bin"],
             ]
     dl_dir = "downloaded_bootloaders"
     if os.path.exists(dl_dir) == False:

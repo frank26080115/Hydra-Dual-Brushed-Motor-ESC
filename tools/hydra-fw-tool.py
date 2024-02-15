@@ -64,7 +64,7 @@ def main():
         while got_port == False:
             if len(ports) == 1:
                 print("auto detected serial port: %s" % ports[0])
-                x = ask_user_confirm("confirm start using \"%s\"?", auto = False)
+                x = ask_user_confirm("confirm start using \"%s\"?" % ports[0], auto = False)
                 if x:
                     got_port = True
                     args.serialport = ports[0]
@@ -243,6 +243,7 @@ def main():
     # https://github.com/AlkaMotors/g071Bootloader/blob/f86fc79a05c7ddcc25d598f4b2c952204c98c674/Core/Src/main.c#L62
     mcuid_at32f421  = [0x34, 0x37, 0x31, 0x00, 0x1F, 0x06, 0x06, 0x01, 0x30]
     # https://github.com/AlkaMotors/AT32F421_AM32_Bootloader/blob/922493dd0e54bae1c92cecdd9fd5472ce099dd21/Src/main.c#L99
+    mcuid_gd32f350  = [0x34, 0x37, 0x31, 0x64, 0x35, 0x06, 0x06, 0x02, 0x31]
 
     if args.fullsave == False:
         bypass_mismatch = False
@@ -272,7 +273,7 @@ def main():
             eep_addr   = 0x7C00
             addr_multi = 1
         elif mcu_id == 0x35:
-            # TODO make the actual bootloader
+            should_be.append(mcuid_gd32f350)
             if args.verbose:
                 print("firmware file metadata claims MCU = GD32F350")
             fwaddr     = 0x08001000
@@ -316,7 +317,7 @@ def main():
             print("ERROR: hardware bootloader identity cannot be verified: { %s }" % hex_id)
             if ask_user_confirm("continue anyways?"):
                 bypass_mismatch = True
-                should_be = [mcuid_f051, mcuid_g071_64k, mcuid_g071_128k, mcuid_g071_128k, mcuid_at32f421]
+                should_be = [mcuid_f051, mcuid_g071_64k, mcuid_g071_128k, mcuid_g071_128k, mcuid_at32f421, mcuid_gd32f350]
                 match_res = bootloader_match(bootloader_id, should_be)
                 fwaddr = 0x08001000
                 addr_multi = 1
@@ -336,8 +337,14 @@ def main():
                     fw_size = 1024 * 32
                     eep_addr = 0x7C00
                     addr_multi = 1
+                elif match_res == 4:
+                    fw_size = 1024 * 64
+                    eep_addr = 0xF800
+                    addr_multi = 1
             else:
                 quit_nicely(-1)
+
+        check_firmware_name(ser, fw_ihex, addr_multi)
 
         if mcu_id == 0x51:
             # embed the correct bootloader version into the EEPROM region so that AM32 does not erase it
@@ -649,39 +656,43 @@ def check_firmware_name(ser, ihex, addr_multi = 1):
     addr = 0x08001100
     send_setaddress(ser, int((addr & 0x00FFFFFF) / addr_multi))
     data = send_readcmd(ser, (addr & 0x00FFFFFF), 40)
-    fnname_read = ""
+    fwname_read = ""
     i = 7
     while i < 40:
         d = data[i]
         if d != 0:
-            fnname_read += chr(d)
+            fwname_read += chr(d)
         else:
             break
         i += 1
-    if fnname_read.startswith("Hydra "):
+    if fwname_read.startswith("Hydra "):
         i = 0
         mismatch_i = -1
         match = True
+        flname = ""
+
         while i < 40:
             if i != 4 and i != 5 and i != 6: # version numbers don't matter
                 d  = int(data[i])
                 d2 = int(ihex[addr + i])
-                if d == d2 and d == 0:
+                if d == d2 and d == 0 and i > 7:
                     break
                 elif d != d2:
                     mismatch_i = i
                     match = False
                     break
+                elif d == d2:
+                    flname += chr(d2)
             i += 1
         if match:
             if args.verbose:
-                print("hardware previous firmware name matches firmware file")
+                print("hardware previous firmware name \"%s\" matches firmware file" % fwname_read)
             return True
         else:
             if mismatch_i < 7:
                 print("WARNING: previous Hydra HW ID 0x%02X%02X%02X%02X does not match new firmware file HW ID 0x%02X%02X%02X%02X" % (data[3], data[2], data[1], data[0], ihex[addr + 3], ihex[addr + 2], ihex[addr + 1], ihex[addr + 0]))
             else:
-                print("WARNING: previously installed firmware name is \"%s\", does not match the new firmware name \"%s\"")
+                print("WARNING: previously installed firmware name is \"%s\", does not match the new firmware name \"%s\"" % (fwname_read, flname))
             x = ask_user_confirm("continue the installation?", auto = False)
             if x == False:
                 quit_nicely(-1)
