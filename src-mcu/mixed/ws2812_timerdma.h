@@ -1,11 +1,3 @@
-#include "ws2812.h"
-#include "led.h"
-#include <stdint.h>
-#include <stdbool.h>
-#include <stddef.h>
-
-#ifdef USE_LED_STRIP
-
 #define WS2812_DMAx   DMA1
 #define WS2812_TIMx   TIM16
 #if defined(MCU_G071)
@@ -144,5 +136,3 @@ void WS2812_task(void)
         new_pending = false;
     }
 }
-
-#endif

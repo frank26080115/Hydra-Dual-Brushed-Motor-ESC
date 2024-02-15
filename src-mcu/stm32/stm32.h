@@ -98,3 +98,11 @@
 #ifndef TIM_CCMR1_OC1M_PWM2
 #define TIM_CCMR1_OC1M_PWM2    (TIM_CCMR1_OC1M_0 | TIM_CCMR1_OC1M_1 | TIM_CCMR1_OC1M_2)
 #endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+extern void gpio_mode_QUICK(GPIO_TypeDef* gpio_periph, uint32_t mode, uint32_t pull_up_down, uint32_t pin);
+#ifdef __cplusplus
+}
+#endif

@@ -77,3 +77,12 @@ void mcu_init(void)
     STM32_Sys_Init(); // this sets the vector table
     systick_init();
 }
+
+void gpio_mode_QUICK(GPIO_TypeDef* gpio_periph, uint32_t mode, uint32_t pull_up_down, uint32_t pin)
+{
+    LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
+    GPIO_InitStruct.Pin = pin;
+    GPIO_InitStruct.Mode = mode;
+    GPIO_InitStruct.Pull = pull_up_down;
+    LL_GPIO_Init(gpio_periph, &GPIO_InitStruct);
+}

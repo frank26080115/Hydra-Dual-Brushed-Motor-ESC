@@ -1,8 +1,4 @@
-#include "ws2812.h"
-#include "led.h"
-#include <stdint.h>
-#include <stdbool.h>
-#include <stddef.h>
+#include "stm32_at32_compat.h"
 
 /*
 ESCs built with the AT32F421 have the WS2812 connected to a GPIO without any timer output capability
@@ -13,14 +9,22 @@ Disabling interrupts would make the RC PWM pulse measurements inaccurate
 The solution: only send data to the WS2812 when the falling edge of the RC PWM pulse occurs, or when that timer overflows, from interrupt context
 */
 
-#ifdef USE_LED_STRIP
-
+#if defined(MCU_AT421)
 #define WS2812_TIMx   TMR16
 #ifndef WS2812_PIN
 #define WS2812_PIN    GPIO_PINS_7
 #endif
 #ifndef WS2812_PORT
 #define WS2812_PORT   GPIOB
+#endif
+#else
+#define WS2812_TIMx   TIM16
+#ifndef WS2812_PIN
+#define WS2812_PIN    LL_GPIO_PIN_7
+#endif
+#ifndef WS2812_PORT
+#define WS2812_PORT   GPIOB
+#endif
 #endif
 
 static uint32_t          rgb_pending = 0;
@@ -32,22 +36,22 @@ extern void WS2812_startTmr6Anyways(void); // this lives in the rc_gpiotimer.cpp
 
 void WS2812_waitClkCycles(uint16_t cycles)
 {
-    WS2812_TIMx->cval = 0;
-    while (WS2812_TIMx->cval < cycles) {
+    LL_TIM_SetCounter(WS2812_TIMx, 0);
+    while (LL_TIM_GetCounter(WS2812_TIMx) < cycles) {
     }
 }
 
 void WS2812_sendBit(uint8_t bit) // arg is 1 or 0, do not change how this works
 {
-    WS2812_PORT->scr = WS2812_PIN;
+    WS2812_PORT->BSRR = WS2812_PIN;
     WS2812_waitClkCycles(CPU_FREQUENCY_MHZ >> (2 - bit));
-    WS2812_PORT->clr = WS2812_PIN;
+    WS2812_PORT->BRR = WS2812_PIN;
     WS2812_waitClkCycles(CPU_FREQUENCY_MHZ >> (1 + bit));
 }
 
 void WS2812_init(void)
 {
-    WS2812_TIMx->ctrl1_bit.tmren = TRUE;
+    LL_TIM_EnableCounter(WS2812_TIMx);
     gpio_mode_QUICK(WS2812_PORT, GPIO_MODE_OUTPUT, GPIO_PULL_NONE, WS2812_PIN);
     WS2812_startTmr6Anyways();
 }
@@ -70,15 +74,15 @@ void WS2812_onIrq(void)
     new_pending = false;
     uint32_t twenty_four_bit_color_number = *((uint32_t*)rgb_pending);
     prev_colour = twenty_four_bit_color_number;
-    WS2812_TIMx->div = 0;
-    WS2812_TIMx->swevt |= TMR_OVERFLOW_SWTRIG;
+    WS2812_TIMx->PSC = 0;
+    WS2812_TIMx->EGR |= TIM_EGR_UG;
     for (int i = 0; i < 24 ; i ++) {
         // transfer is MSB first
         WS2812_sendBit((twenty_four_bit_color_number >> (23 - i)) & 1); // arg is 1 or 0, do not change how this works
     }
-    WS2812_PORT->clr = WS2812_PIN;
-    WS2812_TIMx->div = CPU_FREQUENCY_MHZ;
-    WS2812_TIMx->swevt |= TMR_OVERFLOW_SWTRIG;
+    //WS2812_PORT->BRR = WS2812_PIN;
+    WS2812_TIMx->PSC = CPU_FREQUENCY_MHZ;
+    WS2812_TIMx->EGR |= TIM_EGR_UG;
     WS2812_sendOccured = true;
 }
 
@@ -87,5 +91,3 @@ void WS2812_task(void)
     // do nothing, this is called from main app periodically
     // we want to be sending the bits only when a timer interrupt fires, to avoid jitter in pulse measurements
 }
-
-#endif

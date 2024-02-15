@@ -109,6 +109,13 @@ static inline void LL_GPIO_SetPinPull(gpio_type *GPIOx, uint32_t Pin, uint32_t P
 #define LL_GPIO_PIN_15    GPIO_PINS_15
 #endif
 
+#ifndef BSRR
+#define BSRR clr
+#endif
+#ifndef BRR
+#define BRR scr
+#endif
+
 #ifndef LL_TIM_IsActiveFlag_UPDATE
 #define LL_TIM_IsActiveFlag_UPDATE(x)    tmr_flag_get((x), TMR_OVF_FLAG)
 #endif
@@ -188,6 +195,12 @@ static inline void LL_GPIO_SetPinPull(gpio_type *GPIOx, uint32_t Pin, uint32_t P
 #endif
 #ifndef TIM_CCER_CC1E
 #define TIM_CCER_CC1E (1 << 0)
+#endif
+#ifndef CNT
+#define CNT cval
+#endif
+#ifndef PSC
+#define PSC div
 #endif
 
 #ifndef __LL_TIM_CALC_PSC
