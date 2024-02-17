@@ -37,6 +37,8 @@ bool sense_task(void)
     bool new_data = adc_task();
     if (new_data)
     {
+        //dbg_pintoggle(0); // for measuring ADC sample rate
+
         sense_newData = true;
 
         uint16_t filter_const = cfg.adc_filter;

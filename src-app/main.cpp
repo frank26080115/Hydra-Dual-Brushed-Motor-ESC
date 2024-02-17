@@ -161,6 +161,8 @@ int main(void)
 
     while (true) // main forever loop
     {
+        //dbg_pintoggle(0); // for measuring loop time
+
         wdt_feed();
         led_task(false);
         sense_task();

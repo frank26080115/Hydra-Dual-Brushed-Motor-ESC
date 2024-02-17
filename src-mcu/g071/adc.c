@@ -4,6 +4,8 @@
 #define ADC_DMAx     DMA1
 #define ADC_DMA_CHAN LL_DMA_CHANNEL_2
 
+#define USE_ADC_OVERSAMPLING
+
 static uint16_t adc_buff[3];
 
 void adc_init()
@@ -38,16 +40,26 @@ void adc_init()
     ADC_REG_InitStruct.DMATransfer      = LL_ADC_REG_DMA_TRANSFER_LIMITED;
     ADC_REG_InitStruct.Overrun          = LL_ADC_REG_OVR_DATA_PRESERVED;
     LL_ADC_REG_Init(ADCx, &ADC_REG_InitStruct);
+    #ifdef USE_ADC_OVERSAMPLING
+    LL_ADC_SetOverSamplingScope        (ADCx, LL_ADC_OVS_GRP_REGULAR_CONTINUED);
+    LL_ADC_SetOverSamplingDiscont      (ADCx, LL_ADC_OVS_REG_CONT);
+    LL_ADC_ConfigOverSamplingRatioShift(ADCx, LL_ADC_OVS_RATIO_256, LL_ADC_OVS_SHIFT_RIGHT_8);
+    #else
     LL_ADC_SetOverSamplingScope(ADCx, LL_ADC_OVS_DISABLE);
-    LL_ADC_SetTriggerFrequencyMode(ADCx, LL_ADC_CLOCK_FREQ_MODE_LOW);
-    LL_ADC_REG_SetSequencerConfigurable(ADCx, LL_ADC_REG_SEQ_CONFIGURABLE);
-    LL_ADC_SetClock(ADCx, LL_ADC_CLOCK_ASYNC_DIV4);
+    #endif
+    LL_ADC_SetTriggerFrequencyMode      (ADCx, LL_ADC_CLOCK_FREQ_MODE_LOW);
+    LL_ADC_REG_SetSequencerConfigurable (ADCx, LL_ADC_REG_SEQ_CONFIGURABLE);
+    LL_ADC_SetClock                     (ADCx, LL_ADC_CLOCK_ASYNC_DIV4);
     LL_ADC_SetSamplingTimeCommonChannels(ADCx, LL_ADC_SAMPLINGTIME_COMMON_1, LL_ADC_SAMPLINGTIME_19CYCLES_5);
     LL_ADC_SetSamplingTimeCommonChannels(ADCx, LL_ADC_SAMPLINGTIME_COMMON_2, LL_ADC_SAMPLINGTIME_160CYCLES_5);
     LL_ADC_DisableIT_EOC(ADCx);
     LL_ADC_DisableIT_EOS(ADCx);
 
+    #ifdef USE_ADC_OVERSAMPLING
+    ADC_InitStruct.Resolution    = LL_ADC_RESOLUTION_8B;
+    #else
     ADC_InitStruct.Resolution    = LL_ADC_RESOLUTION_12B;
+    #endif
     ADC_InitStruct.DataAlignment = LL_ADC_DATA_ALIGN_RIGHT;
     ADC_InitStruct.LowPowerMode  = LL_ADC_LP_MODE_NONE;
     LL_ADC_Init(ADCx, &ADC_InitStruct);
