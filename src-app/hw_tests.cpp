@@ -4,6 +4,7 @@
 #include "phaseout.h"
 #include "sense.h"
 #include "led.h"
+#include "wdt.h"
 #include "crsf.h"
 #include "userconfig.h"
 #include "swd_pins.h"
@@ -42,6 +43,7 @@ void hw_test(void)
     //hwtest_pwm();
     //hwtest_pwm_max();
     //hwtest_phases();
+    //hwtest_wdt();
     //hwtest_rc1();
     //hwtest_rc2();
     //hwtest_rc12();
@@ -682,6 +684,37 @@ void hwtest_phases(void)
     {
         uint32_t x = PWM_DEFAULT_PERIOD;
         pwm_set_all_duty_remapped(x, x / 2, x / 4);
+    }
+}
+
+void hwtest_wdt(void)
+{
+    #ifdef DEVELOPMENT_BOARD
+    dbg_cer.init(CEREAL_ID_USART_DEBUG, DEBUG_BAUD, false, false);
+    #endif
+    led_init();
+
+    wdt_init();
+
+    dbg_printf("Hello WDT Test\r\n");
+
+    uint32_t t = millis();
+
+    while (true)
+    {
+        wdt_feed(); // comment this out to test resetting
+
+        if (millis() < 500) {
+            led_blink_set(0);
+        }
+        else {
+            led_blink_set(1 << 5);
+        }
+
+        if ((millis() - t) >= 500) {
+            dbg_printf("WDT?\r\n");
+            t = millis();
+        }
     }
 }
 

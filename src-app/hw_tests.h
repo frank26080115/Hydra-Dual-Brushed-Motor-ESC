@@ -7,6 +7,7 @@ void hwtest_led(void);
 void hwtest_pwm(void);
 void hwtest_pwm_max(void);
 void hwtest_phases(void);
+void hwtest_wdt(void);
 void hwtest_adc(void);
 void hwtest_rc1(void);
 void hwtest_rc2(void);

@@ -16,6 +16,7 @@
 #include "stm32f0xx_ll_adc.h"
 #include "stm32f0xx_ll_exti.h"
 #include "stm32f0xx_ll_rcc.h"
+#include "stm32f0xx_ll_iwdg.h"
 #endif
 
 #ifdef MCU_F031
@@ -37,6 +38,7 @@
 #include "stm32g0xx_ll_adc.h"
 #include "stm32g0xx_ll_exti.h"
 #include "stm32g0xx_ll_rcc.h"
+#include "stm32g0xx_ll_iwdg.h"
 #endif
 
 #ifdef MCU_GD32F350
@@ -53,6 +55,7 @@
 #include "stm32f3xx_ll_adc.h"
 #include "stm32f3xx_ll_exti.h"
 #include "stm32f3xx_ll_rcc.h"
+#include "stm32f3xx_ll_iwdg.h"
 #endif
 
 #define GPIO_PIN_SWDIO LL_GPIO_PIN_13

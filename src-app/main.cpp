@@ -3,6 +3,7 @@
 #include "version.h"
 #include "inputpin.h"
 #include "swd_pins.h"
+#include "wdt.h"
 #include "phaseout.h"
 #include "sense.h"
 #include "rc.h"
@@ -152,12 +153,15 @@ int main(void)
         #endif
     }
 
+    wdt_init();
+
     dbg_printf("init finished at %u\r\n", millis());
 
     bool armed_both = false;
 
     while (true) // main forever loop
     {
+        wdt_feed();
         led_task(false);
         sense_task();
         battery_task();
