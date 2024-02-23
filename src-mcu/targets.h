@@ -227,7 +227,13 @@
     #define DEAD_TIME               45
     #define HARDWARE_GROUP_F0_B
     #define HAS_TELEMETRY_PIN
-    #define DISABLE_LED
+    #define USE_RGB_LED
+    #define LED_PIN_RED             LL_GPIO_PIN_15
+    #define LED_GPIO_RED            GPIOA
+    #define LED_PIN_GREEN           LL_GPIO_PIN_3
+    #define LED_GPIO_GREEN          GPIOB
+    #define LED_PIN_BLUE            LL_GPIO_PIN_5
+    #define LED_GPIO_BLUE           GPIOB
 #endif
 
 #ifdef MP6531_F051
