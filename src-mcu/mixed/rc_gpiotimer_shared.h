@@ -46,6 +46,12 @@ RcPulse_GpioIsr::RcPulse_GpioIsr(void)
 void RcPulse_GpioIsr::task(void)
 {
     RcChannel::task();
+    uint32_t now = millis();
+    if (last_good_time > now && now < 0x7FFFFFFF && armed) {
+        dbg_printf("RcPulse_GpioIsr unexpected future rx time %u > %u\r\n", last_good_time, now);
+        armed = false;
+        arm_pulse_cnt = 0;
+    }
 }
 
 int16_t RcPulse_GpioIsr::read(void)

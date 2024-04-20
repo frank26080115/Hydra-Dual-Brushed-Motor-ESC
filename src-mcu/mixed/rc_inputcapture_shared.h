@@ -35,6 +35,12 @@ extern void CerealBitbang_IRQHandler(void);
 void RcPulse_InputCap::task(void)
 {
     RcChannel::task();
+    uint32_t now = millis();
+    if (last_good_time > now && now < 0x7FFFFFFF && armed) {
+        dbg_printf("RcPulse_InputCap unexpected future rx time %u > %u\r\n", last_good_time, now);
+        armed = false;
+        arm_pulse_cnt = 0;
+    }
 }
 
 int16_t RcPulse_InputCap::read(void)

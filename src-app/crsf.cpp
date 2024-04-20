@@ -72,7 +72,7 @@ void CrsfChannel::task(void)
     uint8_t*       buff    = cereal->get_buffer();
     crsf_header_t* hdr     = (crsf_header_t*)buff; // makes the data easy to parse
 
-    if (is_idle) {
+    if (is_idle) { // USART is idle, new packet is available
         last_any_time = now;
     }
 
@@ -89,38 +89,40 @@ void CrsfChannel::task(void)
             #endif
 
             // decompress, 11 bits per channel
-            if (hdr->len >= 8) {
+            if (hdr->len >= 8)
+            {
                 crsf_channels[0]  = ((buff[3]       | buff[4]  << 8) & 0x07FF);
                 crsf_channels[1]  = ((buff[4]  >> 3 | buff[5]  << 5) & 0x07FF);
                 crsf_channels[2]  = ((buff[5]  >> 6 | buff[6]  << 2 | buff[7] << 10) & 0x07FF);
                 crsf_channels[3]  = ((buff[7]  >> 1 | buff[8]  << 7) & 0x07FF);
-            }
-            if (hdr->len >= 13) {
-                crsf_channels[4]  = ((buff[8]  >> 4 | buff[9]  << 4) & 0x07FF);
-                crsf_channels[5]  = ((buff[9]  >> 7 | buff[10] << 1 | buff[11] << 9) & 0x07FF);
-                crsf_channels[6]  = ((buff[11] >> 2 | buff[12] << 6) & 0x07FF);
-                crsf_channels[7]  = ((buff[12] >> 5 | buff[13] << 3) & 0x07FF);
-            }
-            if (hdr->len >= 19) {
-                crsf_channels[8]  = ((buff[14]      | buff[15] << 8) & 0x07FF);
-                crsf_channels[9]  = ((buff[15] >> 3 | buff[16] << 5) & 0x07FF);
-                crsf_channels[10] = ((buff[16] >> 6 | buff[17] << 2 | buff[18] << 10) & 0x07FF);
-                crsf_channels[11] = ((buff[18] >> 1 | buff[19] << 7) & 0x07FF);
-            }
-            if (hdr->len >= 24) {
-                crsf_channels[12] = ((buff[19] >> 4 | buff[20] << 4) & 0x07FF);
-                crsf_channels[13] = ((buff[20] >> 7 | buff[21] << 1 | buff[22] << 9) & 0x07FF);
-                crsf_channels[14] = ((buff[22] >> 2 | buff[23] << 6) & 0x07FF);
-                crsf_channels[15] = ((buff[23] >> 5 | buff[24] << 3) & 0x07FF);
-            }
 
-            rc_register_good_pulse(
-                0
-                , 0, 0
-                , &last_good_time
-                , &good_pulse_cnt, &bad_pulse_cnt, NULL
-                , (bool*)&new_flag, NULL
-            );
+                if (hdr->len >= 13) {
+                    crsf_channels[4]  = ((buff[8]  >> 4 | buff[9]  << 4) & 0x07FF);
+                    crsf_channels[5]  = ((buff[9]  >> 7 | buff[10] << 1 | buff[11] << 9) & 0x07FF);
+                    crsf_channels[6]  = ((buff[11] >> 2 | buff[12] << 6) & 0x07FF);
+                    crsf_channels[7]  = ((buff[12] >> 5 | buff[13] << 3) & 0x07FF);
+                }
+                if (hdr->len >= 19) {
+                    crsf_channels[8]  = ((buff[14]      | buff[15] << 8) & 0x07FF);
+                    crsf_channels[9]  = ((buff[15] >> 3 | buff[16] << 5) & 0x07FF);
+                    crsf_channels[10] = ((buff[16] >> 6 | buff[17] << 2 | buff[18] << 10) & 0x07FF);
+                    crsf_channels[11] = ((buff[18] >> 1 | buff[19] << 7) & 0x07FF);
+                }
+                if (hdr->len >= 24) {
+                    crsf_channels[12] = ((buff[19] >> 4 | buff[20] << 4) & 0x07FF);
+                    crsf_channels[13] = ((buff[20] >> 7 | buff[21] << 1 | buff[22] << 9) & 0x07FF);
+                    crsf_channels[14] = ((buff[22] >> 2 | buff[23] << 6) & 0x07FF);
+                    crsf_channels[15] = ((buff[23] >> 5 | buff[24] << 3) & 0x07FF);
+                }
+
+                rc_register_good_pulse(
+                    0
+                    , 0, 0
+                    , &last_good_time
+                    , &good_pulse_cnt, &bad_pulse_cnt, NULL
+                    , (bool*)&new_flag, NULL
+                );
+            }
 
             #ifdef DEBUG_CRSF_RATE
             data_rate_cnt++;
@@ -135,7 +137,6 @@ void CrsfChannel::task(void)
                 idle_cnt_prev = idle_cnt_now;
             }
             #endif
-
         }
         else // bad CRC
         {
@@ -229,6 +230,12 @@ void CrsfChannel::task(void)
         #ifdef DEBUG_CRSF
         dbg_printf("CRSF disarmed due to timeout (%u - %u > %u)\r\n", now, last_good_time, disarm_timeout);
         #endif
+        armed = false;
+        arming_cnt = 0;
+    }
+
+    if (last_good_time > now && now < 0x7FFFFFFF && armed) {
+        dbg_printf("CRSF unexpected future rx time %u > %u\r\n", last_good_time, now);
         armed = false;
         arming_cnt = 0;
     }
