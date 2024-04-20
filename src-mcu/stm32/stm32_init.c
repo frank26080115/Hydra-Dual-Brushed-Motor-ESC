@@ -1,8 +1,10 @@
 #include "stm32.h"
 #include "systick.h"
+#include "systick.h"
 
 void SystemClock_Config(void);
 void STM32_Sys_Init(void);
+extern void pwm_all_low(void);
 
 void mcu_init(void)
 {
@@ -73,6 +75,8 @@ void mcu_init(void)
     LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_TIM16);
     LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_DMA1);
     #endif
+
+    pwm_all_low();
 
     STM32_Sys_Init(); // this sets the vector table
     systick_init();

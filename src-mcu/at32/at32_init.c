@@ -4,6 +4,7 @@
 
 void SystemClock_Config(void);
 void system_clock_config(void);
+extern void pwm_all_low(void);
 
 void mcu_init(void)
 {
@@ -23,6 +24,8 @@ void mcu_init(void)
     crm_periph_clock_enable(CRM_TMR15_PERIPH_CLOCK,  TRUE);
     crm_periph_clock_enable(CRM_DMA1_PERIPH_CLOCK,   TRUE);
     #endif
+
+    pwm_all_low();
 
     systick_init();
     __enable_irq();
