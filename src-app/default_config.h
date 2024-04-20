@@ -10,7 +10,7 @@ const EEPROM_data_t default_eeprom __attribute__((aligned(4))) = {
     .version_minor      = VERSION_MINOR,
     .version_eeprom     = VERSION_EEPROM,
 
-    .voltage_split_mode = 0,
+    .voltage_split_mode = VSPLITMODE_BOOST_FORWARD,
     .load_balance       = false,
     .input_mode         = DEFAULT_INPUT_MODE,
     .tank_arcade_mix    = false,
