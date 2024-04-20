@@ -163,7 +163,6 @@ int main(void)
     {
         //dbg_pintoggle(0); // for measuring loop time
 
-        wdt_feed();
         led_task(false);
         sense_task();
         battery_task();
@@ -252,6 +251,7 @@ int main(void)
                 dbg_printf("[%u] disarmed (%d %d), v=%lu   c=%u\r\n", millis(), rc1->read(), rc2->read(), sense_voltage, sense_current);
             }
             current_limit_task(0, 0);
+            wdt_feed();
             continue; // do not execute the rest of the logic
         }
         else if (v1 == 0 && v2 == 0) {
@@ -398,6 +398,8 @@ int main(void)
             }
             dbg_printf("\r\n");
         }
+
+        wdt_feed();
     }
 
     return 0;
