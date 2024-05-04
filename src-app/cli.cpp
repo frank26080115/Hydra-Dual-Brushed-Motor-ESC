@@ -247,7 +247,8 @@ void cli_execute(Cereal* cer, char* str)
     else if (item_strcmp("hwtest", str, NULL))
     {
         pwm_set_remap(cfg.phase_map);
-        pwm_set_period(PWM_DEFAULT_PERIOD);
+        pwm_set_period(cfg.pwm_period);
+        pwm_set_deadtime(cfg.pwm_deadtime);
         pwm_set_braking(true);
         pwm_set_all_duty_remapped(0, 0, 0);
 
@@ -255,6 +256,7 @@ void cli_execute(Cereal* cer, char* str)
         uint16_t ori_vdiv   = cfg.voltage_divider;
         uint16_t ori_offset = cfg.current_offset;
         uint16_t ori_scale  = cfg.current_scale;
+        uint16_t ori_dt     = cfg.pwm_deadtime;
         int8_t   phase_map  = cfg.phase_map;
         uint32_t tick = 0;
         uint32_t tnow;
@@ -266,9 +268,17 @@ void cli_execute(Cereal* cer, char* str)
             sense_task();
             tnow = millis();
             c = cer->read();
+
+            // end the test
             if (c == 'x' || c == 0x08 || c == 0x1B || c == 0x18 || c == 0x7F) {
                 break;
             }
+
+            // trigger a new message on any key-stroke
+            if (c > 0) {
+                tick = 0;
+            }
+
             if (test_mode == 'c')
             {
                 switch (c)
@@ -293,6 +303,16 @@ void cli_execute(Cereal* cer, char* str)
                     case '}' : cfg.voltage_divider  +=  10; break;
                 }
             }
+            else if (test_mode == 'd' || test_mode == 'D')
+            {
+                switch (c)
+                {
+                    case '[' : cfg.pwm_deadtime  -=   1; break;
+                    case ']' : cfg.pwm_deadtime  +=   1; break;
+                    case '{' : cfg.pwm_deadtime  -=  10; break;
+                    case '}' : cfg.pwm_deadtime  +=  10; break;
+                }
+            }
 
             if ((test_mode == 'c' || test_mode == 'p') && c >= '0' && c <= '9') {
                 pwr    = fi_map(c, '0', '9', 0, PWM_DEFAULT_PERIOD, true);
@@ -307,6 +327,17 @@ void cli_execute(Cereal* cer, char* str)
                 pwm_set_remap(phase_map);
                 pwm_set_all_duty_remapped(pwr, 0, 0);
             }
+            if (test_mode == 'd' || test_mode == 'D') {
+                pwr = cfg.pwm_period - cfg.pwm_deadtime;
+                pwr100 = 100;
+                pwm_set_deadtime(cfg.pwm_deadtime);
+                if (test_mode == 'd') {
+                    pwm_set_all_duty_remapped(pwr, 0, 0);
+                }
+                else {
+                    pwm_set_all_duty_remapped(0, pwr, pwr);
+                }
+            }
 
             if (c == 'v') {
                 test_mode = c;
@@ -317,8 +348,11 @@ void cli_execute(Cereal* cer, char* str)
             else if (c == 'c' || c == 'p') {
                 test_mode = c;
             }
+            else if (c == 'd') {
+                test_mode = (test_mode == 'd') ? 'D' : 'd';
+            }
 
-            if ((tnow - tick) >= 250) {
+            if ((tnow - tick) >= 500) {
                 if (test_mode == 'v') {
                     cer->printf("[%lu] raw-v %u , calc-v %lu , v-div %lu\r\n", tnow, adc_raw_voltage, sense_voltage, cfg.voltage_divider);
                 }
@@ -329,8 +363,11 @@ void cli_execute(Cereal* cer, char* str)
                 else if (test_mode == 'p') {
                     cer->printf("[%lu] phase-map %u , pwr %u\r\n", tnow, phase_map, pwr100);
                 }
+                else if (test_mode == 'd' || test_mode == 'D') {
+                    cer->printf("[%lu] pwr %u ; DT %lu ; (press 'v' to stop)\r\n", tnow, pwr100, cfg.pwm_deadtime);
+                }
                 else {
-                    cer->printf("[%lu] press 'v' or 'c' or 'p'\r\n", tnow);
+                    cer->printf("[%lu] press 'v' or 'c' or 'p' or 'd'\r\n", tnow);
                 }
                 tick = tnow;
             }
@@ -338,12 +375,13 @@ void cli_execute(Cereal* cer, char* str)
         pwm_set_all_duty_remapped(0, 0, 0);
 
         cer->printf("\r\nsession end, voltdiv %lu , ", cfg.voltage_divider); cer->flush();
-        cer->printf("curroffset %lu , currscale %lu , ", cfg.current_offset, cfg.current_scale); cer->flush();
+        cer->printf("curroffset %lu , currscale %lu , pwm_deadtime %lu , ", cfg.current_offset, cfg.current_scale, cfg.pwm_deadtime); cer->flush();
         cer->printf("phasemap %d \r\n(not saved !!!)\r\n", phase_map);
 
         cfg.voltage_divider = ori_vdiv;
         cfg.current_offset  = ori_offset;
         cfg.current_scale   = ori_scale;
+        cfg.pwm_deadtime    = ori_dt;
         pwm_set_remap(cfg.phase_map);
     }
     #ifndef RELEASE_BUILD
