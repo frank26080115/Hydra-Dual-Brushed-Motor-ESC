@@ -261,7 +261,7 @@ int main(void)
             ledblink_moving();
         }
 
-        int32_t duty_max = cfg.pwm_period;
+        int32_t duty_max = cfg.pwm_period - cfg.pwm_deadtime;
         bool limit_reached = false;
 
         // impose temperature limiting if desired
