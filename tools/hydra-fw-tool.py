@@ -5,6 +5,8 @@
 import argparse
 import os, sys, time, datetime, re
 
+import user_cfg_util
+
 try:
     from intelhex import IntelHex
 except ImportError:
@@ -34,6 +36,7 @@ def main():
         parser.add_argument("-f", "--firmware",                         default="",           type=str, help="firmware file")
     parser.add_argument("-s", "--serialport",                       default="auto",       type=str, help="serial port name")
     parser.add_argument("-p", "--preserveeeprom",                   action="store_true",            help="preserve eeprom")
+    parser.add_argument("-c", "--cfgfile",                          default="",           type=str, help="specify config text file")
     parser.add_argument("-a", "--fwaddr",     metavar="fwaddr",     default="",           type=str, help="firmware start address")
     parser.add_argument("-e", "--eepromaddr", metavar="eepromaddr", default="",           type=str, help="eeprom address")
     parser.add_argument("-m", "--addrmulti",  metavar="addrmulti",  default="",           type=str, help="address multiplier")
@@ -47,7 +50,7 @@ def main():
 
     if args.verbose:
         print("verbose output is ON")
-        print("version: V1.3")
+        print("version: V1.4")
 
     if got_file:
         args.firmware = sys.argv[1]
@@ -404,8 +407,49 @@ def main():
 
     if args.fullsave == False:
         fw_binarr = fw_ihex.tobinarray(start = fwaddr)
-        if args.preserveeeprom:
+
+        if args.cfgfile is None or len(args.cfgfile) <= 0: # user did not specify a text file
+            if args.preserveeeprom:
+                fw_binarr = fw_binarr[:eep_addr - (fwaddr & 0xFFFF)]
+        else:
+            cfg = user_cfg_util.UserCfg()
+            cfg.install_all_items()
+            fool_sz = 5 + 12
+            if args.preserveeeprom:
+                send_setaddress(ser, int((eep_addr & 0x00FFFFFF) / addr_multi))
+                eedata = send_readcmd(ser, (eep_addr & 0x00FFFFFF), cfg.get_length() + fool_sz)
+                cfg.load_bytes(eedata[fool_sz:])
+                if args.verbose:
+                    print("loaded %d bytes from device EEPROM" % len(eedata))
+            else:
+                def_idx = cfg.load_binary(fw_binarr[eep_addr - (fwaddr & 0xFFFF):]) # first look for EEPROM payload embedded
+                if def_idx < 0: # no embedded config found, look again for defaults in the whole firmware
+                    def_idx = cfg.load_binary(fw_binarr)
+                elif args.verbose:
+                    print("found config payload at 0x%08X from input file" % (def_idx + eep_addr))
+                if def_idx > 0:
+                    eedata = fw_binarr[def_idx:]
+                else:
+                    raise Exception("config tool cannot determine default values")
+                if args.verbose:
+                    print("firmware file config will be merged with new config \"%s\"" % (os.path.basename(args.cfgfile)))
+            fool_data = eedata[:fool_sz]
+            #if args.verbose:
+            #    print("AM32 EE header: %s" % str(fool_data))
+            v = eedata[fool_sz + 6]
+            if args.verbose:
+                print("EE versions: read %d, tool %d" % (v, cfg.get_version()))
+            if v != cfg.get_version():
+                print("ERROR: config file tool version \"%d\" does not match firmware EEPROM version \"%d\"" % (cfg.get_version(), v))
+                if ask_user_confirm("continue anyways?") == False:
+                    quit_nicely(-1)
+            txt_cnt = cfg.load_text_file(args.cfgfile)
+            if args.verbose:
+                print("loaded %d config items from specified text file" % txt_cnt)
             fw_binarr = fw_binarr[:eep_addr - (fwaddr & 0xFFFF)]
+            fw_binarr.extend(fool_data)
+            fw_binarr.extend(cfg.get_bytes())
+
         i = 0
         start_addr = fwaddr & 0xFFFF
 
