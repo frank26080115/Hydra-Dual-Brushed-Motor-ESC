@@ -75,6 +75,7 @@ typedef struct
     uint8_t channel_2;
     uint8_t channel_mode;  // used for either setting the volt-split mode during run-time, or used as the 3rd channel for direct-PWM mode
     uint8_t channel_brake; // used to enable or disable braking during run-time
+    uint8_t channel_masterarm; // used to instantly arm with a switch on the radio
 
     // RC signal calibration, units are microseconds
     uint16_t rc_mid;       // do not apply to CRSF data

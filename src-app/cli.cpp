@@ -248,7 +248,6 @@ void cli_execute(Cereal* cer, char* str)
     {
         pwm_set_remap(cfg.phase_map);
         pwm_set_period(cfg.pwm_period);
-        pwm_set_deadtime(cfg.pwm_deadtime);
         pwm_set_braking(true);
         pwm_set_all_duty_remapped(0, 0, 0);
 
@@ -330,7 +329,6 @@ void cli_execute(Cereal* cer, char* str)
             if (test_mode == 'd' || test_mode == 'D') {
                 pwr = cfg.pwm_period - cfg.pwm_deadtime;
                 pwr100 = 100;
-                pwm_set_deadtime(cfg.pwm_deadtime);
                 if (test_mode == 'd') {
                     pwm_set_all_duty_remapped(pwr, 0, 0);
                 }

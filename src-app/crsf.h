@@ -43,6 +43,7 @@ class CrsfChannel : public RcChannel
 extern "C" {
 #endif
 extern uint16_t crsf_readChan(uint8_t i);
+extern void crsf_setMasterArmChan(uint8_t c);
 #ifdef __cplusplus
 }
 #endif

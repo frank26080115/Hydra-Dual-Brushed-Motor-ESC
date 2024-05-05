@@ -57,6 +57,7 @@ const EEPROM_data_t default_eeprom __attribute__((aligned(4))) = {
     .channel_2          = 2,
     .channel_mode       = 0,
     .channel_brake      = 0,
+    .channel_masterarm  = 0,
 
     .rc_mid             = 1500,
     .rc_range           = 500,
@@ -98,10 +99,10 @@ const EEPROM_data_t default_eeprom __attribute__((aligned(4))) = {
 __attribute__((__section__(".eeprom")))
 const EEPROM_data_t cfge = {
     FOOL_AM32
-    .magic      = EEPROM_MAGIC,
+    .magic      = EEPROM_MAGIC-1, // magic is different, will be restored if a valid write occurs, this is to differentiate between ihex files with or without EEPROM payload
     .write_cnt  = 0,
     .boot_log   = 0,
-    .magic_end  = EEPROM_MAGIC,
+    .magic_end  = EEPROM_MAGIC-1,
 };
 #define cfg_addr    ((uint32_t)(&cfge))
 
@@ -128,7 +129,10 @@ const EEPROM_item_t cfg_items[] __attribute__((aligned(4))) = {
     DCLR_ITM("channel_1"      , channel_1         ),
     DCLR_ITM("channel_2"      , channel_2         ),
     DCLR_ITM("channel_mode"   , channel_mode      ),
+    #ifndef PWM_ENABLE_BRIDGE
     DCLR_ITM("channel_brake"  , channel_brake     ),
+    #endif
+    DCLR_ITM("master_arm"     , channel_masterarm ),
     DCLR_ITM("rc_mid"         , rc_mid            ),
     DCLR_ITM("rc_range"       , rc_range          ),
     DCLR_ITM("rc_deadzone"    , rc_deadzone       ),
@@ -230,6 +234,13 @@ bool eeprom_verify_header(uint32_t* ptr8)
         eeprom_error_log |= 0x04;
         #endif
     }
+    return ret;
+}
+
+bool eeprom_rectify_bootloader_ver(void)
+{
+    volatile EEPROM_data_t* ptre = (volatile EEPROM_data_t*)cfg_addr;
+    bool ret = true;
     #ifndef DEVELOPMENT_BOARD
     if (ptre->fool_am32_bootloader_version != eeprom_get_bootloader_ver()) {
         ret = false;
@@ -237,6 +248,7 @@ bool eeprom_verify_header(uint32_t* ptr8)
         #ifndef RELEASE_BUILD
         eeprom_error_log |= 0x08;
         #endif
+        eeprom_save();
     }
     #endif
     return ret;
@@ -286,6 +298,8 @@ bool eeprom_load_or_default(void)
             eeprom_save();
         }
         #endif
+
+        eeprom_rectify_bootloader_ver();
 
         return true;
     }
@@ -383,7 +397,6 @@ void eeprom_delay_dirty(void)
 extern uint32_t arm_pulses_required;
 extern uint32_t disarm_timeout;
 extern void pwm_set_period(uint32_t);
-extern void pwm_set_deadtime(uint32_t);
 extern void pwm_set_remap(uint8_t);
 extern void pwm_set_loadbalance(bool);
 extern void pwm_set_braking(bool);
@@ -394,7 +407,6 @@ void load_runtime_configs(void)
     disarm_timeout      = cfg.disarm_timeout;
     pwm_set_braking    (cfg.braking);
     pwm_set_period     (cfg.pwm_period);
-    pwm_set_deadtime   (cfg.pwm_deadtime);
     pwm_set_remap      (cfg.phase_map);
     pwm_set_loadbalance(cfg.load_balance);
     load_config_pid();

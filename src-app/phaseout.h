@@ -13,7 +13,6 @@ extern bool braking;
 
 extern void pwm_init();        // implemented in HAL
 extern void pwm_set_period(uint32_t x);   // used to set frequency from user config
-extern void pwm_set_deadtime(uint32_t x); // used to set deadtime from user config
 
 // implemented in HAL
 extern void pwm_setFlt_A();

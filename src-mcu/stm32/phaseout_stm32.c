@@ -251,11 +251,6 @@ void pwm_set_period(uint32_t x)
     LL_TIM_SetAutoReload(PWMOUTTIMx, x);
 }
 
-void pwm_set_deadtime(uint32_t x)
-{
-    LL_TIM_OC_SetDeadTime(PWMOUTTIMx, x);
-}
-
 #ifdef PWM_NEED_IRQ
 void TIM1_BRK_UP_TRG_COM_IRQHandler(void)
 {

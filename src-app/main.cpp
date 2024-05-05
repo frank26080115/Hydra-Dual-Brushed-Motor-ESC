@@ -135,6 +135,8 @@ int main(void)
             rc3 = &crsf_3;
         }
 
+        crsf_setMasterArmChan(cfg.channel_masterarm);
+
         dbg_printf("input mode [%u] CRSF\r\n", cfg.input_mode);
     }
     else

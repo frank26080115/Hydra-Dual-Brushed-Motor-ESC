@@ -29,6 +29,7 @@ static uint32_t last_good_time = 0;
 static uint32_t last_any_time  = 0;
 static uint8_t  good_pulse_cnt = 0;
 static uint8_t  bad_pulse_cnt  = 0;
+static uint8_t  master_arm_chan = 0;
 
 #ifdef DEBUG_CRSF_RATE
 static uint32_t data_rate_cnt = 0;
@@ -198,7 +199,9 @@ void CrsfChannel::task(void)
         {
             arming_tick = now; // stage next time to check
 
-            if ((now - last_good_time) <= 100 && read() == 0) { // signal is still valid and reading 0
+            if ((now - last_good_time) <= 100 && (read() == 0
+                || (master_arm_chan > 0 && crsf_readChan(master_arm_chan) > CRSF_CHANNEL_VALUE_MID)))
+            { // signal is still valid and reading 0 or master arm active
                 arming_cnt++;
                 if (arming_cnt >= arm_pulses_required) { // met requirements
                     #ifdef DEBUG_CRSF
@@ -318,6 +321,11 @@ uint16_t crsf_readChan(uint8_t i)
         return 0; // unconfigured
     }
     return crsf_channels[i - 1];
+}
+
+void crsf_setMasterArmChan(uint8_t c)
+{
+    master_arm_chan = c;
 }
 
 #ifdef __cplusplus

@@ -72,10 +72,5 @@ void pwm_set_period(uint32_t x)
     PWMOUTTIMx->pr = x;
 }
 
-void pwm_set_deadtime(uint32_t x)
-{
-    PWMOUTTIMx->brk_bit.dtc = x;
-}
-
 #include "stm32_at32_compat.h"
 #include "phaseout_shared.h"
