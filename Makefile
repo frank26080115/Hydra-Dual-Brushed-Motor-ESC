@@ -23,7 +23,7 @@ include src-mcu/gd32f350/makefile-gdf350.mk
 # default build, override from command line
 MCU_TYPE ?= F051
 VERSION_MAJOR = 0
-VERSION_MINOR = 4
+VERSION_MINOR = 5
 VERSION_EEPROM = 3
 IDENTIFIER = HYDRA
 
