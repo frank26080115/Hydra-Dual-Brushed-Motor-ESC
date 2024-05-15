@@ -29,7 +29,9 @@ static uint32_t last_good_time = 0;
 static uint32_t last_any_time  = 0;
 static uint8_t  good_pulse_cnt = 0;
 static uint8_t  bad_pulse_cnt  = 0;
-static uint8_t  master_arm_chan = 0;
+
+static uint8_t master_arm_chan = 0;
+static bool    master_armed    = false;
 
 #ifdef DEBUG_CRSF_RATE
 static uint32_t data_rate_cnt = 0;
@@ -123,6 +125,10 @@ void CrsfChannel::task(void)
                     , &good_pulse_cnt, &bad_pulse_cnt, NULL
                     , (bool*)&new_flag, NULL
                 );
+
+                if (master_arm_chan > 0) {
+                    master_armed = crsf_readChan(master_arm_chan) > CRSF_CHANNEL_VALUE_MID;
+                }
             }
 
             #ifdef DEBUG_CRSF_RATE
@@ -199,8 +205,7 @@ void CrsfChannel::task(void)
         {
             arming_tick = now; // stage next time to check
 
-            if ((now - last_good_time) <= 100 && (read() == 0
-                || (master_arm_chan > 0 && crsf_readChan(master_arm_chan) > CRSF_CHANNEL_VALUE_MID)))
+            if ((now - last_good_time) <= 100 && read() == 0)
             { // signal is still valid and reading 0 or master arm active
                 arming_cnt++;
                 if (arming_cnt >= arm_pulses_required) { // met requirements
@@ -234,12 +239,14 @@ void CrsfChannel::task(void)
         dbg_printf("CRSF disarmed due to timeout (%u - %u > %u)\r\n", now, last_good_time, disarm_timeout);
         #endif
         armed = false;
+        master_armed = false;
         arming_cnt = 0;
     }
 
     if (last_good_time > now && now < 0x7FFFFFFF && armed) {
         dbg_printf("CRSF unexpected future rx time %u > %u\r\n", last_good_time, now);
         armed = false;
+        master_armed = false;
         arming_cnt = 0;
     }
 }
@@ -302,12 +309,16 @@ bool CrsfChannel::has_new(bool clr)
 
 bool CrsfChannel::is_armed(void)
 {
+    if (master_arm_chan > 0) {
+        return master_armed;
+    }
     return armed;
 }
 
 void CrsfChannel::disarm(void)
 {
     armed = false;
+    master_armed = false;
     arming_cnt = 0;
 }
 

@@ -189,7 +189,9 @@ int main(void)
         if (cfg.tied == false)
         {
             if (armed_both == false) {
-                if (rc1->is_armed() && rc2->is_armed() && rc1->read() == 0 && rc2->read() == 0) { // require both to be simultaneously zero
+                if (rc1->is_armed() && rc2->is_armed()
+                    && ((rc1->read() == 0 && rc2->read() == 0) || (cfg.channel_masterarm > 0))
+                    ) { // require both to be simultaneously zero, or using master-arm feature
                     // check rc3 if direct-PWM mode
                     if (rc3 == NULL) {
                         armed_both = true;
