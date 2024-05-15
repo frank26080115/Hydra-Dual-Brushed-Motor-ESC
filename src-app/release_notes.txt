@@ -1,5 +1,9 @@
-# V0.4 Release Notes
+# V0.5 Release Notes
 
 This is a alpha release, features are all complete, but not fully tested.
 
-## New features
+## New features and fixes
+
+ * master arm actually works like it should now
+ * fixed python script being broken for Linux and Mac
+ * fixed installer not able to install text config due to bootloader version not being respected
