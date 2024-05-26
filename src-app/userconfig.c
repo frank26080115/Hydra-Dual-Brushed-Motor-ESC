@@ -59,6 +59,10 @@ const EEPROM_data_t default_eeprom __attribute__((aligned(4))) = {
     .channel_brake      = 0,
     .channel_masterarm  = 0,
 
+    .telemetry_port     = 0,
+    .telemetry_baud     = 0,
+    .telemetry_rate     = 0,
+
     .rc_mid             = 1500,
     .rc_range           = 500,
     .rc_deadzone        = 10,
@@ -133,6 +137,9 @@ const EEPROM_item_t cfg_items[] __attribute__((aligned(4))) = {
     DCLR_ITM("channel_brake"  , channel_brake     ),
     #endif
     DCLR_ITM("master_arm"     , channel_masterarm ),
+    DCLR_ITM("telem_port"     , telemetry_port    ),
+    DCLR_ITM("telem_baud"     , telemetry_baud    ),
+    DCLR_ITM("telem_rate"     , telemetry_rate    ),
     DCLR_ITM("rc_mid"         , rc_mid            ),
     DCLR_ITM("rc_range"       , rc_range          ),
     DCLR_ITM("rc_deadzone"    , rc_deadzone       ),

@@ -1,22 +1,9 @@
 #include "crsf.h"
 #include "userconfig.h"
+#include "telemetry.h"
 
 //#define DEBUG_CRSF
 //#define DEBUG_CRSF_RATE
-
-// reference https://github.com/ExpressLRS/ExpressLRS/blob/69381f22b87bdc1056bcb8b2f4ecd08fd214d356/src/lib/CrsfProtocol/crsf_protocol.h
-#define CRSF_CHAN_CNT 16
-#define CRSF_SYNC_BYTE 0xC8
-#define CRSF_FRAMETYPE_RC_CHANNELS_PACKED 0x16
-
-typedef struct
-{
-    uint8_t sync;
-    uint8_t len;
-    uint8_t type;
-}
-__attribute__((packed))
-crsf_header_t;
 
 uint8_t crsf_crc8(const uint8_t *ptr, uint8_t len);
 
@@ -77,6 +64,9 @@ void CrsfChannel::task(void)
 
     if (is_idle) { // USART is idle, new packet is available
         last_any_time = now;
+        #ifdef ENABLE_TELEMETRY
+        telem_crsfTask(); // send out a telemetry packet during this brief pause
+        #endif
     }
 
     if (is_idle && hdr->sync == CRSF_SYNC_BYTE && hdr->type == CRSF_FRAMETYPE_RC_CHANNELS_PACKED)

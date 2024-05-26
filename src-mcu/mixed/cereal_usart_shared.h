@@ -105,6 +105,13 @@ void Cereal_USART::flush(void)
     // I know this is blocking, but this will only be used in CLI mode, and happens fast enough to be negligible
 }
 
+bool Cereal_USART::is_tx_busy(void) {
+    if (fifo_available(fifo_tx)) {
+        return true;
+    }
+    return (LL_USART_IsActiveFlag_TC(_usart) == 0 || LL_USART_IsActiveFlag_TXE(_usart) == 0);
+}
+
 uint32_t Cereal_USART::get_last_time(void)
 {
     if (_u == CEREAL_ID_USART1) {

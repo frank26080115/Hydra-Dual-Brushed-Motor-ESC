@@ -31,6 +31,12 @@ enum
 
 enum
 {
+    TELEMPORT_NONE,
+    TELEMPORT_SWCLK, // PA14, U2T
+};
+
+enum
+{
     DIRPWM_UNCONFIGURED, // float
     DIRPWM_PUSHPULL,
     DIRPWM_HIGHONLY,
@@ -73,9 +79,13 @@ typedef struct
     // CRSF channel selection, 0 if not used
     uint8_t channel_1;
     uint8_t channel_2;
-    uint8_t channel_mode;  // used for either setting the volt-split mode during run-time, or used as the 3rd channel for direct-PWM mode
-    uint8_t channel_brake; // used to enable or disable braking during run-time
+    uint8_t channel_mode;      // used for either setting the volt-split mode during run-time, or used as the 3rd channel for direct-PWM mode
+    uint8_t channel_brake;     // used to enable or disable braking during run-time
     uint8_t channel_masterarm; // used to instantly arm with a switch on the radio
+
+    uint8_t  telemetry_port;   // only SWCLK is supported, any non-zero value will enable usage of telemetry through CRSF
+    uint32_t telemetry_baud;   // 0 means automatic, otherwise it will override CRSF baudrate
+    uint8_t  telemetry_rate;   // number of reports per second
 
     // RC signal calibration, units are microseconds
     uint16_t rc_mid;       // do not apply to CRSF data

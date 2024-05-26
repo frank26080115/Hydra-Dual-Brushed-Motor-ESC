@@ -17,6 +17,11 @@ uint16_t adc_raw_current = 0;
 uint16_t adc_raw_temperature = 0;
 uint16_t adc_raw_current_filtered = 0;
 
+#ifdef ENABLE_TELEMETRY
+uint32_t sense_current_accum = 0;
+uint32_t sense_current_accum_cnt = 0;
+#endif
+
 pidloop_t current_pid = {
     .Kp = 40,                // can be modified later through user configuration
     .Ki = 0,                 // can be modified later through user configuration
@@ -71,6 +76,11 @@ bool sense_task(void)
         #ifdef SIMULATE_TEMPERATURE_LIMIT
         cfg.temperature_limit = 80;
         sense_temperatureC = fi_map(crsf_readChan(3), CRSF_CHANNEL_VALUE_1000, CRSF_CHANNEL_VALUE_2000, cfg.temperature_limit / 2, cfg.temperature_limit + (cfg.temperature_limit / 2), false);
+        #endif
+
+        #ifdef ENABLE_TELEMETRY
+        sense_current_accum += sense_current;
+        sense_current_accum_cnt += 1;
         #endif
 
         return true;
@@ -138,11 +148,17 @@ void battery_task(void)
     if (cfg.voltage_limit <= 0) {
         return;
     }
+    if (batt_starting_voltage == 0) {
+        battery_calc();
+    }
     if (cfg.voltage_limit > cfg.cell_max_volt) {
         voltage_limit = cfg.voltage_limit;
         return;
     }
+}
 
+void battery_calc(void)
+{
     if (batt_cell_cnt <= 0 || batt_starting_voltage <= 0 || voltage_limit <= 0)
     {
         batt_max_voltage = sense_voltage > batt_max_voltage ? sense_voltage : batt_max_voltage;
@@ -156,6 +172,9 @@ void battery_task(void)
         }
     }
     prev_voltage = sense_voltage;
+    if (cfg.voltage_limit > cfg.cell_max_volt) {
+        voltage_limit = cfg.voltage_limit;
+    }
 }
 
 #ifndef RELEASE_BUILD

@@ -12,6 +12,21 @@
 #define CRSF_CHANNEL_VALUE_2000 1792
 #define CRSF_CHANNEL_VALUE_MAX  1811 // 2012us - actual CRSF max is 1984 with E.Limits on
 
+// reference https://github.com/ExpressLRS/ExpressLRS/blob/69381f22b87bdc1056bcb8b2f4ecd08fd214d356/src/lib/CrsfProtocol/crsf_protocol.h
+#define CRSF_CHAN_CNT 16
+#define CRSF_SYNC_BYTE 0xC8
+#define CRSF_FRAMETYPE_RC_CHANNELS_PACKED 0x16
+#define CRSF_FRAMETYPE_BATTERY_SENSOR 0x08
+
+typedef struct
+{
+    uint8_t sync;
+    uint8_t len;
+    uint8_t type;
+}
+__attribute__((packed))
+crsf_header_t;
+
 #ifdef __cplusplus
 
 class CrsfChannel : public RcChannel

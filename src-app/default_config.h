@@ -28,6 +28,10 @@ const EEPROM_data_t default_eeprom __attribute__((aligned(4))) = {
     .channel_brake      = 0,
     .channel_masterarm  = 0,
 
+    .telemetry_port     = 0,
+    .telemetry_baud     = 0,
+    .telemetry_rate     = 0,
+
     .rc_mid             = 1500,
     .rc_range           = 500,
     .rc_deadzone        = 10,

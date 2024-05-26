@@ -28,7 +28,7 @@ class UserCfg(object):
     def __init__(self):
         self.init_idx = 0
         self.items = []
-        self.version = 3 # change this according to makefile
+        self.version = 4 # change this according to makefile
 
     def install_item(self, name, struct_name, c_type, val = 0):
         byte_size = c_type_to_bytes(c_type)
@@ -58,6 +58,9 @@ class UserCfg(object):
         self.install_item("channel_mode", "channel_mode", "uint8_t")
         self.install_item("channel_brake", "channel_brake", "uint8_t")
         self.install_item("master_arm", "channel_masterarm", "uint8_t")
+        self.install_item("telem_port", "telemetry_port", "uint8_t")
+        self.install_item("telem_baud", "telemetry_baud", "uint32_t")
+        self.install_item("telem_rate", "telemetry_rate", "uint8_t")
         self.install_item("rc_mid", "rc_mid", "uint16_t")
         self.install_item("rc_range", "rc_range", "uint16_t")
         self.install_item("rc_deadzone", "rc_deadzone", "uint16_t")

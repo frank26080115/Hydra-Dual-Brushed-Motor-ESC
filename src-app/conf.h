@@ -6,6 +6,7 @@
 //#define RC_LOG_JITTER
 //#define DISABLE_EEPROM
 //#define ENABLE_TONE
+#define ENABLE_TELEMETRY
 
 //#define DEBUG_PINTOGGLE
 

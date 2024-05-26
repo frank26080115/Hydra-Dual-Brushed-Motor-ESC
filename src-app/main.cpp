@@ -9,6 +9,7 @@
 #include "rc.h"
 #include "led.h"
 #include "crsf.h"
+#include "telemetry.h"
 #include "hw_tests.h"
 #include <math.h>
 
@@ -155,6 +156,33 @@ int main(void)
         #endif
     }
 
+    #ifdef ENABLE_TELEMETRY
+    if (cfg.telemetry_port != TELEMPORT_NONE)
+    {
+        if (cfg.input_mode == INPUTMODE_CRSF)
+        {
+            // use existing cereal port
+            telem_init(&main_cer,
+                #if defined(MAIN_SIGNAL_PA2)
+                TELEMSWAP_PA2_PA14
+                #else
+                TELEMSWAP_NO_NEED
+                #endif
+                );
+        }
+        else if (cfg.input_mode == INPUTMODE_CRSF_SWCLK)
+        {
+            telem_init(&main_cer, TELEMSWAP_PA14_BIDIR);
+        }
+        else
+        {
+            // initialize new cereal port since CRSF is not being used
+            main_cer.init(CEREAL_ID_USART_SWCLK, (cfg.telemetry_baud == 0) ? CRSF_BAUDRATE : cfg.telemetry_baud, false, false);
+            telem_init(&main_cer, TELEMSWAP_NO_NEED);
+        }
+    }
+    #endif
+
     wdt_init();
 
     dbg_printf("init finished at %u\r\n", millis());
@@ -168,6 +196,9 @@ int main(void)
         led_task(false);
         sense_task();
         battery_task();
+        #ifdef ENABLE_TELEMETRY
+        telem_mainTask();
+        #endif
 
         rc1->task();
         rc2->task();
@@ -284,7 +315,7 @@ int main(void)
         }
 
         // impose voltage limit if desired
-        if (voltage_limit > 0) {
+        if (cfg.voltage_limit > 0 && voltage_limit > 0) {
             if (sense_voltage < voltage_limit) {
                 int32_t lower_limit = ((int32_t)voltage_limit) - (cfg.lowbatt_stretch > UNDERVOLTAGE ? cfg.lowbatt_stretch : UNDERVOLTAGE);
                 duty_max = fi_map(sense_voltage, lower_limit, voltage_limit, 0, duty_max, true);
