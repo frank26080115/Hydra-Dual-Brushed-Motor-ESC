@@ -77,6 +77,7 @@ class Cereal_USART : public Cereal
         virtual uint32_t get_last_time(void);
         virtual bool get_idle_flag(bool clr);
         virtual bool is_tx_busy(void);
+        virtual void set_txrx_swap(bool);
         virtual void restart(void);
         #if defined(STMICRO)
         virtual void drain_echo(void);

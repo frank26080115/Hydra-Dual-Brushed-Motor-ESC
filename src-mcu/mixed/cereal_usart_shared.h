@@ -112,6 +112,29 @@ bool Cereal_USART::is_tx_busy(void) {
     return (LL_USART_IsActiveFlag_TC(_usart) == 0 || LL_USART_IsActiveFlag_TXE(_usart) == 0);
 }
 
+void Cereal_USART::set_txrx_swap(bool swap)
+{
+    if (swap)
+    {
+        #if defined(STMICRO)
+        _usart->CR2 |= USART_CR2_SWAP;
+        #elif defined(ARTERY)
+        _usart->ctrl2 |= (1<<15);
+        #endif
+    }
+    else
+    {
+        // function only used for telemetry, so swap = false means enable transmitter
+        #if defined(STMICRO)
+        _usart->CR2 &= ~USART_CR2_SWAP;
+        _usart->CR1 |= USART_CR1_TE | USART_CR1_TCIE;
+        #elif defined(ARTERY)
+        _usart->ctrl2 &= ~(1<<15);
+        _usart->ctrl1 |= (1 << 3) | (1 << 6);
+        #endif
+    }
+}
+
 uint32_t Cereal_USART::get_last_time(void)
 {
     if (_u == CEREAL_ID_USART1) {

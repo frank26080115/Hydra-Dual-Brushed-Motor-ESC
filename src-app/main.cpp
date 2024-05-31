@@ -157,30 +157,7 @@ int main(void)
     }
 
     #ifdef ENABLE_TELEMETRY
-    if (cfg.telemetry_port != TELEMPORT_NONE)
-    {
-        if (cfg.input_mode == INPUTMODE_CRSF)
-        {
-            // use existing cereal port
-            telem_init(&main_cer,
-                #if defined(MAIN_SIGNAL_PA2)
-                TELEMSWAP_PA2_PA14
-                #else
-                TELEMSWAP_NO_NEED
-                #endif
-                );
-        }
-        else if (cfg.input_mode == INPUTMODE_CRSF_SWCLK)
-        {
-            telem_init(&main_cer, TELEMSWAP_PA14_BIDIR);
-        }
-        else
-        {
-            // initialize new cereal port since CRSF is not being used
-            main_cer.init(CEREAL_ID_USART_SWCLK, (cfg.telemetry_baud == 0) ? CRSF_BAUDRATE : cfg.telemetry_baud, false, false);
-            telem_init(&main_cer, TELEMSWAP_NO_NEED);
-        }
-    }
+    telemetry_init();
     #endif
 
     wdt_init();
