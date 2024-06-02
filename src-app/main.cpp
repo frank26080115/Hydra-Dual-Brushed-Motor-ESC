@@ -255,7 +255,7 @@ int main(void)
                 dbg_printf("[%u] disarmed (%d %d), v=%lu   c=%u\r\n", millis(), rc1->read(), rc2->read(), sense_voltage, sense_current);
             }
             current_limit_task(0, 0);
-            wdt_feed();
+            wdt_feed_fromMain(false);
             continue; // do not execute the rest of the logic
         }
         else if (v1 == 0 && v2 == 0) {
@@ -403,7 +403,7 @@ int main(void)
             dbg_printf("\r\n");
         }
 
-        wdt_feed();
+        wdt_feed_fromMain(armed_both);
     }
 
     return 0;

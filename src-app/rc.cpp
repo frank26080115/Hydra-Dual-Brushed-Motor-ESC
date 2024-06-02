@@ -1,4 +1,5 @@
 #include "rc.h"
+#include "wdt.h"
 
 uint32_t arm_pulses_required;
 uint32_t disarm_timeout;
@@ -77,6 +78,7 @@ bool rc_find_arming_vals(int32_t multi, int32_t offset, uint16_t* out_min, uint1
 
 void rc_register_good_pulse(uint16_t pw, uint16_t arm_thresh_min, uint16_t arm_thresh_max, uint32_t* timestamp, uint8_t* good_cnt, uint8_t* bad_cnt, uint32_t* arm_cnt, bool* nflag, bool* armed)
 {
+    wdt_feed_onPulse();
     (*timestamp) = millis();
     if ((*good_cnt) < 128) {
         (*good_cnt)++;

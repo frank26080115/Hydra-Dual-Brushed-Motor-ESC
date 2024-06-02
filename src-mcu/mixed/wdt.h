@@ -14,7 +14,8 @@ the watchdog timer will only be active once the ESC is in the main loop
 */
 
 void wdt_init(void);
-void wdt_feed(void);
+void wdt_feed_fromMain(bool);
+void wdt_feed_onPulse(void);
 
 #ifdef __cplusplus
 }

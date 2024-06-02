@@ -4,6 +4,9 @@
 #define LSI_VALUE 32000
 #endif
 
+static volatile bool    has_armed = false; // only require two bits set if an initial connection has been established
+static volatile uint8_t req_flags = 0;     // two bit flags must be set for watchdog to be fed
+
 void wdt_init(void)
 {
     #define IWDG_TICKS    (1 * (LSI_VALUE/16)) // one second, 32 kHz LSI, 16 divider
@@ -24,9 +27,28 @@ void wdt_init(void)
 
 void wdt_feed(void)
 {
+    if (req_flags != 0x03 && has_armed) {
+        return;
+    }
     #if defined(STMICRO)
     LL_IWDG_ReloadCounter(IWDG);
     #elif defined(ARTERY)
     wdt_counter_reload();
     #endif
+    req_flags = 0;
+}
+
+void wdt_feed_fromMain(bool armed)
+{
+    if (armed) {
+        has_armed = true;
+    }
+    req_flags |= 0x01;
+    wdt_feed();
+}
+
+void wdt_feed_onPulse(void)
+{
+    req_flags |= 0x02;
+    wdt_feed();
 }

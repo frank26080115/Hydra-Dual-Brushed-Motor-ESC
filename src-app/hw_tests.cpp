@@ -701,7 +701,7 @@ void hwtest_wdt(void)
 
     while (true)
     {
-        wdt_feed(); // comment this out to test resetting
+        wdt_feed_fromMain(false); // comment this out to test resetting
 
         if (millis() < 500) {
             led_blink_set(0);
