@@ -7,8 +7,25 @@
 
 #ifdef ENABLE_TELEMETRY
 
+// bit flags that indicate which pin to initialize and how
+// the names indicate what the pin originally was used for, and what they are going to be used for
+enum
+{
+    TELEMPIN_NO_NEED,
+    TELEMPIN_PA2_WAS_CRSF   = 0x01,
+    TELEMPIN_PA2_WAS_PWM    = 0x02,
+    TELEMPIN_PB4_WAS_PWM    = 0, // do nothing
+    TELEMPIN_PB6_WAS_CRSF   = 0x04,
+    TELEMPIN_PB6_WAS_PWM    = 0x08,
+    TELEMPIN_PA14_WAS_CRSF  = 0x10,
+    TELEMPIN_PA14_WAS_PWM   = 0x20,
+    TELEMPIN_PB6_TO_TELEM   = 0x40,
+    TELEMPIN_PA14_TO_TELEM  = 0x80,
+};
+
 extern "C"
 {
+    // telemetry needs to read from the sense module
     extern uint32_t sense_current;
     extern uint32_t sense_voltage;
     extern uint8_t  batt_cell_cnt;
@@ -17,22 +34,22 @@ extern "C"
     extern uint32_t sense_current_accum_cnt;
 }
 
-extern Cereal_USART main_cer;
-static Cereal_USART* telem_cer = NULL;
-static uint8_t telem_swapmode;
-static uint32_t telem_period;
-static uint8_t  telem_datamask = 0;
-static bool     telem_callFromCrsf = false;
-static uint32_t telem_lastTime = 0;
-static uint32_t telem_mAs = 0;
-static uint32_t telem_mAH_max = 0;
-static uint32_t telem_mAH_time = 0;
-static uint32_t telem_mAH_maxCnt = 0;
+extern Cereal_USART  main_cer;         // from main
+static Cereal_USART* telem_cer = NULL; // initialized only if required
+static uint8_t  telem_swapmode;        // caches simplified byte indicating which pin needs to be initialized and how
+static uint32_t telem_period;          // milliseconds between telemetry packets
+static uint8_t  telem_datamask = 0;    // what data is reported in the telemetry packet, using the `TELEMPORT_FLAG_DISABLE_*` enumerations
+static bool     telem_callFromCrsf = false; // will be set if the CRSF reception calls the task, and subsequent telemetry can only be sent right after CRSF reception
+static uint32_t telem_lastTime = 0;    // timestamp of the last telemetry packet
+static uint32_t telem_mAs = 0;         // tracks milliamp-seconds, in order to report milliamp-hours
+static uint32_t telem_mAH_max = 0;     // mAH cannot go down due to accumulator rounding errors
+static uint32_t telem_mAH_time = 0;    // used to track second ticks
+static uint32_t telem_mAH_maxCnt = 0;  // used to average out the accumlated milliamp readings over one second
 
 extern uint8_t crsf_crc8(const uint8_t *ptr, uint8_t len);
-void telem_pinPrep(void);
-void telem_pinRestore(void);
-void telem_init(Cereal_USART* cer, uint8_t swap_mode);
+static void telem_pinPrep(void);
+static void telem_pinRestore(void);
+static void telem_init(Cereal_USART* cer, uint8_t swap_mode);
 
 #define TELEM_BIGENDIAN16(_buf, _idx, _val)    do {(_buf)[_idx] = (_val) >> 8;  (_buf)[(_idx) + 1] = (_val) & 0xFF;} while (0)
 #define TELEM_BIGENDIAN24(_buf, _idx, _val)    do {(_buf)[_idx] = (_val) >> 16; (_buf)[(_idx) + 1] = ((_val) >> 8) & 0xFF; (_buf)[(_idx) + 2] = (_val) & 0xFF;} while (0)
@@ -113,21 +130,22 @@ void telemetry_init(void)
     }
 }
 
-void telem_init(Cereal_USART* cer, uint8_t swap_mode)
+// simply caches some items to speed up the polled task
+static void telem_init(Cereal_USART* cer, uint8_t swap_mode)
 {
+    telem_cer = cer;
     telem_swapmode = swap_mode;
     telem_period = 1000 / cfg.telemetry_rate;
     telem_datamask = cfg.telemetry_port & 0xF0;
 }
 
-void telem_task(void)
+static void telem_task(void)
 {
-    if (telem_cer == NULL || telem_period <= 0) {
+    if (telem_cer == NULL || telem_period <= 0) { // do nothing if telemetry is not configured
         return;
     }
     uint32_t now = millis();
-    if ((now - telem_lastTime) < telem_period)
-    {
+    if ((now - telem_lastTime) < telem_period) { // send only when required by time interval
         return;
     }
     telem_lastTime = now;
@@ -197,7 +215,7 @@ void telem_task(void)
     // note: cereal_dmaRestart() will be called outside this function if needed
 }
 
-void telem_pinPrep(void)
+static void telem_pinPrep(void)
 {
     if ((telem_swapmode & TELEMPIN_PA2_WAS_CRSF) != 0) {
         #if defined(STMICRO)
@@ -261,7 +279,7 @@ void telem_pinPrep(void)
     }
 }
 
-void telem_pinRestore(void)
+static void telem_pinRestore(void)
 {
     if ((telem_swapmode & TELEMPIN_PA2_WAS_CRSF) != 0) {
         #if defined(STMICRO)
